@@ -1,7 +1,7 @@
 """Screenshot Scan detector service — classification + Gemini audit pipeline.
 
 Extracted from app.py as-is (Phase 1 service-layer split): same classifier,
-same preprocessing, same Gemini auditor call via gen_ai, same behaviour.
+same preprocessing, same Gemini auditor call via screenshot_genai, same behaviour.
 Nothing about the algorithms below was changed, only where it lives.
 """
 import os
@@ -10,7 +10,7 @@ import tempfile
 import numpy as np
 from PIL import Image
 from ai_edge_litert.interpreter import Interpreter
-import gen_ai
+from services.screenshot import screenshot_genai
 
 # --- classifier loaded ONCE at import, not per request --------------------
 interpreter = Interpreter(model_path="model.tflite")
@@ -62,9 +62,9 @@ def run_stage1_audit(classification: dict, image_bytes: bytes) -> dict:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".img") as tmp:
             tmp.write(image_bytes)
             tmp_path = tmp.name
-        # gen_ai.analyse runs auditor -> policy -> exposure and degrades gracefully
+        # screenshot_genai.analyse runs auditor -> policy -> exposure and degrades gracefully
         # if the auditor is unavailable (classifier result is preserved regardless).
-        return gen_ai.analyse(classification, tmp_path)
+        return screenshot_genai.analyse(classification, tmp_path)
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
@@ -72,8 +72,8 @@ def run_stage1_audit(classification: dict, image_bytes: bytes) -> dict:
 
 def respond(analysis_context: dict, answers: dict) -> dict:
     """STAGE 2: user answers exposure questions, return the guarded response.
-    Thin passthrough to gen_ai.respond, kept here so app.py only talks to the
+    Thin passthrough to screenshot_genai.respond, kept here so app.py only talks to the
     service layer. Raises ValueError on missing/invalid answers exactly as
-    gen_ai.respond -> resolve_exposure_answers already did — app.py converts
+    screenshot_genai.respond -> resolve_exposure_answers already did — app.py converts
     that into the existing 400 response."""
-    return gen_ai.respond(analysis_context, answers)
+    return screenshot_genai.respond(analysis_context, answers)

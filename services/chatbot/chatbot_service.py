@@ -1,8 +1,8 @@
 """ScamSense Assistant service — a small, controlled Gemini role for free-text chat.
 
-Fully isolated from gen_ai.py: this module creates its own Gemini client using
+Fully isolated from screenshot_genai.py: this module creates its own Gemini client using
 the same already-installed google-genai SDK and the same GEMINI_API_KEY, but
-shares no code, prompt, or state with gen_ai.py's Screenshot pipeline. gen_ai.py
+shares no code, prompt, or state with screenshot_genai.py's Screenshot pipeline. screenshot_genai.py
 is not imported here and is not touched by this feature.
 
 Scope is deliberately narrow — this service ONLY turns a free-text Assistant
@@ -24,7 +24,7 @@ if "GEMINI_API_KEY" not in os.environ:
         "environment variables before starting the server."
     )
 
-# Same SDK/model family gen_ai.py already uses, wired up independently — no
+# Same SDK/model family screenshot_genai.py already uses, wired up independently — no
 # shared client, no shared import, so this feature can change or fail without
 # touching the Screenshot pipeline at all.
 _client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
