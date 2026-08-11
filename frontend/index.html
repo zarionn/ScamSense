@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ScamSense — Scam Screenshot Checker</title>
+    <script>
+      (function () {
+        var STORAGE_KEY = "scamsense-theme";
+        var VALID = ["light", "dark", "system"];
+        var stored = null;
+        try {
+          stored = localStorage.getItem(STORAGE_KEY);
+        } catch (e) {}
+        var theme = VALID.indexOf(stored) !== -1 ? stored : "system";
+        var resolved =
+          theme === "system"
+            ? (window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light")
+            : theme;
+        document.documentElement.classList.toggle("dark", resolved === "dark");
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

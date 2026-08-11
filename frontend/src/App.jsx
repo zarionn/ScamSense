@@ -1,273 +1,111 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Loader2, ShieldCheck } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import UploadZone from '@/components/UploadZone'
-import ExposureQuestions from '@/components/ExposureQuestions'
-import ResultView from '@/components/ResultView'
-import ErrorMessage from '@/components/ErrorMessage'
-import UncertaintyNote from '@/components/UncertaintyNote'
-
-const PHASE = {
-  UPLOAD: 'upload',
-  QUESTIONS: 'questions',
-  RESULT: 'result',
-}
-
-async function parseJsonResponse(response) {
-  let data = null
-  try {
-    data = await response.json()
-  } catch {
-    throw new Error('The server sent back an unexpected response. Please try again.')
-  }
-  if (!response.ok) {
-    throw new Error(data?.error || 'Something went wrong. Please try again.')
-  }
-  return data
-}
-
-async function analyseScreenshot(file) {
-  const formData = new FormData()
-  formData.append('file', file)
-
-  let response
-  try {
-    response = await fetch('/api/analyse', {
-      method: 'POST',
-      body: formData,
-    })
-  } catch {
-    throw new Error(
-      'Could not reach the server. Check your internet connection and try again.'
-    )
-  }
-  return parseJsonResponse(response)
-}
-
-async function respondToAnalysis(analysisContext, answers) {
-  let response
-  try {
-    response = await fetch('/api/respond', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ analysis_context: analysisContext, answers }),
-    })
-  } catch {
-    throw new Error(
-      'Could not reach the server. Check your internet connection and try again.'
-    )
-  }
-  return parseJsonResponse(response)
-}
+import { useCallback, useEffect, useState } from 'react'
+import AppShell from '@/components/layout/AppShell'
+import { useTheme } from '@/providers/theme-provider'
+import { useLocalStoragePreference } from '@/hooks/use-local-storage-preference'
+import { ScreenshotScanPage } from './pages/screenshot'
+import { AssistantPage } from './pages/assistant'
+import { MessageScanPage } from './pages/message'
+import { URLScanPage } from './pages/url'
+import { TransactionScanPage } from './pages/transaction'
+import { AboutPage } from './pages/about'
+import { SettingsPage } from './pages/settings'
 
 function App() {
-  const [file, setFile] = useState(null)
-  const [previewUrl, setPreviewUrl] = useState(null)
-  const objectUrlRef = useRef(null)
+  // Smallest safe page-selection approach with no router installed — the app
+  // still only ever renders one page inside the shared AppShell.
+  const [activePage, setActivePage] = useState('screenshot')
 
-  const [phase, setPhase] = useState(PHASE.UPLOAD)
+  // Smallest possible shared handoff state for carrying a browser File object
+  // from the Assistant into Screenshot Scan. Cleared as soon as Screenshot
+  // Scan consumes it (see ScreenshotScanPage's mount effect) so it never
+  // re-injects on a later render or a normal, non-handoff visit to the page.
+  const [detectorHandoff, setDetectorHandoff] = useState(null)
 
-  const [analyseStatus, setAnalyseStatus] = useState('idle')
-  const [analyseError, setAnalyseError] = useState('')
-  const [analysisContext, setAnalysisContext] = useState(null)
+  // Lifted (not local to AssistantPage) so Settings' "Clear Chat" can reset
+  // the same conversation, and so it survives navigating away and back
+  // instead of silently resetting every time the page remounts.
+  const [assistantMessages, setAssistantMessages] = useState([])
 
-  const [respondStatus, setRespondStatus] = useState('idle')
-  const [respondError, setRespondError] = useState('')
-  const [finalResult, setFinalResult] = useState(null)
+  // Settings-controlled, harmless UI-only preferences. Reused via the shared
+  // useLocalStoragePreference hook (no new theme/provider state) — theme
+  // itself still comes from the existing ThemeProvider below.
+  const [typingAnimation, setTypingAnimation] = useLocalStoragePreference(
+    'scamsense-assistant-typing',
+    true
+  )
+  const [guidedSuggestions, setGuidedSuggestions] = useLocalStoragePreference(
+    'scamsense-guided-suggestions',
+    true
+  )
+  const [reducedMotion, setReducedMotion] = useLocalStoragePreference(
+    'scamsense-reduced-motion',
+    false
+  )
+  const { setTheme } = useTheme()
 
   useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    document.documentElement.classList.toggle('reduce-motion', reducedMotion)
+  }, [reducedMotion])
+
+  const handleOpenDetector = useCallback((detectorKey, file) => {
+    if (detectorKey === 'screenshot' && file) {
+      setDetectorHandoff({ detector: 'screenshot', file, source: 'assistant' })
     }
+    setActivePage(detectorKey)
   }, [])
 
-  const handleFileSelected = useCallback((selectedFile) => {
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
-    const url = URL.createObjectURL(selectedFile)
-    objectUrlRef.current = url
-
-    setFile(selectedFile)
-    setPreviewUrl(url)
-    setAnalysisContext(null)
-    setFinalResult(null)
-    setAnalyseError('')
-    setRespondError('')
-    setAnalyseStatus('idle')
-    setRespondStatus('idle')
-    setPhase(PHASE.UPLOAD)
+  const handleHandoffConsumed = useCallback(() => {
+    setDetectorHandoff(null)
   }, [])
 
-  const submitAnswers = useCallback(async (context, answers) => {
-    setRespondStatus('loading')
-    setRespondError('')
-    try {
-      const data = await respondToAnalysis(context, answers)
-      setFinalResult(data)
-      setRespondStatus('success')
-      setPhase(PHASE.RESULT)
-    } catch (error) {
-      setRespondError(error.message)
-      setRespondStatus('error')
-    }
+  const handleClearAssistantChat = useCallback(() => {
+    setAssistantMessages([])
   }, [])
 
-  const handleAnalyse = useCallback(async () => {
-    if (!file) return
-    setAnalyseStatus('loading')
-    setAnalyseError('')
-    try {
-      const data = await analyseScreenshot(file)
-      setAnalysisContext(data)
-      setAnalyseStatus('success')
+  const handleResetSettings = useCallback(() => {
+    setTheme('system')
+    setTypingAnimation(true)
+    setGuidedSuggestions(true)
+    setReducedMotion(false)
+  }, [setTheme, setTypingAnimation, setGuidedSuggestions, setReducedMotion])
 
-      if (!data.exposure_questions || data.exposure_questions.length === 0) {
-        // Low-risk screenshot: nothing to ask, go straight to the final response.
-        await submitAnswers(data, {})
-      } else {
-        setPhase(PHASE.QUESTIONS)
-      }
-    } catch (error) {
-      setAnalyseError(error.message)
-      setAnalyseStatus('error')
-    }
-  }, [file, submitAnswers])
-
-  const handleAnswersSubmit = useCallback(
-    (answers) => {
-      if (!analysisContext) return
-      submitAnswers(analysisContext, answers)
-    },
-    [analysisContext, submitAnswers]
-  )
-
-  const handleReset = useCallback(() => {
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
-    objectUrlRef.current = null
-    setFile(null)
-    setPreviewUrl(null)
-    setAnalysisContext(null)
-    setFinalResult(null)
-    setAnalyseError('')
-    setRespondError('')
-    setAnalyseStatus('idle')
-    setRespondStatus('idle')
-    setPhase(PHASE.UPLOAD)
-  }, [])
-
-  const isAnalysing = analyseStatus === 'loading'
-  // The zero-questions path calls /api/respond while still visually in the upload
-  // phase (no questions screen to show), so give it its own loading affordance.
-  const isAutoResponding = respondStatus === 'loading' && phase === PHASE.UPLOAD
-  const isAuditDegraded = analysisContext?.audit_status?.startsWith('degraded')
+  const screenshotHandoffFile =
+    detectorHandoff?.detector === 'screenshot' ? detectorHandoff.file : null
 
   return (
-    <div className="min-h-svh bg-background">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-4 py-5">
-          <ShieldCheck className="size-7 text-primary" aria-hidden="true" />
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">ScamSense</h1>
-            <p className="text-sm text-muted-foreground">
-              Upload a screenshot to check if it looks like a scam
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-2xl px-4 py-8">
-        {phase === PHASE.RESULT && finalResult ? (
-          <ResultView
-            previewUrl={previewUrl}
-            classifier={finalResult.classifier}
-            effectiveCautionLevel={finalResult.effective_caution_level}
-            responseMessage={finalResult.response_message}
-            onReset={handleReset}
-          />
-        ) : phase === PHASE.QUESTIONS && analysisContext ? (
-          <div className="space-y-5">
-            {isAuditDegraded && (
-              <UncertaintyNote note="The independent visual review was temporarily unavailable, so these questions are based on the official classifier result." />
-            )}
-            <ExposureQuestions
-              questions={analysisContext.exposure_questions}
-              onSubmit={handleAnswersSubmit}
-              isSubmitting={respondStatus === 'loading'}
-              errorMessage={respondStatus === 'error' ? respondError : ''}
-            />
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {!file && (
-              <UploadZone onFileSelected={handleFileSelected} disabled={isAnalysing} />
-            )}
-
-            {file && (
-              <div className="space-y-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <img
-                    src={previewUrl}
-                    alt="Screenshot you selected"
-                    className="h-40 w-full rounded-lg border border-border object-contain sm:h-32 sm:w-32"
-                  />
-                  <div className="flex-1 space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Ready to check <span className="font-medium">{file.name}</span>
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        onClick={handleAnalyse}
-                        disabled={isAnalysing || isAutoResponding}
-                        size="lg"
-                        aria-busy={isAnalysing || isAutoResponding}
-                      >
-                        {(isAnalysing || isAutoResponding) && (
-                          <Loader2 className="animate-spin" aria-hidden="true" />
-                        )}
-                        {isAnalysing
-                          ? 'Analysing…'
-                          : isAutoResponding
-                            ? 'Preparing your guidance…'
-                            : 'Check this screenshot'}
-                      </Button>
-                      <Button
-                        onClick={handleReset}
-                        variant="outline"
-                        size="lg"
-                        disabled={isAnalysing || isAutoResponding}
-                      >
-                        Choose a different image
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {isAnalysing && (
-                  <p role="status" className="text-sm text-muted-foreground">
-                    This can take up to a few seconds — we run two models in sequence to
-                    give you a careful answer.
-                  </p>
-                )}
-                {isAutoResponding && (
-                  <p role="status" className="text-sm text-muted-foreground">
-                    This screenshot looks low-risk — putting together a short explanation.
-                  </p>
-                )}
-              </div>
-            )}
-
-            {analyseStatus === 'error' && (
-              <ErrorMessage message={analyseError} onRetry={handleAnalyse} />
-            )}
-            {respondStatus === 'error' && phase === PHASE.UPLOAD && (
-              <ErrorMessage
-                message={respondError}
-                onRetry={() => submitAnswers(analysisContext, {})}
-              />
-            )}
-          </div>
-        )}
-      </main>
-    </div>
+    <AppShell activePage={activePage} onNavigate={setActivePage}>
+      {activePage === 'assistant' && (
+        <AssistantPage
+          messages={assistantMessages}
+          onMessagesChange={setAssistantMessages}
+          onOpenDetector={handleOpenDetector}
+          typingAnimation={typingAnimation}
+          guidedSuggestions={guidedSuggestions}
+        />
+      )}
+      {activePage === 'screenshot' && (
+        <ScreenshotScanPage
+          initialFile={screenshotHandoffFile}
+          onInitialFileConsumed={handleHandoffConsumed}
+        />
+      )}
+      {activePage === 'message' && <MessageScanPage />}
+      {activePage === 'url' && <URLScanPage />}
+      {activePage === 'transaction' && <TransactionScanPage />}
+      {activePage === 'about' && <AboutPage />}
+      {activePage === 'settings' && (
+        <SettingsPage
+          typingAnimation={typingAnimation}
+          onTypingAnimationChange={setTypingAnimation}
+          guidedSuggestions={guidedSuggestions}
+          onGuidedSuggestionsChange={setGuidedSuggestions}
+          reducedMotion={reducedMotion}
+          onReducedMotionChange={setReducedMotion}
+          onClearAssistantChat={handleClearAssistantChat}
+          onResetSettings={handleResetSettings}
+        />
+      )}
+    </AppShell>
   )
 }
 

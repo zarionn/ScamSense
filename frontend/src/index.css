@@ -24,7 +24,20 @@
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
     --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive-soft: var(--destructive-soft);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning-strong: var(--warning-strong);
+    --color-warning-soft: var(--warning-soft);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-success-soft: var(--success-soft);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-soft: var(--info-soft);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -32,13 +45,30 @@
     --color-secondary-foreground: var(--secondary-foreground);
     --color-secondary: var(--secondary);
     --color-primary-foreground: var(--primary-foreground);
+    --color-primary-hover: var(--primary-hover);
     --color-primary: var(--primary);
     --color-popover-foreground: var(--popover-foreground);
     --color-popover: var(--popover);
     --color-card-foreground: var(--card-foreground);
     --color-card: var(--card);
+    --color-card-elevated: var(--card-elevated);
+    --color-dropzone-surface: var(--dropzone-surface);
+    --color-heading: var(--heading);
+    --color-page-title: var(--page-title);
+    --color-foreground-strong: var(--foreground-strong);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --color-warning-border: var(--warning-border);
+    --color-disabled-foreground: var(--disabled-foreground);
+    --color-new-scan-border: var(--new-scan-border);
+    --color-questionnaire-card: var(--questionnaire-card);
+    --color-questionnaire-choice: var(--questionnaire-choice);
+    --color-questionnaire-choice-hover: var(--questionnaire-choice-hover);
+    --color-questionnaire-choice-selected: var(--questionnaire-choice-selected);
+    --color-questionnaire-choice-border: var(--questionnaire-choice-border);
+    --color-questionnaire-border-strong: var(--questionnaire-border-strong);
+    --color-questionnaire-body: var(--questionnaire-body);
+    --color-questionnaire-muted: var(--questionnaire-muted);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -48,73 +78,175 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Light: Deep Indigo + Soft Periwinkle + White, flat white page with periwinkle
+   reserved for inner/recessed surfaces only. --background and --card are both
+   pure white, so cards no longer anchor against a tinted page — hierarchy
+   instead comes from --border and shadow. --card-elevated matches --card
+   (both white) — the Result Summary card reads as the same white tier as
+   everything else. --dropzone-surface, --muted and --questionnaire-choice are
+   the periwinkle-tinted inner/recessed tones nested inside a white card
+   (dropzone, MCQ rows, evidence-item panels, answer rows) — the one place in
+   this file where the selected screenshot attachment row deliberately uses
+   --muted instead of --card-elevated (see ScreenshotAttachment.jsx), since an
+   all-white row inside an all-white card would show no hierarchy.
+   --popover stays pure white on purpose — it's transient UI chrome
+   (dialogs/dropdowns/tooltips), not a main content surface. Indigo
+   (--primary/--accent) appears only on brand, active and selected elements,
+   never as a page-wide tint — semantic risk colours (destructive/warning/
+   success/info) below are independent of it and MUST NOT be edited here. */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --background: #FFFFFF;
+    --foreground: #334155;
+    /* --page-title is the darkest indigo tone, reserved for the one or two
+       page-level h1s (e.g. "Scam Screenshot Detector"). --heading is the
+       lighter, more saturated indigo used for every section/card title
+       beneath it — the two-step hierarchy carried over from the previous
+       pass. --foreground-strong is a third, separate axis: a darker-than-body
+       NEUTRAL (not brand-coloured) reserved for data values that must read as
+       information, not action — e.g. the classifier result text and
+       confidence percentage in ResultSummary — so it must never be set to
+       --heading or --primary. */
+    --page-title: #1E1B4B;
+    --heading: #4338CA;
+    --foreground-strong: #1E293B;
+    --card: #FFFFFF;
+    --card-elevated: #FFFFFF;
+    --dropzone-surface: #EEF0FE;
+    --card-foreground: #334155;
+    --popover: #FFFFFF;
+    --popover-foreground: #334155;
+    --primary: #4F46E5;
+    --primary-hover: #4338CA;
+    --primary-foreground: #FFFFFF;
+    --secondary: #EEF0FE;
+    --secondary-foreground: #4338CA;
+    --muted: #EEF0FE;
+    /* Darkened from #64748B — that value measured 4.20:1 against the periwinkle
+       --muted surface (#EEF0FE), under the 4.5:1 AA threshold for small text.
+       #5F6E84 is the minimal darkening (same cool-slate hue, ~5% scaled down)
+       that clears 4.5:1 there (4.575:1) while staying comfortably lighter than
+       body text (--foreground #334155, 10.35:1 on white vs. this token's 5.19:1).
+       Light-mode only — dark mode's own --muted-foreground is unaffected. */
+    --muted-foreground: #5F6E84;
+    --accent: #E0E4FC;
+    --accent-foreground: #4338CA;
+    --destructive: #E6535F;
+    --destructive-foreground: #FFFFFF;
+    --destructive-soft: #FFF1F2;
+    --warning: #F5A524;
+    --warning-foreground: #FFFFFF;
+    --warning-strong: #9A5A00;
+    --warning-soft: #FFF1D6;
+    --warning-border: #E9C98F;
+    --success: #22A06B;
+    --success-foreground: #FFFFFF;
+    --success-soft: #ECFDF3;
+    --info: #0891B2;
+    --info-foreground: #FFFFFF;
+    --info-soft: #ECFEFF;
+    --border: #DCE0F7;
+    --border-strong: #C9CFF1;
+    /* This pass's spec gives the New Scan button the same value as --border,
+       so it now coincides with it exactly — kept as its own token rather than
+       switched to border-border directly, since the two are allowed to
+       diverge again in a future pass without touching App.jsx. */
+    --new-scan-border: #DCE0F7;
+    --input: #DCE0F7;
+    --ring: #6366F1;
+    --chart-1: #4F46E5;
+    --chart-2: #F5A524;
+    --chart-3: #22A06B;
+    --chart-4: #0891B2;
+    --chart-5: #E6535F;
+    --radius: 0.65rem;
+    --sidebar: #FCFCFF;
+    --sidebar-foreground: #475569;
+    --sidebar-primary: #4F46E5;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #E0E4FC;
+    --sidebar-accent-foreground: #4338CA;
+    --sidebar-border: #DCE0F7;
+    --sidebar-ring: #6366F1;
+    --disabled-foreground: #94A3B8;
+    /* Questionnaire-only surfaces — deliberately separate from --card/--muted/
+       --accent so the questionnaire can be tuned independently of the
+       upload/result cards. Every component that consumes these pairs the
+       class with an explicit `dark:` override back to the original
+       (already-correct) dark-mode utility, so these tokens are only ever
+       defined here in :root, never in .dark. */
+    --questionnaire-card: #FFFFFF;
+    --questionnaire-choice: #EEF0FE;
+    --questionnaire-choice-hover: #EEF0FE;
+    --questionnaire-choice-border: #DCE0F7;
+    --questionnaire-choice-selected: #D8DCFB;
+    --questionnaire-border-strong: #C9CFF1;
+    --questionnaire-body: #334155;
+    --questionnaire-muted: #64748B;
 }
 
+/* Dark: deep navy-grey page (not black), elevated navy-grey cards, sidebar
+   slightly darker than cards. Borders are solid navy-grey-blue, not a
+   translucent white overlay, so they stay visible against the dark surfaces. */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --background: #12141C;
+    --foreground: #E7E9F0;
+    --heading: #F5F6FA;
+    /* --page-title and --foreground-strong mirror the already-correct dark
+       values of --heading / --card-foreground respectively — this pass only
+       asked for a light-mode text-colour refinement, so dark stays exactly
+       as it rendered before these two tokens existed. */
+    --page-title: #F5F6FA;
+    --foreground-strong: #E7E9F0;
+    --card: #1A1D29;
+    --card-elevated: #20232F;
+    --dropzone-surface: #1F2230;
+    --card-foreground: #E7E9F0;
+    --popover: #1A1D29;
+    --popover-foreground: #E7E9F0;
+    --primary: #4F46E5;
+    --primary-hover: #4338CA;
+    --primary-foreground: #FFFFFF;
+    --secondary: #232633;
+    --secondary-foreground: #E7E9F0;
+    --muted: #1F2230;
+    --muted-foreground: #9AA3B8;
+    --accent: color-mix(in oklch, var(--primary) 16%, var(--background));
+    /* indigo-300, replacing the previous violet-300 — dark mode's brand-accent
+       text tone only, surfaces below are untouched. */
+    --accent-foreground: oklch(0.809 0.105 251.813);
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --destructive-foreground: #12141C;
+    /* Lower mix % than the other soft tokens on purpose — the destructive panel is
+       the largest, most prominent tinted surface in the UI, and a heavier tint
+       reads as a brown/muddy block against the dark navy background. */
+    --destructive-soft: color-mix(in oklch, var(--destructive) 10%, var(--background));
+    --warning: oklch(0.769 0.188 70.08);
+    --warning-foreground: #12141C;
+    --warning-strong: oklch(0.82 0.16 70.08);
+    --warning-soft: color-mix(in oklch, var(--warning) 14%, var(--background));
+    --success: oklch(0.696 0.17 162.48);
+    --success-foreground: #12141C;
+    --success-soft: color-mix(in oklch, var(--success) 14%, var(--background));
+    --info: oklch(0.623 0.188 259.81);
+    --info-foreground: #12141C;
+    --info-soft: color-mix(in oklch, var(--info) 14%, var(--background));
+    --border: #2A2E3D;
+    --border-strong: #333849;
+    --input: #2A2E3D;
+    --ring: #6366F1;
+    --chart-1: #4F46E5;
+    --chart-2: oklch(0.769 0.188 70.08);
+    --chart-3: oklch(0.696 0.17 162.48);
+    --chart-4: oklch(0.623 0.188 259.81);
+    --chart-5: oklch(0.704 0.191 22.216);
+    --sidebar: #0F1119;
+    --sidebar-foreground: #E7E9F0;
+    --sidebar-primary: #4F46E5;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: color-mix(in oklch, var(--primary) 14%, var(--sidebar));
+    --sidebar-accent-foreground: oklch(0.809 0.105 251.813);
+    --sidebar-border: #262A38;
+    --sidebar-ring: #6366F1;
 }
 
 @layer base {
@@ -127,4 +259,51 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Used by the official Sidebar (SidebarContent) and Attachment (AttachmentGroup)
+   registry components, which assume these utility names exist project-side. */
+@layer utilities {
+  .no-scrollbar,
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Used by AttachmentTitle for its processing/uploading state. */
+  .shimmer {
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* Same rule as the OS-level prefers-reduced-motion media query below, applied
+   via a class instead so the Settings "Reduced Motion" preference can force
+   it regardless of the OS setting. No colours, no redesign — mirrors the
+   existing block exactly. */
+.reduce-motion,
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
