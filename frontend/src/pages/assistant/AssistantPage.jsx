@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import AssistantWelcome from './components/AssistantWelcome'
 import ChatMessage from './components/ChatMessage'
 import ChatComposer from './components/ChatComposer'
@@ -29,10 +30,21 @@ async function requestAssistantReply(message) {
 // away and back rather than reappearing as a fresh welcome every visit.
 // onOpenDetector: (detectorKey, file?) => void — App.jsx handles navigation + handoff.
 // typingAnimation/guidedSuggestions: Settings-controlled presentation prefs only.
+// onPersistMessage: (role, text) => void — App.jsx's conversation-history hook.
+// A no-op for guests; it decides itself whether/how to save. Called once per
+// pushMessage with meaningful text, never from a broad effect over `messages`.
+// onConversationReset: () => void — clears the active saved-conversation id
+// (App.jsx's conversation-history hook) so New Chat doesn't keep appending to
+// the previous conversation once one exists.
+// isLoadingHistory/persistError: presentation-only state surfaced by that hook.
 export default function AssistantPage({
   messages,
   onMessagesChange,
   onOpenDetector,
+  onPersistMessage,
+  onConversationReset,
+  isLoadingHistory = false,
+  persistError = null,
   typingAnimation = true,
   guidedSuggestions = true,
 }) {
@@ -41,10 +53,17 @@ export default function AssistantPage({
 
   const pushMessage = useCallback(
     (partial) => {
+      // `persist` is internal bookkeeping only (e.g. the network-failure
+      // fallback below opts out) — stripped before it reaches the rendered
+      // message or, further downstream, the database.
+      const { persist = true, ...rest } = partial
       const id = crypto.randomUUID()
-      onMessagesChange((prev) => [...prev, { id, ...partial }])
+      onMessagesChange((prev) => [...prev, { id, ...rest }])
+      if (persist && rest.text) {
+        onPersistMessage?.(rest.role, rest.text)
+      }
     },
-    [onMessagesChange]
+    [onMessagesChange, onPersistMessage]
   )
 
   const handleQuickReply = useCallback(
@@ -121,7 +140,15 @@ export default function AssistantPage({
           isFallback: data.source === 'fallback',
         })
       } catch {
-        pushMessage({ role: 'assistant', text: GEMINI_FAILURE_FALLBACK, isFallback: true })
+        // Transient client-side error notice, not real Assistant content —
+        // deliberately excluded from persistence (unlike Flask's own
+        // `source: "fallback"` replies, which are real generated text).
+        pushMessage({
+          role: 'assistant',
+          text: GEMINI_FAILURE_FALLBACK,
+          isFallback: true,
+          persist: false,
+        })
       } finally {
         setIsGeminiTyping(false)
       }
@@ -135,11 +162,16 @@ export default function AssistantPage({
     onMessagesChange([])
     setIsDeterministicTyping(false)
     setIsGeminiTyping(false)
-  }, [onMessagesChange])
+    // Signed-in only in practice (a no-op for guests) — clears the active
+    // saved-conversation id without creating or deleting anything, so the
+    // *next* message starts a new conversation instead of appending to the
+    // one that was just left.
+    onConversationReset?.()
+  }, [onMessagesChange, onConversationReset])
 
   const isBusy = isDeterministicTyping || isGeminiTyping
   const welcomeStep = STEPS[WELCOME_STEP_ID]
-  const showWelcome = messages.length === 0
+  const showWelcome = messages.length === 0 && !isLoadingHistory
 
   return (
     <div className="flex flex-col">
@@ -160,7 +192,17 @@ export default function AssistantPage({
 
       <div className="mx-auto flex h-[min(72vh,680px)] w-full max-w-[820px] flex-col overflow-hidden rounded-xl border border-border bg-card">
         <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-          {showWelcome ? (
+          {isLoadingHistory ? (
+            // Small, deliberately non-empty placeholder while a saved
+            // conversation's messages are fetched — avoids a flash of the
+            // "new chat" welcome state or the previous conversation's
+            // transcript while the real one is still loading.
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          ) : showWelcome ? (
             <AssistantWelcome
               message={welcomeStep.assistant}
               quickReplies={guidedSuggestions ? welcomeStep.quickReplies : null}
@@ -185,6 +227,9 @@ export default function AssistantPage({
         </div>
 
         <div className="border-t border-border p-3 sm:p-4">
+          {persistError && (
+            <p className="pb-2 text-xs text-muted-foreground">{persistError}</p>
+          )}
           <ChatComposer onSend={handleSend} disabled={isBusy} />
         </div>
       </div>

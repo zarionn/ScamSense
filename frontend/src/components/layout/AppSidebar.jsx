@@ -12,7 +12,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -22,7 +21,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import ThemeToggle from '@/components/layout/theme-toggle'
+import AssistantHistorySection from '@/components/layout/AssistantHistorySection'
 
 const ASSISTANT_ITEM = {
   key: 'assistant',
@@ -81,7 +80,7 @@ function NavButton({ item, isActive, onSelect }) {
   )
 }
 
-export default function AppSidebar({ activePage, onNavigate }) {
+export default function AppSidebar({ activePage, onNavigate, assistantHistory = {} }) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -111,13 +110,25 @@ export default function AppSidebar({ activePage, onNavigate }) {
               <SidebarMenuItem>
                 <NavButton
                   item={ASSISTANT_ITEM}
-                  isActive={activePage === ASSISTANT_ITEM.key}
+                  // Chat History is conceptually a subsection of AI
+                  // Assistant (see AssistantHistorySection's "View all
+                  // chats"), so the parent nav item stays active while
+                  // either page is open — it should never look like AI
+                  // Assistant was left just because the user drilled into
+                  // its history page.
+                  isActive={activePage === ASSISTANT_ITEM.key || activePage === 'history'}
                   onSelect={onNavigate}
                 />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <AssistantHistorySection
+          {...assistantHistory}
+          onViewAllChats={() => onNavigate('history')}
+          isHistoryPageActive={activePage === 'history'}
+        />
 
         <SidebarGroup>
           <SidebarGroupLabel>Scam Detectors</SidebarGroupLabel>
@@ -145,18 +156,6 @@ export default function AppSidebar({ activePage, onNavigate }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            {/* Rendered as a SidebarMenuButton (not a bare Button) so it shares
-                the same collapsed size/padding/centring as the brand mark and
-                nav items above it — that shared sizing is what keeps all three
-                on one horizontal centre line when the sidebar is collapsed. */}
-            <ThemeToggle label="Theme" trigger={<SidebarMenuButton aria-label="Change theme" />} />
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   )
 }
