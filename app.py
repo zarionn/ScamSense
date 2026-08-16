@@ -11,6 +11,7 @@ from flask_cors import CORS
 
 from services.screenshot import screenshot_service
 from services.chatbot import chatbot_service
+from services.url import url_service
 
 app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 CORS(app)
@@ -82,6 +83,29 @@ def assistant_message():
     return jsonify(result)
 
 
+# URL PHISHING DETECTOR: HTTP validation stays here; model and Gemini logic
+# remain isolated in services/url/url_service.py.
+@app.route("/api/url/predict", methods=["POST"])
+def predict_url():
+    body = request.get_json(silent=True) or {}
+    url = body.get("url")
+
+    if not isinstance(url, str) or not url.strip():
+        return jsonify({"error": "Please provide a URL to check."}), 400
+
+    url = url.strip()
+    if len(url) > 2000:
+        return jsonify({"error": "That URL is too long to check."}), 400
+
+    try:
+        result = url_service.predict_url(url)
+    except Exception:
+        app.logger.exception("URL prediction failed")
+        return jsonify({"error": "Could not check that URL. Please try again."}), 500
+
+    return jsonify(result)
+
+
 @app.errorhandler(413)
 def too_large(e):
     return jsonify({"error": "That image is too large. Maximum size is 10MB."}), 413
@@ -93,7 +117,8 @@ def index():
         return send_from_directory(app.static_folder, "index.html")
     except Exception:
         return jsonify({"status": "API running",
-                        "endpoints": ["POST /api/analyse", "POST /api/respond"]})
+                        "endpoints": ["POST /api/analyse", "POST /api/respond",
+                                      "POST /api/url/predict"]})
 
 
 if __name__ == "__main__":
