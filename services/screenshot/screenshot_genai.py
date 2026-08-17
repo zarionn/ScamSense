@@ -2,6 +2,7 @@ import os
 import base64
 import json
 import mimetypes
+from pathlib import Path
 from typing import Dict, List, Literal, Optional, Set
 from pydantic import BaseModel, Field
 from google import genai
@@ -20,11 +21,8 @@ MODEL_ID = "gemini-3.5-flash"
 AUDITOR_MAX_TOKENS = 2048
 
 # ============================================================================
-# PIPELINE (verbatim from the notebook, latest version of each symbol wins)
+# PIPELINE
 # ============================================================================
-from typing import List, Literal, Optional
-
-from pydantic import BaseModel, Field
 
 SignalType = Literal[
     # credential / secret capture
@@ -77,8 +75,6 @@ class AuditorResult(BaseModel):
     )
 
 
-from typing import List, Dict
-
 def _has(result, signal, min_quality="clear"):
     """True if `signal` is present with quality >= min_quality."""
     order = {"weak": 0, "partial": 1, "clear": 2}
@@ -93,57 +89,6 @@ def _domain_mismatch_clear(result):
 def _domain_unreadable(result):
     d = result.domain_analysis
     return d.domain_visible and d.domain_readability == "unreadable"
-
-def evaluate_caution(result) -> Dict:
-    """Maps an AuditorResult to a caution decision. Python owns this — not the LLM."""
-    fired: List[str] = []
-
-    # ---- HIGH: single serious clear signals (stand-alone) ----
-    if _has(result, "otp_request"):
-        fired.append("OTP_REQUEST")
-    if _has(result, "remote_access_request"):
-        fired.append("REMOTE_ACCESS_REQUEST")
-
-    # ---- HIGH: combinations (all constituents clear) ----
-    if _domain_mismatch_clear(result) and _has(result, "credential_request"):
-        fired.append("DOMAIN_MISMATCH_CREDENTIALS")
-    if (_has(result, "urgent_account_threat")
-            and _has(result, "external_verification_link")
-            and _has(result, "credential_request")):
-        fired.append("URGENT_EXTERNAL_CREDENTIAL")
-    if _has(result, "prize_or_reward_claim") and (
-            _has(result, "upfront_fee_request") or _has(result, "payment_request")):
-        fired.append("PRIZE_WITH_UPFRONT_PAYMENT")
-    if _has(result, "impersonation_claim") and _has(result, "payment_request"):
-        fired.append("IMPERSONATION_PAYMENT")
-
-    high_rules = {"OTP_REQUEST", "REMOTE_ACCESS_REQUEST", "DOMAIN_MISMATCH_CREDENTIALS",
-                  "URGENT_EXTERNAL_CREDENTIAL", "PRIZE_WITH_UPFRONT_PAYMENT",
-                  "IMPERSONATION_PAYMENT"}
-    if any(r in high_rules for r in fired):
-        return {"caution_level": "high", "caution_raised": True, "triggered_rules": fired}
-
-    # ---- MEDIUM ----
-    if _has(result, "urgent_account_threat") and _has(result, "external_verification_link"):
-        fired.append("URGENCY_PLUS_LINK")
-    if _domain_unreadable(result) and len(result.observations) >= 1:
-        fired.append("UNVERIFIABLE_DOMAIN_PLUS_RISK")
-    if _has(result, "payment_request") and _has(result, "secrecy_request"):
-        fired.append("PAYMENT_PLUS_SECRECY")
-    # impersonation + credential request, even without a clear domain read
-    if _has(result, "impersonation_claim") and _has(result, "credential_request"):
-        fired.append("IMPERSONATION_CREDENTIALS")
-
-    medium_rules = {"URGENCY_PLUS_LINK", "UNVERIFIABLE_DOMAIN_PLUS_RISK",
-                    "PAYMENT_PLUS_SECRECY", "IMPERSONATION_CREDENTIALS"}
-    if any(r in medium_rules for r in fired):
-        return {"caution_level": "medium", "caution_raised": True, "triggered_rules": fired}
-
-    # ---- LOW / NONE (default) ----
-    # e.g. a plain login form (credential_request alone) never reaches here as a caution
-    return {"caution_level": "none", "caution_raised": False, "triggered_rules": []}
-
-
 
 def evaluate_caution(result) -> Dict:
     """Maps an AuditorResult to a caution decision. Python owns this, not the LLM."""
@@ -202,10 +147,6 @@ def evaluate_caution(result) -> Dict:
     # LOW / NONE (default)
     return {"caution_level": "none", "caution_raised": False, "triggered_rules": []}
 
-
-import base64, json, mimetypes
-
-from pathlib import Path
 
 AUDITOR_SYSTEM_INSTRUCTION_V2 = """You are the independent visual safety auditor of ScamSense, a \
 scam-screenshot tool used by the public in Singapore.
@@ -293,10 +234,6 @@ def audit_screenshot(img_path, model_id=MODEL_ID, _retries=1):
     )
 
 
-from pydantic import BaseModel
-
-from typing import List, Literal
-
 ExposureDimension = Literal[
     "shared_otp", "made_payment", "gave_remote_access",                  # critical
     "entered_credentials", "shared_personal_info", "opened_attachment",  # high
@@ -334,11 +271,6 @@ EXPOSURE_META = {
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "moderate": 2}
 
-def is_risky_verdict(classifier_label, caution_decision) -> bool:
-    """Risky if the official classifier says SCAM, or the escalation policy raised a
-    caution. Escalate-only: the policy can add risk to a NORMAL verdict, never remove it."""
-    return classifier_label == "SCAM" or caution_decision["caution_raised"]
-
 def derive_exposure_probes(audit, is_risky: bool) -> List[ExposureProbe]:
     """Deterministic map from the auditor's signals to the exposure questions to ask.
     Returns [] when there is no risk to probe. The model is not involved."""
@@ -365,10 +297,6 @@ def derive_exposure_probes(audit, is_risky: bool) -> List[ExposureProbe]:
     probes.sort(key=lambda p: SEVERITY_ORDER[p.severity])
     return probes
 
-
-from pydantic import BaseModel
-
-from typing import List, Literal, Optional
 
 class RecoveryAction(BaseModel):
     text: str
@@ -406,7 +334,7 @@ ACTION_CATALOGUE = {
     ],
     "clicked_link": [
         RecoveryAction(text="Do not enter any information on the page that opened, and close it.", urgency="now", theme="do_not_enter"),
-        RecoveryAction(text="If you already typed anything on it, follow the steps for whatever you entered (password, card, personal details).", urgency="soon", theme="followup_if_entered"),
+        RecoveryAction(text="Open the organisation's official app or type its official website address manually to check whether the message was genuine.", urgency="soon", theme="official_verification"),
     ],
     "general_contact": [
         RecoveryAction(text="Do not reply further, click anything, or send money or details.", urgency="now", theme="do_not_engage"),
@@ -415,80 +343,6 @@ ACTION_CATALOGUE = {
 }
 
 URGENCY_ORDER = {"now": 0, "soon": 1, "advisable": 2}
-
-def actions_for_probes(probes) -> Dict:
-    """Merge the recovery actions for the given probes. De-dup on exact text AND on theme,
-    keeping the most-urgent instance of each theme. Deterministic; the model is not involved."""
-    best_by_theme = {}     # theme -> chosen action
-    seen_text = set()
-    untagged = []          # actions with no theme keep their own line
-
-    for p in probes:
-        for a in ACTION_CATALOGUE.get(p.dimension, []):
-            if a.text in seen_text:
-                continue
-            seen_text.add(a.text)
-            if a.theme is None:
-                untagged.append(a)
-            else:
-                cur = best_by_theme.get(a.theme)
-                if cur is None or URGENCY_ORDER[a.urgency] < URGENCY_ORDER[cur.urgency]:
-                    best_by_theme[a.theme] = a      # keep the more urgent instance
-
-    actions = list(best_by_theme.values()) + untagged
-    actions.sort(key=lambda a: URGENCY_ORDER[a.urgency])
-    return {"dimensions": [p.dimension for p in probes], "required_actions": actions}
-
-
-EXPLAINER_SYSTEM_INSTRUCTION = """You are the safety explainer of ScamSense, a scam-screenshot \
-tool for the Singapore public. A separate system has already decided the risk and the exact \
-recovery actions. Your ONLY job is to deliver that decision to the user as a short, calm, \
-plain-language message.
-
-You MUST:
-- Keep a calm, reassuring, non-judgemental tone. The user may be scared or embarrassed. Never blame them.
-- Write in simple English at around a Primary-school reading level. Short sentences.
-- The recovery actions are given to you inside quotation marks. Copy each quoted action into your \
-message EXACTLY as written, word for word, including any hotline number such as 1799 and all \
-punctuation. Do NOT reword, shorten, expand, merge, split, or paraphrase a quoted action. You may \
-ONLY write connecting words around them (an ordering word like 'First,' or a short lead-in line).
-
-You MUST NOT:
-- Invent any advice, step, statistic, hotline, or source that is not in the actions given to you.
-- Remove, soften, or reorder actions across the now/soon/advisable grouping.
-- Say whether it is definitely a scam or definitely safe; refer to it as looking risky or concerning.
-- Use markdown, asterisks, or headings. Plain text only.
-
-Output plain text: two or three short sentences of explanation and the exposure questions, then \
-the quoted recovery actions copied verbatim, most urgent first."""
-
-def explain(caution_decision, probes, required_actions, model_id=MODEL_ID):
-    """Generative delivery. Recovery actions are passed quoted and must be reproduced verbatim.
-    Temperature 0 for maximum determinism on safety text."""
-    def group(urgency):
-        items = [a for a in required_actions if a.urgency == urgency]
-        return "\n".join(f'"{a.text}"' for a in items)
-
-    now, soon, adv = group("now"), group("soon"), group("advisable")
-    probe_lines = "\n".join(f"- {p.question}" for p in probes) or "- (none)"
-
-    user_prompt = (
-        f"Caution level: {caution_decision['caution_level']}.\n\n"
-        f"Fold these exposure questions naturally into the message:\n{probe_lines}\n\n"
-        f"Copy these recovery actions VERBATIM (they are quoted). Do the 'right now' ones first:\n\n"
-        f"RIGHT NOW:\n{now or '(none)'}\n\n"
-        f"SOON:\n{soon or '(none)'}\n\n"
-        f"ALSO:\n{adv or '(none)'}\n\n"
-        f"Write the message now, copying each quoted action exactly."
-    )
-
-    interaction = client.interactions.create(
-        model=model_id,
-        input=[{"type": "text", "text": user_prompt}],
-        system_instruction=EXPLAINER_SYSTEM_INSTRUCTION,
-        generation_config={"thinking_level": "minimal", "max_output_tokens": 700, "temperature": 0.0},
-    )
-    return interaction.output_text.strip()
 
 def guard_message(message, required_actions) -> Dict:
     """Each required action must appear VERBATIM (case-insensitive, trailing '.' ignored).
@@ -521,8 +375,6 @@ def effective_caution(classifier_label, caution_decision) -> Dict:
     return {"caution_level": level, "caution_raised": level != "none",
             "triggered_rules": caution_decision["triggered_rules"]}
 
-
-from typing import Dict, List, Literal
 
 ExposureAnswer = Literal["yes", "no", "unsure"]
 
@@ -710,20 +562,6 @@ def actions_for_dimensions(dimensions: List[str]) -> Dict:
     }
 
 
-ACTION_CATALOGUE["clicked_link"] = [
-    RecoveryAction(
-        text="Do not enter any information on the page that opened, and close it.",
-        urgency="now",
-        theme="do_not_enter",
-    ),
-    RecoveryAction(
-        text="Open the organisation's official app or type its official website address manually to check whether the message was genuine.",
-        urgency="soon",
-        theme="official_verification",
-    ),
-]
-
-
 RECONCILIATION_GUIDANCE = {
     ("legitimate", "none"): (
         "The official classifier rated the screenshot as legitimate and the independent "
@@ -811,10 +649,6 @@ def reconciliation_context(
     }
 
 
-import json
-
-from typing import Dict, List
-
 PERSONALISED_EXPLAINER_V4_SYSTEM = """
 You are the safety response explainer for ScamSense, a scam screenshot analysis tool.
 
@@ -866,125 +700,6 @@ Output structure:
 4. A short uncertainty sentence when unclear elements were supplied.
 """.strip()
 
-def build_personalised_prompt_v4(
-    analysis_context: Dict,
-    exposure_summary: Dict,
-    required_actions: List[RecoveryAction],
-) -> str:
-    """Build the base evidence-grounded prompt for Explainer V4."""
-
-    classifier = analysis_context[
-        "classifier"
-    ]
-
-    audit = analysis_context[
-        "audit"
-    ]
-
-    caution = analysis_context[
-        "caution"
-    ]
-
-    reconciliation = reconciliation_context(
-        classifier_label=classifier[
-            "label"
-        ],
-        auditor_caution_level=caution[
-            "caution_level"
-        ],
-    )
-
-    observations = [
-        {
-            "signal_type": observation[
-                "signal_type"
-            ],
-            "evidence": observation[
-                "evidence"
-            ],
-            "evidence_quality": observation[
-                "evidence_quality"
-            ],
-        }
-        for observation in audit[
-            "observations"
-        ]
-    ]
-
-    context_payload = {
-        "official_classifier_result": (
-            classifier
-        ),
-        "auditor_caution": caution,
-        "effective_caution_level": (
-            analysis_context[
-                "effective_caution_level"
-            ]
-        ),
-        "reconciliation": reconciliation,
-        "visible_observations": (
-            observations
-        ),
-        "domain_analysis": audit[
-            "domain_analysis"
-        ],
-        "unclear_elements": audit[
-            "unclear_elements"
-        ],
-        "user_exposure": {
-            "answers": exposure_summary[
-                "answers"
-            ],
-            "confirmed_dimensions": (
-                exposure_summary[
-                    "confirmed_dimensions"
-                ]
-            ),
-            "uncertain_dimensions": (
-                exposure_summary[
-                    "uncertain_dimensions"
-                ]
-            ),
-            "defaulted_dimensions": (
-                exposure_summary.get(
-                    "defaulted_dimensions",
-                    [],
-                )
-            ),
-        },
-    }
-
-    def actions_for_urgency(
-        urgency: str,
-    ) -> str:
-        matching_actions = [
-            action.text
-            for action in required_actions
-            if action.urgency == urgency
-        ]
-
-        if not matching_actions:
-            return "(none)"
-
-        return "\n".join(
-            f'"{action_text}"'
-            for action_text
-            in matching_actions
-        )
-
-    return (
-        "Use the following application context:\n\n"
-        f"{json.dumps(context_payload, indent=2, ensure_ascii=False)}\n\n"
-        "Copy every recovery action below exactly as written.\n\n"
-        f"RIGHT NOW:\n"
-        f"{actions_for_urgency('now')}\n\n"
-        f"SOON:\n"
-        f"{actions_for_urgency('soon')}\n\n"
-        f"ADVISABLE:\n"
-        f"{actions_for_urgency('advisable')}\n\n"
-        "Write the final user response now."
-    )
-
 def explain_personalised_v4(
     analysis_context: Dict,
     exposure_summary: Dict,
@@ -1022,128 +737,6 @@ def explain_personalised_v4(
     )
 
     return interaction.output_text.strip()
-
-
-def personalised_fallback_message_v4(
-    analysis_context: Dict,
-    exposure_summary: Dict,
-    required_actions: List[RecoveryAction],
-) -> str:
-    """Build a deterministic response after exposure answers are known."""
-
-    classifier = analysis_context["classifier"]
-    audit = analysis_context["audit"]
-    caution = analysis_context["caution"]
-
-    reconciliation = reconciliation_context(
-        classifier_label=classifier["label"],
-        auditor_caution_level=caution["caution_level"],
-    )
-
-    lines = []
-
-    # Official classifier result
-    label = classifier["label"]
-    probability = classifier["scam_probability"]
-
-    lines.append(
-        f"The official image classifier rated this screenshot as {label}. "
-        f"The predicted scam probability was {probability:.1%}."
-    )
-
-    # Fixed reconciliation wording
-    lines.append(reconciliation["instruction"])
-
-    # Only include visible evidence with clear or partial support
-    supported_observations = [
-        observation
-        for observation in audit["observations"]
-        if observation["evidence_quality"] in {"clear", "partial"}
-    ]
-
-    if supported_observations:
-        lines.append("")
-        lines.append("Visible signs identified:")
-
-        for observation in supported_observations:
-            lines.append(f"- {observation['evidence']}")
-
-    # Domain analysis, only when useful and readable
-    domain = audit.get("domain_analysis", {})
-
-    if (
-        domain.get("domain_visible")
-        and domain.get("domain_readability") in {"clear", "partial"}
-    ):
-        claimed_entity = domain.get("claimed_entity")
-        visible_domain = domain.get("visible_domain")
-        relationship = domain.get("domain_relationship")
-
-        if claimed_entity and visible_domain:
-            lines.append("")
-            lines.append(
-                f"The screenshot appears to claim it is from {claimed_entity}, "
-                f"while the visible domain is {visible_domain}."
-            )
-
-        if relationship == "mismatch":
-            lines.append(
-                "The visible domain does not appear to match the claimed organisation."
-            )
-
-    # Uncertainty
-    unclear_elements = audit.get("unclear_elements", [])
-
-    if unclear_elements:
-        lines.append("")
-        lines.append(
-            "Some details could not be confirmed: "
-            + "; ".join(unclear_elements)
-        )
-
-    # User exposure
-    confirmed = exposure_summary["confirmed_dimensions"]
-    uncertain = exposure_summary["uncertain_dimensions"]
-
-    if confirmed:
-        lines.append("")
-        lines.append(
-            "You confirmed these interactions: "
-            + ", ".join(confirmed)
-            + "."
-        )
-
-    if uncertain:
-        lines.append("")
-        lines.append(
-            "You were unsure about these interactions, so cautious recovery steps "
-            "have been included: "
-            + ", ".join(uncertain)
-            + "."
-        )
-
-    # Mandatory actions
-    urgency_titles = {
-        "now": "Do these right now:",
-        "soon": "Then do these soon:",
-        "advisable": "Also worth doing:",
-    }
-
-    for urgency in ["now", "soon", "advisable"]:
-        matching_actions = [
-            action
-            for action in required_actions
-            if action.urgency == urgency
-        ]
-
-        if matching_actions:
-            lines.append("")
-            lines.append(urgency_titles[urgency])
-
-            for action in matching_actions:
-                lines.append(f"- {action.text}")
-
-    return "\n".join(lines).strip()
 
 
 def build_guarded_personalised_response_v4(
@@ -1379,8 +972,6 @@ def complete_analysis_with_answers(
         ),
     }
 
-
-from typing import Dict, List, Optional, Set
 
 RULE_SIGNAL_MAP = {
     # High caution rules
