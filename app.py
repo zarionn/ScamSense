@@ -12,6 +12,7 @@ from flask_cors import CORS
 from services.screenshot import screenshot_service
 from services.chatbot import chatbot_service
 from services.url import url_service
+from services.transaction import transaction_service
 
 app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 CORS(app)
@@ -105,6 +106,21 @@ def predict_url():
 
     return jsonify(result)
 
+@app.route("/api/transaction/predict", methods=["POST"])
+def predict_transaction():
+    body = request.get_json(silent=True) or {}
+
+    if not isinstance(body, dict):
+        return jsonify({"error": "Expected a JSON object with transaction details."}), 400
+
+    try:
+        result = transaction_service.predict_transaction(body)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception:
+        app.logger.exception("Transaction prediction failed")
+        return jsonify({"error": "Could not evaluate this transaction. Please try again."}), 500
 
 @app.errorhandler(413)
 def too_large(e):
