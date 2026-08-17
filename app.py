@@ -29,35 +29,47 @@ def analyse():
 
     upload = request.files["file"]
     image_bytes = upload.read()
-    mime_type = upload.mimetype if upload.mimetype in screenshot_service.ALLOWED_MIMES else "image/png"
 
     try:
-        classification = screenshot_service.classify(image_bytes)
+        prepared_image = screenshot_service.prepare_image(image_bytes)
+        classification = screenshot_service.classify(prepared_image)
+    except screenshot_service.ImageValidationError as error:
+        return jsonify({"error": str(error)}), 400
     except Exception:
         return jsonify({"error": "Could not read that image"}), 400
 
     try:
-        analysis_context = screenshot_service.run_stage1_audit(classification, image_bytes)
+        analysis_context = screenshot_service.run_stage1_audit(
+            classification,
+            prepared_image,
+        )
+        analysis_token = screenshot_service.issue_analysis_token(
+            analysis_context
+        )
     except Exception:
         app.logger.exception("Stage 1 analysis failed")
         return jsonify({"error": "Analysis failed"}), 500
 
-    # The client holds analysis_context and posts it back to /api/respond with answers.
-    return jsonify(analysis_context)
+    return jsonify({
+        **analysis_context,
+        "analysis_token": analysis_token,
+    })
 
 
 # ── STAGE 2: user answers exposure questions, return the guarded response ──
 @app.route("/api/respond", methods=["POST"])
 def respond():
     body = request.get_json(silent=True) or {}
-    analysis_context = body.get("analysis_context")
+    analysis_token = body.get("analysis_token")
     answers = body.get("answers")
 
-    if not isinstance(analysis_context, dict) or not isinstance(answers, dict):
-        return jsonify({"error": "Expected JSON with 'analysis_context' and 'answers'"}), 400
+    if not isinstance(analysis_token, str) or not isinstance(answers, dict):
+        return jsonify({"error": "Invalid or expired analysis token"}), 400
 
     try:
-        result = screenshot_service.respond(analysis_context, answers)
+        result = screenshot_service.respond(analysis_token, answers)
+    except screenshot_service.AnalysisTokenError:
+        return jsonify({"error": "Invalid or expired analysis token"}), 400
     except ValueError as ve:
         # resolve_exposure_answers raises ValueError on missing/invalid answers
         return jsonify({"error": str(ve)}), 400

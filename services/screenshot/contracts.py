@@ -1,8 +1,17 @@
 """Pydantic contracts shared within the Screenshot GenAI pipeline."""
 
-from typing import List, Literal, Optional
+from typing import Annotated, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+
+ShortText = Annotated[str, StringConstraints(min_length=1, max_length=256)]
+EvidenceText = Annotated[str, StringConstraints(min_length=1, max_length=1000)]
+RuleIdentifier = Annotated[str, StringConstraints(min_length=1, max_length=64)]
+
+
+class ScreenshotContract(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
 
 
 SignalType = Literal[
@@ -30,30 +39,31 @@ SignalType = Literal[
 EvidenceQuality = Literal["clear", "partial", "weak"]
 
 
-class Observation(BaseModel):
+class Observation(ScreenshotContract):
     signal_type: SignalType                 # must be from the fixed taxonomy
-    evidence: str                           # what is LITERALLY visible that supports this
+    evidence: EvidenceText                  # what is LITERALLY visible that supports this
     evidence_quality: EvidenceQuality
 
 
-class DomainAnalysis(BaseModel):
+class DomainAnalysis(ScreenshotContract):
     domain_visible: bool                    # is an address bar / URL visible at all?
-    visible_domain: Optional[str] = None    # what the auditor actually reads, e.g. "excelpatch.zip"
-    claimed_entity: Optional[str] = None    # who the page presents itself as, e.g. "Google"
+    visible_domain: Optional[ShortText] = None    # what the auditor actually reads, e.g. "excelpatch.zip"
+    claimed_entity: Optional[ShortText] = None    # who the page presents itself as, e.g. "Google"
     domain_readability: Literal["clear", "partial", "unreadable"] = "unreadable"
     domain_relationship: Literal["match", "mismatch", "cannot_determine"] = "cannot_determine"
-    evidence: Optional[str] = None
+    evidence: Optional[EvidenceText] = None
 
 
-class AuditorResult(BaseModel):
+class AuditorResult(ScreenshotContract):
     content_type: Literal[
         "website", "login_page", "email", "sms_or_chat",
         "marketplace_listing", "other"
     ]
-    observations: List[Observation]         # may be empty if nothing concerning is visible
+    observations: List[Observation] = Field(max_length=32)
     domain_analysis: DomainAnalysis         # always present; domain_visible=False if none
-    unclear_elements: List[str] = Field(
+    unclear_elements: List[EvidenceText] = Field(
         default_factory=list,
+        max_length=16,
         description="Things the auditor could NOT read or verify (blurry text, cut-off URL). "
                     "Recording uncertainty here is required — it must never be silently ignored."
     )
@@ -68,14 +78,52 @@ ExposureDimension = Literal[
 ExposureAnswer = Literal["yes", "no", "unsure"]
 
 
-class ExposureProbe(BaseModel):
+class ExposureProbe(ScreenshotContract):
     dimension: ExposureDimension
-    question: str
+    question: EvidenceText
     severity: Literal["critical", "high", "moderate"]
-    triggered_by: List[str]
+    triggered_by: List[SignalType] = Field(max_length=16)
 
 
-class RecoveryAction(BaseModel):
-    text: str
+class RecoveryAction(ScreenshotContract):
+    text: EvidenceText
     urgency: Literal["now", "soon", "advisable"]
-    theme: Optional[str] = None
+    theme: Optional[ShortText] = None
+
+
+AuditStatus = Literal["available", "malformed", "unavailable"]
+CautionLevel = Literal["none", "medium", "high"]
+
+
+class ClassifierResult(ScreenshotContract):
+    label: Literal["legitimate", "suspicious", "scam"]
+    scam_probability: float = Field(ge=0.0, le=1.0)
+    confidence_pct: float = Field(ge=0.0, le=100.0)
+
+
+class CautionDecision(ScreenshotContract):
+    caution_level: CautionLevel
+    caution_raised: bool
+    triggered_rules: List[RuleIdentifier] = Field(max_length=16)
+
+
+class ExposureQuestion(ExposureProbe):
+    answer_options: List[ExposureAnswer] = Field(min_length=3, max_length=3)
+
+
+class AnalysisContext(ScreenshotContract):
+    classifier: ClassifierResult
+    audit: AuditorResult
+    audit_status: AuditStatus
+    audit_signals: List[SignalType] = Field(max_length=32)
+    display_observations: List[Observation] = Field(max_length=32)
+    caution: CautionDecision
+    effective_caution_level: CautionLevel
+    risky: bool
+    exposure_questions: List[ExposureQuestion] = Field(max_length=8)
+
+
+class SignedAnalysisPayload(ScreenshotContract):
+    version: Literal[1]
+    issued_at: int = Field(ge=0)
+    context: AnalysisContext

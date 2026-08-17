@@ -6,7 +6,7 @@ import mimetypes
 from pathlib import Path
 
 from . import gemini_client
-from .contracts import AuditorResult, DomainAnalysis
+from .contracts import AuditorResult
 
 
 AUDITOR_SYSTEM_INSTRUCTION_V2 = """You are the independent visual safety auditor of ScamSense, a \
@@ -43,9 +43,31 @@ impersonation; do not emit the signal in that case.
 8. Report only what you SEE. Do not assume intent beyond the visible evidence."""
 
 
+class MalformedAuditError(RuntimeError):
+    """Raised after all structured auditor response parsing attempts fail."""
+
+
+def _without_max_items(value):
+    """Remove the schema keyword unsupported by Gemini Interactions."""
+    if isinstance(value, dict):
+        return {
+            key: _without_max_items(item)
+            for key, item in value.items()
+            if key != "maxItems"
+        }
+    if isinstance(value, list):
+        return [_without_max_items(item) for item in value]
+    return value
+
+
+def gemini_auditor_schema():
+    """Return the transport schema while retaining strict local validation."""
+    return _without_max_items(AuditorResult.model_json_schema())
+
+
 def audit_screenshot(img_path, model_id=gemini_client.MODEL_ID, _retries=1):
     """Independent visual audit (image only, no classifier label), auditor prompt V2.
-    Retries once on truncated/malformed JSON, then falls back to a safe empty audit."""
+    Retries truncated or malformed output, then reports it through MalformedAuditError."""
     img_bytes = Path(img_path).read_bytes()
     mime = mimetypes.guess_type(str(img_path))[0] or "image/png"
     img_b64 = base64.b64encode(img_bytes).decode("utf-8")
@@ -61,7 +83,7 @@ def audit_screenshot(img_path, model_id=gemini_client.MODEL_ID, _retries=1):
     last_err = None
     for attempt in range(_retries + 1):
         try:
-            interaction = gemini_client.client.interactions.create(
+            interaction = gemini_client.get_client().interactions.create(
                 model=model_id,
                 input=[
                     {"type": "image", "data": img_b64, "mime_type": mime},
@@ -71,7 +93,7 @@ def audit_screenshot(img_path, model_id=gemini_client.MODEL_ID, _retries=1):
                 response_format={
                     "type": "text",
                     "mime_type": "application/json",
-                    "schema": AuditorResult.model_json_schema(),
+                    "schema": gemini_auditor_schema(),
                 },
                 generation_config={
                     "thinking_level": "minimal",
@@ -87,10 +109,4 @@ def audit_screenshot(img_path, model_id=gemini_client.MODEL_ID, _retries=1):
             last_err = e
             continue
 
-    print(f"    (audit fell back to empty for {Path(img_path).name}: {str(last_err)[:50]})")
-    return AuditorResult(
-        content_type="other",
-        observations=[],
-        domain_analysis=DomainAnalysis(domain_visible=False),
-        unclear_elements=["Audit response could not be parsed; treated as no signals found."],
-    )
+    raise MalformedAuditError("Audit response could not be parsed") from last_err

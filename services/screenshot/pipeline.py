@@ -1,9 +1,25 @@
 """Stage 1 and Stage 2 orchestration for Screenshot GenAI."""
 
+import logging
 from typing import Dict
 
 from . import auditor, explainer, exposure, policy, recovery
 from .contracts import AuditorResult, DomainAnalysis, ExposureAnswer
+
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_auditor_error_summary(error: Exception) -> str:
+    """Return a bounded category without copying request or screenshot content."""
+    message = str(error).lower()
+    if "invalid argument" in message:
+        return "Request contains an invalid argument."
+    if "timeout" in message or "timed out" in message:
+        return "Gemini request timed out."
+    if "connection" in message:
+        return "Gemini connection failed."
+    return "Unexpected auditor failure."
 
 
 def analyse(classification: Dict, img_path: str) -> Dict:
@@ -13,14 +29,27 @@ def analyse(classification: Dict, img_path: str) -> Dict:
     try:
         audit = auditor.audit_screenshot(img_path)
         audit_status = "available"
+    except auditor.MalformedAuditError:
+        audit = AuditorResult(
+            content_type="other",
+            observations=[],
+            domain_analysis=DomainAnalysis(domain_visible=False),
+            unclear_elements=["Audit response could not be parsed; treated as no signals found."],
+        )
+        audit_status = "malformed"
     except Exception as error:
+        logger.warning(
+            "Visual auditor unavailable (%s): %s",
+            type(error).__name__,
+            _safe_auditor_error_summary(error),
+        )
         audit = AuditorResult(
             content_type="other",
             observations=[],
             domain_analysis=DomainAnalysis(domain_visible=False),
             unclear_elements=["The independent visual safety review was temporarily unavailable."],
         )
-        audit_status = f"degraded:{type(error).__name__}"
+        audit_status = "unavailable"
 
     caution = policy.evaluate_caution(audit)
     risky = policy.is_risky_verdict(
@@ -33,12 +62,17 @@ def analyse(classification: Dict, img_path: str) -> Dict:
     )
     probes = exposure.derive_exposure_probes(audit=audit, is_risky=risky)
     audit_dict = audit.model_dump()
+    display_observations = explainer.observations_for_explanation(
+        audit=audit_dict,
+        caution=caution,
+    )
 
     return {
         "classifier": classification,
         "audit": audit_dict,
         "audit_status": audit_status,
         "audit_signals": [o["signal_type"] for o in audit_dict["observations"]],
+        "display_observations": display_observations,
         "caution": caution,
         "effective_caution_level": effective["caution_level"],
         "risky": risky,
@@ -83,79 +117,19 @@ def complete_analysis_with_answers(
         ]
     )
 
-    if required_actions:
-        response = (
-            explainer.build_guarded_personalised_response_v4(
-                analysis_context=(
-                    analysis_context
-                ),
-                exposure_summary=(
-                    exposure_summary
-                ),
-                required_actions=(
-                    required_actions
-                ),
-            )
+    response = (
+        explainer.build_guarded_personalised_response_v4(
+            analysis_context=(
+                analysis_context
+            ),
+            exposure_summary=(
+                exposure_summary
+            ),
+            required_actions=(
+                required_actions
+            ),
         )
-
-    else:
-        # A low-risk screenshot may have no exposure questions
-        # or mandatory recovery actions. It should still receive
-        # a short explanation.
-        try:
-            response_message = (
-                explainer.explain_personalised_v4(
-                    analysis_context=(
-                        analysis_context
-                    ),
-                    exposure_summary=(
-                        exposure_summary
-                    ),
-                    required_actions=[],
-                )
-            )
-
-            response = {
-                "source": (
-                    "explainer_v4_no_actions"
-                ),
-                "message": (
-                    response_message
-                ),
-                "guard": {
-                    "passed": True,
-                    "misses": [],
-                },
-            }
-
-        except Exception as error:
-            response_message = (
-                explainer.personalised_fallback_message_v4(
-                    analysis_context=(
-                        analysis_context
-                    ),
-                    exposure_summary=(
-                        exposure_summary
-                    ),
-                    required_actions=[],
-                )
-            )
-
-            response = {
-                "source": (
-                    "fallback_no_actions_after_error:"
-                    f"{type(error).__name__}"
-                ),
-                "message": (
-                    response_message
-                ),
-                "guard": {
-                    "passed": None,
-                    "misses": [
-                        "explainer_call_failed"
-                    ],
-                },
-            }
+    )
 
     return {
         **analysis_context,
