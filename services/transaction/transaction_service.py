@@ -1,14 +1,24 @@
+import os
 from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 from services.transaction import feature_engineering
+
+load_dotenv()
 
 MODEL_DIR = Path(__file__).resolve().parent / "model"
 
 model = joblib.load(MODEL_DIR / "fraud_xgb_model.joblib")
 onehot_encoder = joblib.load(MODEL_DIR / "onehot_encoder.joblib")
 feature_config = joblib.load(MODEL_DIR / "feature_config.joblib")
+# The URL detector and the existing services share the repo's GEMINI_API_KEY,
+# but use separate clients and prompts so their behavior stays isolated.
+genai_client = genai.Client()
+GENAI_MODEL = "gemini-2.5-flash"
 
 cat_cols = feature_config["cat_cols"]
 model_features = list(model.feature_names_in_)
@@ -17,6 +27,7 @@ model_features = list(model.feature_names_in_)
 # Keep this list exactly as the model was trained with.
 # Your saved config and model verified this contract.
 encoded_feature_names = list(onehot_encoder.get_feature_names_out(cat_cols))
+
 
 def to_float(value, default=0.0):
     try:
@@ -113,6 +124,111 @@ def predict_transaction(payload):
         "is_fraud": fraud_probability >= 0.5,
         "label": "fraud" if fraud_probability >= 0.5 else "safe",
     }
+
+def infer_flag_reasons(row: dict) -> list:
+    reasons = []
+    if row.get('is_off_hours'):
+        reasons.append("it occurred during unusual/off-peak hours")
+    if row.get('is_foreign_transaction'):
+        reasons.append("it originated from a foreign location")
+    if (row.get('transaction_count_24h') or 0) >= 5:
+        reasons.append("there was an unusually high number of transactions in the last 24 hours")
+    if (row.get('amount_zscore') or 0) > 2:
+        reasons.append("the amount is significantly higher than this account's typical spending")
+    if not reasons:
+        reasons.append("the transaction pattern deviates from the account's typical behaviour")
+    return reasons
+
+
+def explain_flagged_transaction(row: dict) -> str:
+    if genai_client is None:
+        return "AI explanation unavailable (GEMINI_API_KEY not set)."
+
+    reasons = infer_flag_reasons(row)
+    prompt = f"""
+    Transaction flagged as potentially fraudulent:
+    - Amount: ${row.get('amount')}
+    - Merchant category: {row.get('merchant_category')}
+    - Device: {row.get('device_type')}
+    - Foreign transaction: {'Yes' if row.get('is_foreign_transaction') else 'No'}
+    - Risk score: {row.get('risk_score')}
+    
+    Reasons the system flagged it: {', '.join(reasons)}
+
+    In 2-3 short sentences, explain in plain language why this transaction looks
+    risky, based only on the details above. No technical ML jargon.
+    """
+    try:
+        reply = genai_client.models.generate_content(
+            model=GENAI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=(
+                    "You are ScamSense's fraud-explanation assistant. Be concise, "
+                    "factual, and only use the details given — never invent "
+                    "transaction details."
+                ),
+                temperature=0,
+                max_output_tokens=300,
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
+            ),
+        )
+        return reply.text.strip()
+    except Exception:
+        return None
+
+
+def draft_escalation_email(flagged_rows: list):
+    if not flagged_rows:
+        return None
+
+    lines = [
+        f"- Row {r.get('row_index')}: ${r.get('amount')} at {r.get('timestamp')} at {r.get('merchant_category')} "
+        f"(risk {r.get('risk_score')}, foreign={'Y' if r.get('is_foreign_transaction') else 'N'})"
+        for r in flagged_rows
+    ]
+    prompt = f"""
+    The following {len(flagged_rows)} transactions were flagged as potentially fraudulent
+    by our detection system:
+
+    {chr(10).join(lines)}
+
+    Draft a concise, professional escalation email to the bank's fraud investigation
+    team summarizing these transactions and requesting review. Keep it under 300 words,
+    formal tone suitable for internal bank communication.
+    """
+    try:
+        reply = genai_client.models.generate_content(
+            model=GENAI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=(
+                    "You are a fraud analyst assistant drafting internal escalation "
+                    "emails. Be factual and concise, and only use the details provided."
+                ),
+                temperature=0,
+                max_output_tokens=600,
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
+            ),
+        )
+        return reply.text.strip()
+    except Exception:
+        return None
+
+
+def enrich_flagged_rows(results: list):
+    flagged = [r for r in results if r.get('is_fraud')]
+    for r in flagged:
+        explanation = explain_flagged_transaction(r)
+        if explanation is None:
+            r['ai_explanation'] = None
+            r['ai_error'] = "AI explanation could not be generated."
+        else:
+            r['ai_explanation'] = explanation
+
+    escalation_email = draft_escalation_email(flagged) if flagged else None
+
+    return results, escalation_email
 
 def score_upload_rows(df):
     cleaned = feature_engineering.engineer_features_from_transcript(df)

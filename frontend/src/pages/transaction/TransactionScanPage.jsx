@@ -2,12 +2,14 @@ import { useState } from 'react'
 import PageHeader from '@/components/layout/PageHeader'
 import { checkTransaction } from '@/services/transaction-service'
 import { Info } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function TransactionScanPage() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
+  const [expandedRow, setExpandedRow] = useState(null)
 
   const handleUpload = async () => {
     if (!selectedFile) return
@@ -69,17 +71,17 @@ export default function TransactionScanPage() {
             <span>{selectedFile ? selectedFile.name : 'Choose CSV / Excel file'}</span>
           </label>
 
-          <button
+          <Button
             type="button"
             onClick={handleUpload}
             disabled={loading || !selectedFile}
-            className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl h-18 px-5 py-3 font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Processing…' : 'Upload & Scan'}
-          </button>
+          </Button>
         </div>
       </div>
-      
+
 
       {error && (
         <div className="rounded-xl border border-red-500/40 bg-red-950/20 p-3 text-sm text-red-200">
@@ -124,11 +126,10 @@ export default function TransactionScanPage() {
                 return (
                   <div
                     key={item.row_index ?? index}
-                    className={`rounded-2xl border p-5 ${
-                      isFraud
-                        ? 'border-red-500/40 bg-red-950/20'
-                        : 'border-emerald-500/30 bg-emerald-950/20'
-                    }`}
+                    className={`rounded-2xl border p-5 ${isFraud
+                      ? 'border-red-500/40 bg-red-950/20'
+                      : 'border-emerald-500/30 bg-emerald-950/20'
+                      }`}
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div>
@@ -148,12 +149,29 @@ export default function TransactionScanPage() {
 
                     <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-800">
                       <div
-                        className={`h-full rounded-full ${
-                          score >= 0.5 ? 'bg-red-500' : 'bg-emerald-500'
-                        }`}
+                        className={`h-full rounded-full ${score >= 0.5 ? 'bg-red-500' : 'bg-emerald-500'
+                          }`}
                         style={{ width: `${Math.min(score * 100, 100)}%` }}
                       />
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedRow(expandedRow === index ? null : index)}
+                      className="mt-4 flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2 text-sm text-slate-200"
+                    >
+                      <span>AI explanation</span>
+                      <span>{expandedRow === index ? '−' : '+'}</span>
+                    </button>
+
+                    {expandedRow === index && (
+                      <div className="mt-2 rounded-lg border border-slate-700 bg-slate-950/60 p-3 text-sm text-slate-300">
+                        {item.ai_explanation
+                          ? item.ai_explanation
+                          : item.ai_error
+                            ? `Couldn't generate explanation: ${item.ai_error}`
+                            : 'No explanation available.'}
+                      </div>
+                    )}
 
                     <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-300">
                       <span className="rounded-full border border-slate-600 px-2 py-1">
@@ -166,6 +184,16 @@ export default function TransactionScanPage() {
                   </div>
                 )
               })}
+            </div>
+          )}
+          {flaggedRows.length > 0 && (
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-amber-300">
+                Bank / SPF escalation email
+              </h3>
+              <div className="mt-3 whitespace-pre-wrap rounded-lg border border-slate-700 bg-slate-950/50 p-4 text-sm text-slate-200">
+                {result.escalation_email || 'Generating…'}
+              </div>
             </div>
           )}
         </div>
