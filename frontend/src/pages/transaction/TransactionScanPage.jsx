@@ -5,7 +5,6 @@ import { checkTransaction } from '@/services/transaction-service'
 export default function TransactionScanPage() {
   const [form, setForm] = useState({
     amount: 350,
-    account_age_days: 90,
     transaction_count_24h: 2,
     avg_transaction_amount: 120,
     is_foreign_transaction: 1,
@@ -100,16 +99,6 @@ export default function TransactionScanPage() {
               type="number"
               name="amount"
               value={form.amount}
-              onChange={handleChange}
-            />
-          </label>
-
-          <label>
-            Account Age Days
-            <input
-              type="number"
-              name="account_age_days"
-              value={form.account_age_days}
               onChange={handleChange}
             />
           </label>

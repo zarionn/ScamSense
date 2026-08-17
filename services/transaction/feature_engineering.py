@@ -9,12 +9,22 @@ def normalize_column_name(raw_name: str) -> str:
 
 COLUMN_ALIASES = {
     "time": "timestamp",
+    "date": "timestamp",
     "amount": "amount",
+    "amount_usd": "amount",
     "device": "device_type",
+    "device_type": "device_type",
     "merchant_category": "merchant_category",
+    "merchant": "merchant_category",
+    "merchant_type": "merchant_category",
+    "vendor_category": "merchant_category",
     "foreign_transaction": "is_foreign_transaction",
+    "foreign_txn": "is_foreign_transaction",
+    "is_foreign": "is_foreign_transaction",
     "hour_of_day": "hour_of_day",
     "transactions_last_24h": "transaction_count_24h",
+    "txn_count_24h": "transaction_count_24h",
+    "transactions_24h": "transaction_count_24h",
 }
 
 def engineer_features_from_transcript(df: pd.DataFrame) -> pd.DataFrame:
@@ -32,8 +42,11 @@ def engineer_features_from_transcript(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
 
-    if "timestamp" not in df.columns or "amount" not in df.columns:
-        raise ValueError("File must contain a 'Time' and an 'Amount' column")
+    if "timestamp" not in df.columns and "time" not in df.columns:
+        raise ValueError("File must contain a timestamp-like column")
+
+    if "amount" not in df.columns:
+        df["amount"] = 0.0
 
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df = df.sort_values("timestamp").reset_index(drop=True)
@@ -87,5 +100,47 @@ def engineer_features_from_transcript(df: pd.DataFrame) -> pd.DataFrame:
     df["transaction_velocity"] = (
         df["transaction_count_24h"] / df["time_since_last_transaction"].replace(0, np.nan)
     ).fillna(0)
+
+    required_numeric = [
+            "amount",
+            "transaction_count_24h",
+            "avg_transaction_amount",
+            "is_foreign_transaction",
+            "is_weekend",
+            "hour_of_day",
+            "day_of_week",
+            "month",
+            "is_month_end",
+            "is_month_start",
+            "time_since_last_transaction",
+            "transaction_count_7d",
+            "transaction_count_30d",
+            "amount_zscore",
+            "amount_percentile",
+            "amount_rolling_mean_7d",
+            "amount_rolling_std_7d",
+            "amount_x_transaction_count",
+            "amount_x_is_foreign",
+            "transaction_count_x_is_foreign",
+            "is_rush_hour",
+            "is_off_hours",
+            "avg_amount_ratio",
+            "transaction_velocity",
+        ]
+
+    for col in required_numeric:
+        if col not in df.columns:
+            df[col] = 0.0
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+
+    if "merchant_category" not in df.columns:
+        df["merchant_category"] = "Other"
+    else:
+        df["merchant_category"] = df["merchant_category"].fillna("Other").astype(str)
+
+    if "device_type" not in df.columns:
+        df["device_type"] = "Mobile"
+    else:
+        df["device_type"] = df["device_type"].fillna("Mobile").astype(str)
 
     return df

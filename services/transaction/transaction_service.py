@@ -70,44 +70,35 @@ def build_feature_frame_for_model(df):
 
     frame = df.copy()
 
-    # 1) numeric columns expected by the model
-    numeric_cols = [c for c in model_features if c not in encoded_feature_names]
+    numeric_cols = feature_config["numeric_cols"]
+    cat_cols = feature_config["cat_cols"]
+
     for col in numeric_cols:
         if col not in frame.columns:
             frame[col] = 0.0
         frame[col] = pd.to_numeric(frame[col], errors="coerce").fillna(0.0)
 
-    # 2) categorical columns expected by the model
     for col in cat_cols:
         if col not in frame.columns:
             frame[col] = "Other"
         frame[col] = frame[col].fillna("Other").astype(str)
 
     cat_df = frame[cat_cols].copy()
-    for col in cat_cols:
-        allowed = set(onehot_encoder.categories_[cat_cols.index(col)])
-        cat_df[col] = cat_df[col].map(
-            lambda value: str(value).strip() if str(value).strip() in allowed else "Other"
-        ).fillna("Other")
-
-    # 3) one-hot encode categorical features
     encoded = onehot_encoder.transform(cat_df)
     encoded_array = encoded.toarray() if hasattr(encoded, "toarray") else np.asarray(encoded)
     encoded_df = pd.DataFrame(
         encoded_array,
-        columns=onehot_encoder.get_feature_names_out(cat_cols),
+        columns=onehot_encoder.get_feature_names_out(cat_cols)
     )
 
-    # 4) combine numeric + encoded columns
     model_df = frame[numeric_cols].copy()
     model_df = pd.concat([model_df, encoded_df], axis=1)
 
-    # 5) add any missing training columns and preserve exact order
-    for col in model_features:
+    for col in model.feature_names_in_:
         if col not in model_df.columns:
             model_df[col] = 0.0
 
-    return model_df[model_features]
+    return model_df[list(model.feature_names_in_)]
 
 def predict_transaction(payload):
     df = build_feature_frame(payload)
