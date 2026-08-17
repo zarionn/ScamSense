@@ -1,41 +1,14 @@
 import { useState } from 'react'
 import PageHeader from '@/components/layout/PageHeader'
 import { checkTransaction } from '@/services/transaction-service'
+import { Info } from 'lucide-react'
 
 export default function TransactionScanPage() {
-  const [form, setForm] = useState({
-    amount: 350,
-    transaction_count_24h: 2,
-    avg_transaction_amount: 120,
-    is_foreign_transaction: 1,
-    is_weekend: 0,
-    hour_of_day: 22,
-    day_of_week: 6,
-    month: 8,
-    is_month_end: 0,
-    is_month_start: 0,
-    time_since_last_transaction: 6,
-    transaction_count_7d: 4,
-    transaction_count_30d: 12,
-    amount_zscore: 1.5,
-    amount_percentile: 0.9,
-    amount_rolling_mean_7d: 100,
-    amount_rolling_std_7d: 40,
-    amount_x_transaction_count: 700,
-    amount_x_is_foreign: 350,
-    transaction_count_x_is_foreign: 2,
-    is_rush_hour: 1,
-    is_off_hours: 1,
-    avg_amount_ratio: 3,
-    transaction_velocity: 0.8,
-    merchant_category: 'Online',
-    device_type: 'Mobile',
-  })
-
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
+
   const handleUpload = async () => {
     if (!selectedFile) return
 
@@ -64,116 +37,146 @@ export default function TransactionScanPage() {
     }
   }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const data = await checkTransaction(form)
-      setResult(data)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const flaggedRows = Array.isArray(result?.results)
+    ? result.results
+      .map((item) => item?.prediction ?? item)
+      .filter((item) => {
+        const score = Number(item?.risk_score ?? item?.probability ?? 0)
+        return Boolean(item?.is_fraud) || score >= 0.5
+      })
+    : []
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6 p-4">
       <PageHeader
         title="Transaction Fraud Detector"
-        description="Submit transaction details to check for possible fraud risk."
+        description="Upload a CSV or Excel file to review suspicious transactions."
       />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <label>
-            Amount
-            <input
-              type="number"
-              name="amount"
-              value={form.amount}
-              onChange={handleChange}
-            />
-          </label>
-
-          <label>
-            Merchant Category
-            <input
-              type="text"
-              name="merchant_category"
-              value={form.merchant_category}
-              onChange={handleChange}
-            />
-          </label>
-
-          <label>
-            Device Type
-            <input
-              type="text"
-              name="device_type"
-              value={form.device_type}
-              onChange={handleChange}
-            />
-          </label>
+      <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/20">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-white">Upload Excel file</h2>
         </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Checking...' : 'Check Transaction'}
-        </button>
-      </form>
-      <div className="rounded-xl border border-border bg-card p-4">
-        <h3 className="mb-3 text-sm font-medium">Upload Excel file</h3>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <label className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-slate-600 bg-slate-950/40 px-4 py-6 text-sm text-slate-300 hover:border-amber-400 hover:text-white">
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              className="hidden"
+            />
+            <span>{selectedFile ? selectedFile.name : 'Choose CSV / Excel file'}</span>
+          </label>
 
-        <input
-          type="file"
-          accept=".csv,.xlsx,.xls"
-          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-        />
-
-        <button
-          type="button"
-          onClick={handleUpload}
-          disabled={loading || !selectedFile}
-          className="mt-3"
-        >
-          {loading ? 'Processing…' : 'Upload & Scan Excel'}
-        </button>
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={loading || !selectedFile}
+            className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Processing…' : 'Upload & Scan'}
+          </button>
+        </div>
       </div>
+      
 
-
-      {error && <p className="text-red-500">{error}</p>}
-
-      {result && Array.isArray(result.results) ? (
-        <div>
-          <p>Total rows: {result.total_rows}</p>
-          <p>Flagged rows: {result.flagged_rows}</p>
-
-          {result.results?.map((item, index) => {
-            const prediction = item?.prediction ?? item
-
-            return (
-              <div key={index}>
-                <p>Row {prediction.row_index ?? item.row_index ?? index}</p>
-                <p>Verdict: {prediction.verdict}</p>
-                <p>Risk score: {prediction.risk_score}</p>
-              </div>
-            )
-          })}
-        </div>
-      ) : result && (
-        <div>
-          <p>Risk score: {result.risk_score}</p>
-          <p>Verdict: {result.verdict}</p>
-          <p>Label: {result.label}</p>
+      {error && (
+        <div className="rounded-xl border border-red-500/40 bg-red-950/20 p-3 text-sm text-red-200">
+          {error}
         </div>
       )}
+
+      {result && (
+        <div className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
+              <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Total rows</div>
+              <div className="mt-2 text-2xl font-bold text-white">{result.total_rows ?? 0}</div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
+              <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Flagged</div>
+              <div className="mt-2 text-2xl font-bold text-amber-400">
+                {result.flagged_rows ?? flaggedRows.length}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
+              <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Risk threshold</div>
+              <div className="mt-2 text-2xl font-bold text-emerald-400">0.50</div>
+            </div>
+          </div>
+
+          {flaggedRows.length === 0 ? (
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-6 text-center">
+              <h3 className="text-xl font-semibold text-emerald-300">No possible fraudulent transactions</h3>
+              <p className="mt-2 text-sm text-emerald-100/80">
+                No uploaded row exceeded the fraud detection threshold.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {flaggedRows.map((item, index) => {
+                const score = Number(item?.risk_score ?? item?.probability ?? 0)
+                const isFraud = Boolean(item?.is_fraud) || score >= 0.5
+
+                return (
+                  <div
+                    key={item.row_index ?? index}
+                    className={`rounded-2xl border p-5 ${
+                      isFraud
+                        ? 'border-red-500/40 bg-red-950/20'
+                        : 'border-emerald-500/30 bg-emerald-950/20'
+                    }`}
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.12em] text-slate-400">
+                          Row {item.row_index ?? index}
+                        </div>
+                        <div className="mt-1 text-xl font-semibold text-white">
+                          {isFraud ? 'Likely fraud' : 'Low risk'}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2">
+                        <span className="text-xs uppercase tracking-[0.12em] text-slate-400">Risk</span>
+                        <div className="text-2xl font-bold text-white">{score.toFixed(4)}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-800">
+                      <div
+                        className={`h-full rounded-full ${
+                          score >= 0.5 ? 'bg-red-500' : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${Math.min(score * 100, 100)}%` }}
+                      />
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-300">
+                      <span className="rounded-full border border-slate-600 px-2 py-1">
+                        Verdict: {item.verdict ?? (isFraud ? 'Likely fraud' : 'Low risk')}
+                      </span>
+                      <span className="rounded-full border border-slate-600 px-2 py-1">
+                        Label: {item.label ?? (isFraud ? 'fraud' : 'safe')}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+      <footer className="mx-auto mt-8 max-w-[900px] border-t border-border py-3.5">
+        <p className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
+          <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+          ScamSense uses AI to identify possible phishing indicators, but results may not be
+          100% accurate. When in doubt, verify the link through an official source.
+        </p>
+      </footer>
     </div>
   )
 }

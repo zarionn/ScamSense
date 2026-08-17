@@ -129,6 +129,10 @@ def score_upload_rows(df):
             "verdict": "Likely fraud" if risk >= 0.5 else "Low risk",
             "is_fraud": bool(risk >= 0.5),
             "label": "fraud" if risk >= 0.5 else "safe",
+            "amount": float(cleaned.iloc[i]["amount"]) if "amount" in cleaned.columns else None,
+            "merchant_category": str(cleaned.iloc[i]["merchant_category"]) if "merchant_category" in cleaned.columns else None,
+            "device_type": str(cleaned.iloc[i]["device_type"]) if "device_type" in cleaned.columns else None,
+            "is_foreign_transaction": int(cleaned.iloc[i]["is_foreign_transaction"]) if "is_foreign_transaction" in cleaned.columns else None,
         })
 
     return results
