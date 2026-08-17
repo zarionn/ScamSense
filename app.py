@@ -13,6 +13,8 @@ from services.screenshot import screenshot_service
 from services.chatbot import chatbot_service
 from services.url import url_service
 from services.transaction import transaction_service
+import pandas as pd
+from services.transaction.feature_engineering import engineer_features_from_transcript
 
 app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 CORS(app)
@@ -106,21 +108,32 @@ def predict_url():
 
     return jsonify(result)
 
-@app.route("/api/transaction/predict", methods=["POST"])
-def predict_transaction():
-    body = request.get_json(silent=True) or {}
+@app.route("/api/transaction/upload", methods=["POST"])
+def upload_transaction_batch():
+    if "file" not in request.files or request.files["file"].filename == "":
+        return jsonify({"error": "No file uploaded"}), 400
 
-    if not isinstance(body, dict):
-        return jsonify({"error": "Expected a JSON object with transaction details."}), 400
+    uploaded = request.files["file"]
+    filename = uploaded.filename.lower()
 
     try:
-        result = transaction_service.predict_transaction(body)
-        return jsonify(result)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        if filename.endswith(".csv"):
+            df = pd.read_csv(uploaded)
+        else:
+            df = pd.read_excel(uploaded)
     except Exception:
-        app.logger.exception("Transaction prediction failed")
-        return jsonify({"error": "Could not evaluate this transaction. Please try again."}), 500
+        return jsonify({"error": "Could not read that file. Please upload a CSV or Excel file."}), 400
+
+    try:
+        results = transaction_service.score_upload_rows(df)
+    except Exception as exc:
+        return jsonify({"error": f"Could not process file: {str(exc)}"}), 400
+
+    return jsonify({
+        "total_rows": len(results),
+        "flagged_rows": sum(1 for item in results if item["is_fraud"]),
+        "results": results,
+    })
 
 @app.errorhandler(413)
 def too_large(e):

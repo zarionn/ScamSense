@@ -36,6 +36,34 @@ export default function TransactionScanPage() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null)
+  const handleUpload = async () => {
+    if (!selectedFile) return
+
+    setLoading(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      const response = await fetch('/api/transaction/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data?.error || 'Excel upload failed')
+      }
+
+      setResult(data)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -111,10 +139,46 @@ export default function TransactionScanPage() {
           {loading ? 'Checking...' : 'Check Transaction'}
         </button>
       </form>
+      <div className="rounded-xl border border-border bg-card p-4">
+        <h3 className="mb-3 text-sm font-medium">Upload Excel file</h3>
+
+        <input
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+        />
+
+        <button
+          type="button"
+          onClick={handleUpload}
+          disabled={loading || !selectedFile}
+          className="mt-3"
+        >
+          {loading ? 'Processing…' : 'Upload & Scan Excel'}
+        </button>
+      </div>
+
 
       {error && <p className="text-red-500">{error}</p>}
 
-      {result && (
+      {result && Array.isArray(result.results) ? (
+        <div>
+          <p>Total rows: {result.total_rows}</p>
+          <p>Flagged rows: {result.flagged_rows}</p>
+
+          {result.results?.map((item, index) => {
+            const prediction = item?.prediction ?? item
+
+            return (
+              <div key={index}>
+                <p>Row {prediction.row_index ?? item.row_index ?? index}</p>
+                <p>Verdict: {prediction.verdict}</p>
+                <p>Risk score: {prediction.risk_score}</p>
+              </div>
+            )
+          })}
+        </div>
+      ) : result && (
         <div>
           <p>Risk score: {result.risk_score}</p>
           <p>Verdict: {result.verdict}</p>
