@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import URLTechDetails from './URLTechDetails'
+import URLFeedback from './URLFeedback'
 import { toneForKey } from '../utils/verdict-styles'
 import { buildResultPresentation } from '../utils/result-presentation'
 
@@ -115,6 +116,12 @@ function Section({ title, accent, children }) {
   )
 }
 
+// Identifies one displayed scan. Both parts are needed: two scans can share a
+// checked_at, and the same URL can be scanned repeatedly.
+function feedbackKeyFor(result) {
+  return `${result.url}|${result.checked_at}`
+}
+
 export default function URLResultCard({ result }) {
   // Every user-facing decision below comes from the backend's fused verdict
   // via this one call — the card never re-derives a verdict of its own, and
@@ -156,6 +163,16 @@ export default function URLResultCard({ result }) {
       <div className="border-t border-border px-5">
         <URLTechDetails result={result} opinionLabel={presentation.analystOpinionLabel} />
       </div>
+
+      {/* Keyed on the scanned result so a new scan mounts a fresh copy, clearing
+          the previous form, error and success state. */}
+      <Section>
+        <URLFeedback
+          key={feedbackKeyFor(result)}
+          result={result}
+          finalLevel={presentation.level}
+        />
+      </Section>
     </article>
   )
 }
