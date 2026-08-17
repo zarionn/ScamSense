@@ -6,7 +6,7 @@
 
 export const DETECTORS = {
   message: { key: 'message', label: 'Message Scan', available: false },
-  url: { key: 'url', label: 'URL Scan', available: false },
+  url: { key: 'url', label: 'URL Scan', available: true },
   transaction: { key: 'transaction', label: 'Transaction Scan', available: false },
   screenshot: { key: 'screenshot', label: 'Screenshot Scan', available: true },
 }

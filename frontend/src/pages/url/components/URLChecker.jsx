@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { checkURL } from '@/services/url-service'
 import URLResultCard, { PANEL_CLASS, PipelineTimeline } from './URLResultCard'
-import { TONES } from '../utils/verdict-styles'
 
 const DEMO_URLS = [
   { label: 'Safe link', url: 'https://www.dbs.com.sg' },
@@ -64,19 +63,19 @@ export default function URLChecker() {
     {
       title: 'Official site check',
       detail: 'Checking our list of official Singapore sites…',
-      tone: TONES.neutral,
+      toneKey: 'neutral',
       dimmed: litSteps < 1,
     },
     {
       title: 'Risk score',
       detail: 'Working out a risk score for this link…',
-      tone: TONES.neutral,
+      toneKey: 'neutral',
       dimmed: litSteps < 2,
     },
     {
       title: 'AI analyst review',
       detail: 'Our AI analyst is taking a closer look…',
-      tone: TONES.neutral,
+      toneKey: 'neutral',
       dimmed: litSteps < 3,
       spinner: true,
     },
