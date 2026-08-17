@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/providers/auth-provider'
+import { useURLScanHistory } from '@/hooks/use-url-scan-history'
 import { checkURL } from '@/services/url-service'
+import URLRecentScans from './URLRecentScans'
 import URLResultCard, { PANEL_CLASS, PipelineTimeline } from './URLResultCard'
 
 const DEMO_URLS = [
@@ -20,6 +23,8 @@ export default function URLChecker() {
   const [result, setResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [litSteps, setLitSteps] = useState(0)
+  const { user, loading: authLoading } = useAuth()
+  const history = useURLScanHistory(user, authLoading)
 
   // The model and AI review can take a few seconds, so reveal the real pipeline
   // progressively while the request is running. These timers never delay it.
@@ -46,7 +51,12 @@ export default function URLChecker() {
     setLitSteps(0)
 
     try {
-      setResult(await checkURL(url))
+      const scanResult = await checkURL(url)
+      setResult(scanResult)
+      // Saved from the completed scan action rather than an effect, so a
+      // re-render cannot repeat it, and fire-and-forget so history can never
+      // delay or change the result already set above.
+      history.recordScan(scanResult)
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Could not check that link.')
     } finally {
@@ -57,6 +67,12 @@ export default function URLChecker() {
   function handleSubmit(event) {
     event.preventDefault()
     runCheck(urlInput.trim())
+  }
+
+  // Runs the normal detector flow on the stored address; never navigates to it.
+  function handleCheckAgain(redactedURL) {
+    setURLInput(redactedURL)
+    runCheck(redactedURL)
   }
 
   const loadingSteps = [
@@ -115,6 +131,21 @@ export default function URLChecker() {
           ))}
         </div>
       </div>
+
+      <URLRecentScans
+        entries={history.entries}
+        isSignedIn={!authLoading && Boolean(user)}
+        isAuthResolving={authLoading}
+        isLoading={history.isLoading}
+        loadError={history.loadError}
+        syncError={history.syncError}
+        isClearing={history.isClearing}
+        clearError={history.clearError}
+        isScanRunning={isLoading}
+        onCheckAgain={handleCheckAgain}
+        onClearHistory={history.clearHistory}
+        onDismissClearError={history.dismissClearError}
+      />
 
       <div aria-live="polite" className="space-y-5">
         {isLoading && (
