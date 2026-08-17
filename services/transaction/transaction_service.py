@@ -196,6 +196,10 @@ def draft_escalation_email(flagged_rows: list):
     Draft a concise, professional escalation email to the bank's fraud investigation
     team summarizing these transactions and requesting review. Keep it under 300 words,
     formal tone suitable for internal bank communication.
+    Have a placeholder after the details paragraph for users to replace with their name, last 4 digits 
+    of the user's account number,and their contact information: 
+    My Information:
+    [Replace with your name, last 4 digits of account number, and contact info].
     """
     try:
         reply = genai_client.models.generate_content(
