@@ -130,11 +130,7 @@ export const WELCOME_STEP_ID = 'welcome'
 // even if text was typed alongside it, so the Assistant never implies it
 // looked at the screenshot).
 export const IMAGE_ATTACHED_REPLY =
-<<<<<<< HEAD
-  "I've got the screenshot. I can prepare it for Screenshot Scan for a detailed visual analysis."
+    "I've got the image. What would you like to do?"
 
 export const TRANSACTION_ATTACHED_REPLY =
   "I've got the file. I can prepare it for Transaction Scan so you can review the flagged rows."
-=======
-  "I've got the image. What would you like to do?"
->>>>>>> feature/updated-message-scam-detector
