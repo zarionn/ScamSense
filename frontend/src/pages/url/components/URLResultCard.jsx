@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import URLCheckSteps from './URLCheckSteps'
 import URLTechDetails from './URLTechDetails'
 import URLFeedback from './URLFeedback'
+import URLShareSummary from './URLShareSummary'
 import { toneForKey } from '../utils/verdict-styles'
 import { buildResultPresentation } from '../utils/result-presentation'
 
@@ -85,7 +86,7 @@ function InfoCard({ title, accent, children }) {
 
 // Identifies one displayed scan. Both parts are needed: two scans can share a
 // checked_at, and the same URL can be scanned repeatedly.
-function feedbackKeyFor(result) {
+function scanKeyFor(result) {
   return `${result.url}|${result.checked_at}`
 }
 
@@ -136,7 +137,10 @@ export default function URLResultCard({ result }) {
       </article>
 
       <section className="space-y-3">
-        <h2 className="font-medium text-heading">How we checked this link</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-medium text-heading">How we checked this link</h2>
+          <URLShareSummary key={scanKeyFor(result)} result={result} />
+        </div>
         <URLCheckSteps steps={presentation.steps} />
       </section>
 
@@ -161,7 +165,7 @@ export default function URLResultCard({ result }) {
             the previous form, error and success state. */}
         <div className="border-t border-border px-5 py-2">
           <URLFeedback
-            key={feedbackKeyFor(result)}
+            key={scanKeyFor(result)}
             result={result}
             finalLevel={presentation.level}
           />
