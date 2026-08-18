@@ -89,6 +89,134 @@ def _urlsafe_decode(value: str) -> bytes:
         raise AnalysisTokenError("Invalid or expired analysis token") from error
 
 
+def _temporary_signing_key_identifier(key: bytes) -> str:
+    """TEMPORARY: return a non-secret identifier for Render diagnostics."""
+    return hashlib.sha256(b"screenshot-token-diagnostic\0" + key).hexdigest()[:12]
+
+
+def _temporary_signing_key_diagnostics() -> tuple[int, str]:
+    """TEMPORARY: inspect key identity without affecting signing-key validation."""
+    try:
+        value = os.environ.get("SCREENSHOT_CONTEXT_SIGNING_KEY")
+        if value is None:
+            return 0, "unavailable"
+        key = value.encode("utf-8")
+        return len(key), _temporary_signing_key_identifier(key)
+    except Exception:
+        return 0, "unavailable"
+
+
+def _temporary_current_utc_epoch() -> Optional[int]:
+    """TEMPORARY: obtain diagnostic wall-clock time without changing behaviour."""
+    try:
+        return int(time.time())
+    except Exception:
+        return None
+
+
+def _temporary_token_length(token) -> Optional[int]:
+    return len(token) if isinstance(token, str) else None
+
+
+def _temporary_parsed_token_version(token) -> Optional[int]:
+    if not isinstance(token, str) or len(token) > MAX_ANALYSIS_TOKEN_LENGTH:
+        return None
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+    prefix = parts[0]
+    if not prefix.startswith("v") or not prefix[1:].isdigit():
+        return None
+    if not 1 <= len(prefix[1:]) <= 10:
+        return None
+    return int(prefix[1:])
+
+
+def _temporary_schema_error_details(error: ValidationError) -> list[dict]:
+    try:
+        return [
+            {
+                "location": ".".join(str(part) for part in item["loc"]),
+                "error_type": item["type"],
+            }
+            for item in error.errors(include_url=False, include_context=False)
+        ]
+    except Exception:
+        return []
+
+
+def _temporary_log_token_issue(
+    *,
+    issued_at: int,
+    key: bytes,
+    token_length: int,
+) -> None:
+    try:
+        logger.warning(
+            "event=token_issue pid=%s current_utc_epoch=%s issued_at=%s "
+            "configured_ttl_seconds=%s key_byte_length=%s key_id=%s "
+            "token_length=%s",
+            os.getpid(),
+            _temporary_current_utc_epoch(),
+            issued_at,
+            ANALYSIS_TOKEN_TTL_SECONDS,
+            len(key),
+            _temporary_signing_key_identifier(key),
+            token_length,
+        )
+    except Exception:
+        pass
+
+
+def _temporary_log_token_verify_start(token) -> None:
+    key_byte_length, key_id = _temporary_signing_key_diagnostics()
+    try:
+        logger.warning(
+            "event=token_verify_start pid=%s current_utc_epoch=%s "
+            "configured_ttl_seconds=%s key_byte_length=%s key_id=%s "
+            "token_length=%s parsed_version_if_available=%s",
+            os.getpid(),
+            _temporary_current_utc_epoch(),
+            ANALYSIS_TOKEN_TTL_SECONDS,
+            key_byte_length,
+            key_id,
+            _temporary_token_length(token),
+            _temporary_parsed_token_version(token),
+        )
+    except Exception:
+        pass
+
+
+def _temporary_log_token_verify_result(
+    *,
+    signature_valid: bool,
+    issued_at: Optional[int],
+    token_age_seconds: Optional[int],
+    outcome: str,
+    failure_category: str,
+    exception_class: str,
+    schema_errors: list[dict],
+) -> None:
+    try:
+        logger.warning(
+            "event=token_verify_result pid=%s signature_valid=%s "
+            "issued_at_after_signature_validation=%s token_age_seconds=%s "
+            "configured_ttl_seconds=%s outcome=%s failure_category=%s "
+            "exception_class=%s schema_error_locations_and_types_only=%s",
+            os.getpid(),
+            str(signature_valid).lower(),
+            issued_at,
+            token_age_seconds,
+            ANALYSIS_TOKEN_TTL_SECONDS,
+            outcome,
+            failure_category,
+            exception_class,
+            json.dumps(schema_errors, separators=(",", ":")),
+        )
+    except Exception:
+        pass
+
+
 def issue_analysis_token(analysis_context: dict, now: Optional[int] = None) -> str:
     """Validate and sign a fixed-version canonical analysis payload.
 
@@ -111,8 +239,9 @@ def issue_analysis_token(analysis_context: dict, now: Optional[int] = None) -> s
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
+    signing_key = _analysis_signing_key()
     signature = hmac.new(
-        _analysis_signing_key(),
+        signing_key,
         payload_bytes,
         hashlib.sha256,
     ).digest()
@@ -123,45 +252,143 @@ def issue_analysis_token(analysis_context: dict, now: Optional[int] = None) -> s
     )
     if len(token) > MAX_ANALYSIS_TOKEN_LENGTH:
         raise RuntimeError("Server analysis context is too large to sign")
+    _temporary_log_token_issue(
+        issued_at=payload.issued_at,
+        key=signing_key,
+        token_length=len(token),
+    )
     return token
 
 
 def verify_analysis_token(token: str, now: Optional[int] = None) -> dict:
     """Authenticate before parsing, then strictly validate and expire a token."""
     invalid_message = "Invalid or expired analysis token"
-    if not isinstance(token, str) or not token or len(token) > MAX_ANALYSIS_TOKEN_LENGTH:
-        raise AnalysisTokenError(invalid_message)
+    signature_valid = False
+    issued_at = None
+    token_age_seconds = None
+    schema_errors = []
+    result_logged = False
 
-    parts = token.split(".")
-    if len(parts) != 3 or parts[0] != f"v{ANALYSIS_TOKEN_VERSION}":
-        raise AnalysisTokenError(invalid_message)
+    def log_result(
+        outcome: str,
+        failure_category: str,
+        exception_class: str,
+    ) -> None:
+        nonlocal result_logged
+        _temporary_log_token_verify_result(
+            signature_valid=signature_valid,
+            issued_at=issued_at,
+            token_age_seconds=token_age_seconds,
+            outcome=outcome,
+            failure_category=failure_category,
+            exception_class=exception_class,
+            schema_errors=schema_errors,
+        )
+        result_logged = True
 
-    payload_bytes = _urlsafe_decode(parts[1])
-    supplied_signature = _urlsafe_decode(parts[2])
-    expected_signature = hmac.new(
-        _analysis_signing_key(),
-        payload_bytes,
-        hashlib.sha256,
-    ).digest()
-    if not hmac.compare_digest(supplied_signature, expected_signature):
-        raise AnalysisTokenError(invalid_message)
-
+    _temporary_log_token_verify_start(token)
     try:
-        payload_data = json.loads(payload_bytes.decode("utf-8"))
-        payload = SignedAnalysisPayload.model_validate(payload_data)
-    except (UnicodeDecodeError, json.JSONDecodeError, ValidationError) as error:
-        raise AnalysisTokenError(invalid_message) from error
+        if (
+            not isinstance(token, str)
+            or not token
+            or len(token) > MAX_ANALYSIS_TOKEN_LENGTH
+        ):
+            log_result("failure", "invalid_format", "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message)
 
-    current_time = int(time.time()) if now is None else now
-    if payload.issued_at > current_time + ANALYSIS_TOKEN_CLOCK_SKEW_SECONDS:
-        raise AnalysisTokenError(invalid_message)
-    if (
-        current_time - payload.issued_at
-        > ANALYSIS_TOKEN_TTL_SECONDS + ANALYSIS_TOKEN_CLOCK_SKEW_SECONDS
-    ):
-        raise AnalysisTokenError(invalid_message)
+        parts = token.split(".")
+        if len(parts) != 3:
+            log_result("failure", "invalid_format", "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message)
+        if _temporary_parsed_token_version(token) is None:
+            log_result("failure", "invalid_format", "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message)
+        if parts[0] != f"v{ANALYSIS_TOKEN_VERSION}":
+            log_result("failure", "unsupported_version", "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message)
 
-    return payload.context.model_dump(mode="json")
+        try:
+            payload_bytes = _urlsafe_decode(parts[1])
+        except AnalysisTokenError:
+            log_result(
+                "failure",
+                "payload_base64_decode_failed",
+                "AnalysisTokenError",
+            )
+            raise
+
+        try:
+            supplied_signature = _urlsafe_decode(parts[2])
+        except AnalysisTokenError:
+            log_result("failure", "signature_mismatch", "AnalysisTokenError")
+            raise
+
+        try:
+            signing_key = _analysis_signing_key()
+        except Exception as error:
+            log_result("failure", "configuration_error", type(error).__name__)
+            raise
+
+        expected_signature = hmac.new(
+            signing_key,
+            payload_bytes,
+            hashlib.sha256,
+        ).digest()
+        if not hmac.compare_digest(supplied_signature, expected_signature):
+            log_result("failure", "signature_mismatch", "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message)
+        signature_valid = True
+
+        try:
+            payload_data = json.loads(payload_bytes.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            log_result(
+                "failure",
+                "payload_json_decode_failed",
+                "AnalysisTokenError",
+            )
+            raise AnalysisTokenError(invalid_message) from error
+
+        try:
+            payload = SignedAnalysisPayload.model_validate(payload_data)
+        except ValidationError as error:
+            schema_errors = _temporary_schema_error_details(error)
+            issued_at_error = any(
+                item["location"] == "issued_at"
+                or item["location"].startswith("issued_at.")
+                for item in schema_errors
+            )
+            failure_category = (
+                "issued_at_invalid"
+                if issued_at_error
+                else "payload_schema_failed"
+            )
+            log_result("failure", failure_category, "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message) from error
+
+        issued_at = payload.issued_at
+        current_time = int(time.time()) if now is None else now
+        token_age_seconds = current_time - issued_at
+        if issued_at > current_time + ANALYSIS_TOKEN_CLOCK_SKEW_SECONDS:
+            log_result("failure", "issued_in_future", "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message)
+        if (
+            token_age_seconds
+            > ANALYSIS_TOKEN_TTL_SECONDS + ANALYSIS_TOKEN_CLOCK_SKEW_SECONDS
+        ):
+            log_result("failure", "expired", "AnalysisTokenError")
+            raise AnalysisTokenError(invalid_message)
+
+        log_result("success", "none", "none")
+        return payload.context.model_dump(mode="json")
+    except Exception as error:
+        if not result_logged:
+            log_result(
+                "failure",
+                "unexpected_verification_error",
+                type(error).__name__,
+            )
+        raise
 
 
 @dataclass(frozen=True)
