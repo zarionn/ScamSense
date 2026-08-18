@@ -5,7 +5,7 @@
 // this state machine.
 
 export const DETECTORS = {
-  message: { key: 'message', label: 'Message Scan', available: false },
+  message: { key: 'message', label: 'Message Scan', available: true },
   url: { key: 'url', label: 'URL Scan', available: false },
   transaction: { key: 'transaction', label: 'Transaction Scan', available: false },
   screenshot: { key: 'screenshot', label: 'Screenshot Scan', available: true },
@@ -132,4 +132,4 @@ export const WELCOME_STEP_ID = 'welcome'
 // even if text was typed alongside it, so the Assistant never implies it
 // looked at the screenshot).
 export const IMAGE_ATTACHED_REPLY =
-  "I've got the screenshot. I can prepare it for Screenshot Scan for a detailed visual analysis."
+  "I've got the image. What would you like to do?"

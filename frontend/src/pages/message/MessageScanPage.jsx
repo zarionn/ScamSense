@@ -1,11 +1,28 @@
-import { useState } from "react";
-import { DownloadRounded, Info } from "@mui/icons-material";
+import { useEffect, useRef, useState } from "react";
 
-import PageHeader from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/providers/auth-provider";
+
+import {saveMessageScan, getMessageScanHistory,} from "@/services/message-scan-service";
+
+import {saveMessageBatch, getMessageBatchHistory,} from "@/services/message-batch-service";
+
+import OCRTextDialog from "./components/common/OCRTextDialog";
+
+import {
+    DownloadRounded,
+    Info,
+    VisibilityRounded,
+    HistoryRounded,
+    DescriptionRounded,
+    RefreshRounded,
+} from "@mui/icons-material";
+
+
+
 import { Button as MuiButton } from "@mui/material";
 
 import MessageInputCard from "./components/message/MessageInputCard";
+
 import PredictionCard from "./components/result/PredictionCard";
 import VerificationCard from "./components/result/VerificationCard";
 import InfoCard from "./components/result/InfoCard";
@@ -25,7 +42,22 @@ import {
 } from "./index";
 
 
-function MessageScanPage() {
+function MessageScanPage({
+    initialMessage = null,
+    onInitialMessageConsumed,
+    initialFile = null,
+    onInitialFileConsumed,
+    initialImage = null,
+    onInitialImageConsumed,
+}) {
+
+    const { user } = useAuth();
+
+    const historyRef = useRef(null);
+
+    const [messageHistory, setMessageHistory] = useState([]);
+    const [batchHistory, setBatchHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
     // ==========================================
     // SINGLE MESSAGE STATE
@@ -33,11 +65,72 @@ function MessageScanPage() {
 
     const [message, setMessage] = useState("");
 
+
+    // ==========================================
+    // OCR STATE
+    // ==========================================
+
+    const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
+
+    const [ocrImageFile, setOcrImageFile] = useState(null);
+
+    const [ocrImagePreviewUrl, setOcrImagePreviewUrl] = useState(null);
+
+
+    // ==========================================
+    // ASSISTANT MESSAGE HANDOFF
+    // ==========================================
+
+    useEffect(() => {
+
+        if (!initialMessage) {
+            return;
+        }
+
+        setMessage(initialMessage);
+
+        onInitialMessageConsumed?.();
+
+    }, [initialMessage, onInitialMessageConsumed]);
+
+
+
     // ==========================================
     // BATCH DATASET STATE
     // ==========================================
 
     const [selectedFile, setSelectedFile] = useState(null);
+
+
+    // ==========================================
+    // ASSISTANT EXCEL FILE HANDOFF
+    // ==========================================
+
+    useEffect(() => {
+
+        if (!initialFile) {
+            return;
+        }
+
+        // Switch to batch mode
+        setMessage("");
+
+        setSelectedFile(initialFile);
+
+        // Clear any previous results
+        setAnalysisResult(null);
+        setBatchResult(null);
+        setSelectedBatchRow(null);
+        setDialogOpen(false);
+
+        // Tell App.jsx that the file has been consumed
+        onInitialFileConsumed?.();
+
+    }, [
+        initialFile,
+        onInitialFileConsumed,
+    ]);
+
 
     // ==========================================
     // ANALYSIS RESULT
@@ -45,21 +138,31 @@ function MessageScanPage() {
 
     const [analysisResult, setAnalysisResult] = useState(null);
 
+
     // ==========================================
     // LOADING STATE
     // ==========================================
 
     const [loading, setLoading] = useState(false);
+
     const [batchLoading, setBatchLoading] = useState(false);
 
+
+    // ==========================================
+    // BATCH RESULT
+    // ==========================================
+
     const [batchResult, setBatchResult] = useState(null);
+
 
     // ==========================================
     // BATCH TABLE DIALOG
     // ==========================================
 
     const [selectedBatchRow, setSelectedBatchRow] = useState(null);
+
     const [dialogOpen, setDialogOpen] = useState(false);
+
 
     // ==========================================
     // ANALYSIS MODES
@@ -71,6 +174,172 @@ function MessageScanPage() {
     const isBatchMode =
         selectedFile !== null;
 
+
+    // ==========================================
+// MULTIPLE MESSAGE DETECTION
+// ==========================================
+
+// ==========================================
+// MULTIPLE MESSAGE DETECTION
+// ==========================================
+
+const detectMessageCount = (text) => {
+
+    if (!text?.trim()) {
+        return 0;
+    }
+
+    const normalizedText =
+        text.trim();
+
+
+    // ==========================================
+    // 1. EXPLICIT MESSAGE LABELS
+    // ==========================================
+
+    const explicitMessagePatterns = [
+        /\bMessage\s+\d+\s*:/gi,
+        /\bSMS\s+\d+\s*:/gi,
+        /\bWhatsApp\s+\d+\s*:/gi,
+        /\bEmail\s+\d+\s*:/gi,
+    ];
+
+
+    let detectedCount = 1;
+
+
+    explicitMessagePatterns.forEach(
+        (pattern) => {
+
+            const matches =
+                normalizedText.match(pattern);
+
+            if (
+                matches &&
+                matches.length > 1
+            ) {
+
+                detectedCount =
+                    Math.max(
+                        detectedCount,
+                        matches.length
+                    );
+
+            }
+
+        }
+    );
+
+
+    // ==========================================
+    // 2. REPEATED "FROM:" HEADERS
+    // ==========================================
+
+    const fromHeaders =
+        normalizedText.match(
+            /(?:^|\n)\s*From\s*:/gi
+        );
+
+
+    if (
+        fromHeaders &&
+        fromHeaders.length > 1
+    ) {
+
+        detectedCount =
+            Math.max(
+                detectedCount,
+                fromHeaders.length
+            );
+
+    }
+
+
+    // ==========================================
+    // 3. NUMBERED MESSAGES
+    // ==========================================
+
+    const numberedMessages =
+        normalizedText.match(
+            /(?:^|\n)\s*\d+\.\s+/g
+        );
+
+
+    if (
+        numberedMessages &&
+        numberedMessages.length > 1
+    ) {
+
+        detectedCount =
+            Math.max(
+                detectedCount,
+                numberedMessages.length
+            );
+
+    }
+
+
+    // ==========================================
+    // 4. SEPARATED MESSAGE BLOCKS
+    //
+    // Example:
+    //
+    // Message A
+    //
+    // Message B
+    // ==========================================
+
+    const blocks =
+        normalizedText
+            .split(/\n\s*\n+/)
+            .map(
+                (block) => block.trim()
+            )
+            .filter(Boolean);
+
+
+    if (blocks.length > 1) {
+
+        // Only treat the blocks as separate
+        // messages if each block contains
+        // a reasonable amount of text.
+
+        const meaningfulBlocks =
+            blocks.filter(
+                (block) =>
+                    block.replace(
+                        /\s/g,
+                        ""
+                    ).length >= 20
+            );
+
+
+        if (
+            meaningfulBlocks.length > 1
+        ) {
+
+            detectedCount =
+                Math.max(
+                    detectedCount,
+                    meaningfulBlocks.length
+                );
+
+        }
+
+    }
+
+
+    return detectedCount;
+};
+
+
+const detectedMessageCount =
+    detectMessageCount(message);
+
+
+const hasMultipleMessages =
+    detectedMessageCount > 1;
+
     // ==========================================
     // ANALYZE SINGLE MESSAGE
     // ==========================================
@@ -81,17 +350,64 @@ function MessageScanPage() {
             return;
         }
 
+        if (hasMultipleMessages) {
+        return;
+    }
+
         try {
 
             setLoading(true);
 
             setAnalysisResult(null);
+
             setBatchResult(null);
+
+
+            // ==========================================
+            // 1. RUN MESSAGE SCAM DETECTOR
+            // ==========================================
 
             const result =
                 await analyzeMessage(message);
 
+
+            // ==========================================
+            // 2. DISPLAY RESULT
+            // ==========================================
+
             setAnalysisResult(result);
+
+
+            // ==========================================
+            // 3. SAVE ANALYSIS TO SUPABASE
+            // ==========================================
+
+            if (user) {
+
+                try {
+
+                    await saveMessageScan({
+                        userId: user.id,
+                        inputMessage: message,
+                        analysisResult: result,
+                    });
+
+                    await loadHistory();
+
+                    console.log(
+                        "Message analysis saved to Supabase."
+                    );
+
+                } catch (saveError) {
+
+                    console.error(
+                        "Failed to save message analysis to Supabase:",
+                        saveError
+                    );
+
+                }
+
+            }
 
         } catch (error) {
 
@@ -110,6 +426,7 @@ function MessageScanPage() {
 
     };
 
+
     // ==========================================
     // ANALYZE BATCH DATASET
     // ==========================================
@@ -123,19 +440,99 @@ function MessageScanPage() {
         try {
 
             setAnalysisResult(null);
+
             setBatchResult(null);
 
             setBatchLoading(true);
 
+
+            // ==========================================
+            // 1. RUN BATCH MESSAGE DETECTOR
+            // ==========================================
+
             const result =
                 await analyzeDataset(selectedFile);
 
+
+            // ==========================================
+            // 2. DISPLAY BATCH RESULT
+            // ==========================================
+
             setBatchResult(result);
 
-            console.log(
-                "Batch Analysis Result",
-                result
-            );
+
+            // ==========================================
+            // 3. DETERMINE BATCH RESULT ROWS
+            // ==========================================
+
+            const rows =
+                result?.results ||
+                result?.data ||
+                [];
+
+
+            const totalMessages =
+                result?.total_messages ??
+                rows.length;
+
+
+            const successfulAnalyses =
+                result?.successful_analyses ??
+                rows.length;
+
+
+            const outputFilename =
+                result?.output_filename ||
+                result?.filename ||
+                selectedFile?.name ||
+                "ScamSense_Batch_Message_Analysis.xlsx";
+
+
+            // ==========================================
+            // 4. SAVE BATCH HISTORY TO SUPABASE
+            // ==========================================
+
+            if (user) {
+
+                try {
+
+                    await saveMessageBatch({
+                        userId: user.id,
+
+                        filename:
+                            selectedFile?.name ||
+                            outputFilename,
+
+                        totalMessages:
+                            totalMessages,
+
+                        successfulAnalyses:
+                            successfulAnalyses,
+
+                        analysisResults:
+                            rows,
+                    });
+
+                    await loadHistory();
+
+
+                    console.log(
+                        "Batch analysis saved to Supabase."
+                    );
+
+                } catch (saveError) {
+
+                    // Supabase failure should NOT
+                    // make the detector fail.
+
+                    console.error(
+                        "Failed to save batch analysis to Supabase:",
+                        saveError
+                    );
+
+                }
+
+            }
 
         } catch (error) {
 
@@ -154,6 +551,8 @@ function MessageScanPage() {
 
     };
 
+
+
     // ==========================================
     // DOWNLOAD BATCH RESULT
     // ==========================================
@@ -165,22 +564,28 @@ function MessageScanPage() {
             const response =
                 await downloadDataset(filename);
 
+
             const url =
                 window.URL.createObjectURL(
                     response.data
                 );
 
+
             const link =
                 document.createElement("a");
 
+
             link.href = url;
+
             link.download = filename;
+
 
             document.body.appendChild(link);
 
             link.click();
 
             link.remove();
+
 
             window.URL.revokeObjectURL(url);
 
@@ -195,6 +600,7 @@ function MessageScanPage() {
         }
 
     };
+
 
     // ==========================================
     // DOWNLOAD SINGLE MESSAGE ANALYSIS
@@ -225,6 +631,7 @@ function MessageScanPage() {
 
     };
 
+
     // ==========================================
     // CLEAR EVERYTHING
     // ==========================================
@@ -232,14 +639,19 @@ function MessageScanPage() {
     const handleClear = () => {
 
         setMessage("");
+
         setSelectedFile(null);
+
         setAnalysisResult(null);
+
         setBatchResult(null);
 
         setSelectedBatchRow(null);
+
         setDialogOpen(false);
 
     };
+
 
     // ==========================================
     // BATCH RESULT VALUES
@@ -250,13 +662,16 @@ function MessageScanPage() {
         batchResult?.data ||
         [];
 
+
     const totalMessages =
         batchResult?.total_messages ??
         batchRows.length;
 
+
     const successfulAnalyses =
         batchResult?.successful_analyses ??
         batchRows.length;
+
 
     const outputFilename =
         batchResult?.output_filename ||
@@ -264,68 +679,303 @@ function MessageScanPage() {
         "ScamSense_Batch_Message_Analysis.xlsx";
 
     // ==========================================
+    // Load Message Scam Feature History
+    // ==========================================
+
+    const loadHistory = async () => {
+
+    if (!user) {
+        setMessageHistory([]);
+        setBatchHistory([]);
+        return;
+    }
+
+    try {
+
+        setHistoryLoading(true);
+
+        const [
+            messageHistoryData,
+            batchHistoryData,
+        ] = await Promise.all([
+            getMessageScanHistory(user.id, 20),
+            getMessageBatchHistory(user.id, 20),
+        ]);
+
+        setMessageHistory(
+            messageHistoryData
+        );
+
+        setBatchHistory(
+            batchHistoryData
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load message scan history:",
+            error
+        );
+
+    } finally {
+
+        setHistoryLoading(false);
+
+    }
+};
+
+useEffect(() => {
+
+    loadHistory();
+
+}, [user?.id]);
+
+    // ==========================================
+    // Single message restore function
+    // ==========================================
+
+const handleOpenMessageHistory = (historyItem) => {
+
+    const savedMessage =
+        historyItem.input_message;
+
+    const savedAnalysis =
+        historyItem.analysis_result;
+
+    setSelectedFile(null);
+
+    setBatchResult(null);
+
+    setSelectedBatchRow(null);
+
+    setDialogOpen(false);
+
+    setMessage(savedMessage);
+
+    setAnalysisResult(savedAnalysis);
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+    });
+};
+
+    // ==========================================
+    // Batch restore function 
+    // ==========================================
+
+const handleOpenBatchHistory = (historyItem) => {
+
+    const restoredRows =
+        historyItem.analysis_results || [];
+
+    setMessage("");
+
+    setAnalysisResult(null);
+
+    setSelectedFile(null);
+
+    setSelectedBatchRow(null);
+
+    setDialogOpen(false);
+
+    setBatchResult({
+        results: restoredRows,
+
+        total_messages:
+            historyItem.total_messages,
+
+        successful_analyses:
+            historyItem.successful_analyses,
+
+        filename:
+            historyItem.filename,
+
+        output_filename:
+            historyItem.filename,
+    });
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+    });
+};
+
+// scroll to view history section
+const handleViewHistory = () => {
+    historyRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+    });
+};
+
+
+const handleOpenOCR = (file) => {
+
+    if (!file) {
+        return;
+    }
+
+
+    // Clean up previous preview URL
+
+    if (ocrImagePreviewUrl) {
+
+        URL.revokeObjectURL(
+            ocrImagePreviewUrl
+        );
+
+    }
+
+
+    const previewUrl =
+        URL.createObjectURL(file);
+
+
+    setOcrImageFile(file);
+
+    setOcrImagePreviewUrl(
+        previewUrl
+    );
+
+    setOcrDialogOpen(true);
+
+};
+
+const handleCloseOCR = () => {
+
+    setOcrDialogOpen(false);
+
+};
+
+
+const handleUseOCRText = (text) => {
+
+    setMessage(text);
+
+    setSelectedFile(null);
+
+    setAnalysisResult(null);
+
+    setBatchResult(null);
+
+    setOcrDialogOpen(false);
+
+};
+
+// ==========================================
+// ASSISTANT OCR IMAGE HANDOFF
+// ==========================================
+
+useEffect(() => {
+    if (!initialImage) {
+        return;
+    }
+
+    // Open the OCR dialog automatically
+    handleOpenOCR(initialImage);
+
+    // Tell App.jsx the image handoff has been consumed
+    onInitialImageConsumed?.();
+
+}, [
+    initialImage,
+    onInitialImageConsumed,
+]);
+
+
+    // ==========================================
     // RETURN
     // ==========================================
 
     return (
         <>
-            <PageHeader
-                title="Message Scam Detector"
-                description="Detect scam messages using ScamSense AI."
-            />
+              <div className="mx-auto mb-5 w-full max-w-[1350px] px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-4">
+            <div>
+                <h1 className="text-2xl font-bold text-primary sm:text-3xl">
+                  Message Scam Detector
+              </h1>
+
+                <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                  Detect scam messages using ScamSense AI.
+              </p>
+            </div>
+
+            {user && (
+                        <MuiButton
+            variant="outlined"
+            size="small"
+            startIcon={<HistoryRounded />}
+            onClick={handleViewHistory}
+            sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+
+                px: 2,
+                py: 0.9,
+
+                color: "#1976D2",
+                borderColor: "#1976D2",
+
+                "&:hover": {
+                    borderColor: "#1565C0",
+                    backgroundColor: "rgba(25, 118, 210, 0.06)",
+                },
+            }}
+        >
+            View History
+        </MuiButton>
+            )}
+        </div>
+    </div>
+
 
             <div className="mx-auto w-full max-w-[900px] space-y-5">
+
 
                 {/* ==========================================
                     MESSAGE INPUT
                 ========================================== */}
 
                 <MessageInputCard
-                    message={message}
-                    setMessage={setMessage}
+    message={message}
+    setMessage={setMessage}
+    onOpenOCR={handleOpenOCR}
 
-                    selectedFile={selectedFile}
-                    setSelectedFile={setSelectedFile}
+    selectedFile={selectedFile}
+    setSelectedFile={setSelectedFile}
 
-                    isSingleMessageMode={
-                        isSingleMessageMode
-                    }
+    isSingleMessageMode={isSingleMessageMode}
+    isBatchMode={isBatchMode}
 
-                    isBatchMode={
-                        isBatchMode
-                    }
+    hasMultipleMessages={hasMultipleMessages}
+    detectedMessageCount={detectedMessageCount}
 
-                    onAnalyze={
-                        handleAnalyze
-                    }
+    onAnalyze={handleAnalyze}
+    onAnalyzeDataset={handleAnalyzeDataset}
+    onClear={handleClear}
 
-                    onAnalyzeDataset={
-                        handleAnalyzeDataset
-                    }
+    loading={loading}
+    batchLoading={batchLoading}
+/>
 
-                    onClear={
-                        handleClear
-                    }
-
-                    loading={
-                        loading
-                    }
-
-                    batchLoading={
-                        batchLoading
-                    }
-                />
 
                 {/* ==========================================
                     SINGLE MESSAGE RESULT
                 ========================================== */}
 
                 {analysisResult && (
+
                     <div className="space-y-5">
+
 
                         <PredictionCard
                             result={analysisResult}
                         />
+
 
                         {/* ==================================
                             DOWNLOAD
@@ -333,36 +983,54 @@ function MessageScanPage() {
 
                         <div className="flex justify-center rounded-xl border border-border bg-card p-4">
 
-                          <MuiButton
-                              variant="contained"
-                              size="large"
-                              startIcon={<DownloadRounded />}
-                              onClick={handleDownloadSingleMessage}
-                              sx={{
-                                  px: 5,
-                                  py: 1.5,
-                                  borderRadius: 3,
+                            <MuiButton
 
-                                  bgcolor: "#6C3BFF",
+                                variant="contained"
 
-                                  color: "#FFFFFF",
+                                size="large"
 
-                                  textTransform: "none",
+                                startIcon={
+                                    <DownloadRounded />
+                                }
 
-                                  fontWeight: 700,
+                                onClick={
+                                    handleDownloadSingleMessage
+                                }
 
-                                  boxShadow: "none",
+                                sx={{
 
-                                  "&:hover": {
-                                      bgcolor: "#5B2FE3",
-                                      boxShadow: "none"
-                                  }
-                              }}
-                          >
-                              Download Analysis as Excel
-                          </MuiButton>
+                                    px: 5,
 
-                      </div>
+                                    py: 1.5,
+
+                                    borderRadius: 3,
+
+                                    bgcolor: "#6C3BFF",
+
+                                    color: "#FFFFFF",
+
+                                    textTransform: "none",
+
+                                    fontWeight: 700,
+
+                                    boxShadow: "none",
+
+                                    "&:hover": {
+
+                                        bgcolor: "#5B2FE3",
+
+                                        boxShadow: "none"
+
+                                    }
+
+                                }}
+
+                            >
+                                Download Analysis as Excel
+                            </MuiButton>
+
+                        </div>
+
 
                         {/* ==================================
                             VERIFICATION
@@ -372,32 +1040,45 @@ function MessageScanPage() {
                             result={analysisResult}
                         />
 
+
                         {/* ==================================
                             AI SUMMARY
                         ================================== */}
 
                         <InfoCard
+
                             title="AI Summary"
+
                             content={
                                 analysisResult.summary
                             }
+
                         />
+
 
                         {/* ==================================
                             WHY SUSPICIOUS
                         ================================== */}
 
                         <InfoCard
+
                             title={
+
                                 analysisResult.predicted_scam_type ===
                                 "Legitimate"
+
                                     ? "Why This Message Appears Legitimate"
+
                                     : "Why Suspicious?"
+
                             }
+
                             content={
                                 analysisResult.why_suspicious
                             }
+
                         />
+
 
                         {/* ==================================
                             BULLET RESULTS
@@ -405,94 +1086,541 @@ function MessageScanPage() {
 
                         <div className="grid gap-5 md:grid-cols-2">
 
+
                             <BulletCard
+
                                 title="Scam Indicators"
+
                                 items={
                                     analysisResult.scam_indicators
                                 }
+
                             />
 
+
                             <BulletCard
+
                                 title="Safety Advice"
+
                                 items={
                                     analysisResult.safety_advice
                                 }
+
                             />
 
+
                             <BulletCard
+
                                 title="Recommended Actions"
+
                                 items={
                                     analysisResult.recommended_actions
                                 }
+
                             />
 
+
                             <BulletCard
+
                                 title="Prevention Tips"
+
                                 items={
                                     analysisResult.prevention_tips
                                 }
+
                             />
 
                         </div>
 
                     </div>
+
                 )}
+
 
                 {/* ==========================================
                     BATCH RESULT
                 ========================================== */}
 
                 {batchResult && (
+
                     <div className="space-y-5">
 
+
                         <BatchSummaryCard
+
                             filename={
                                 outputFilename
                             }
+
 
                             totalMessages={
                                 totalMessages
                             }
 
+
                             successfulAnalyses={
                                 successfulAnalyses
                             }
+
 
                             onDownload={() =>
                                 handleDownloadDataset(
                                     outputFilename
                                 )
                             }
+
                         />
+
 
                         <BatchVerificationSummary
                             rows={batchRows}
                         />
 
+
                         <BatchResultsTable
+
                             rows={batchRows}
+
                             selectedRow={
                                 selectedBatchRow
                             }
+
                             setSelectedRow={
                                 setSelectedBatchRow
                             }
+
                             dialogOpen={
                                 dialogOpen
                             }
+
                             setDialogOpen={
                                 setDialogOpen
                             }
+
                         />
 
                     </div>
+
                 )}
 
             </div>
 
+
             {/* ==========================================
                 SINGLE MESSAGE PROCESSING
             ========================================== */}
+
+            {/* ==========================================
+                MESSAGE SCAN HISTORY
+              ========================================== */}
+
+          {user && (
+                <div
+                    ref={historyRef}
+                    className="mt-8 scroll-mt-6 space-y-5"
+                >
+
+                  {/* ==========================================
+                      HISTORY HEADER
+                  ========================================== */}
+
+                  <div className="flex items-center justify-between">
+
+                      <div>
+
+                          <div className="flex items-center gap-2">
+
+                              <HistoryRounded
+                                  className="text-primary"
+                              />
+
+                              <h2 className="text-xl font-bold text-foreground">
+                                  Scan History
+                              </h2>
+
+                          </div>
+
+                          <p className="mt-1 text-sm text-muted-foreground">
+                              View your previous message analyses
+                              and batch uploads.
+                          </p>
+
+                      </div>
+
+
+                      <MuiButton
+                          variant="outlined"
+                          startIcon={
+                              <RefreshRounded />
+                          }
+                          onClick={loadHistory}
+                          disabled={historyLoading}
+                          sx={{
+                              borderRadius: 2,
+                              textTransform: "none",
+                              fontWeight: 600,
+                          }}
+                      >
+                          Refresh
+                      </MuiButton>
+
+                  </div>
+
+
+        {/* ==========================================
+            SINGLE MESSAGE HISTORY
+        ========================================== */}
+
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+
+            <div className="border-b border-border px-5 py-4">
+
+                <div className="flex items-center gap-2">
+
+                    <DescriptionRounded />
+
+                    <h3 className="font-bold">
+                        Previous Message Scans
+                    </h3>
+
+                </div>
+
+            </div>
+
+
+            {historyLoading ? (
+
+                <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+
+                    Loading scan history...
+
+                </div>
+
+            ) : messageHistory.length === 0 ? (
+
+                <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+
+                    You have no previous message scans.
+
+                </div>
+
+            ) : (
+
+                <div className="overflow-x-auto">
+
+                    <table className="w-full text-sm">
+
+                        <thead>
+
+                            <tr className="border-b border-border bg-muted/40">
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    Message
+                                </th>
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    Scam Type
+                                </th>
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    Risk
+                                </th>
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    Date
+                                </th>
+
+                                <th className="px-5 py-3 text-right font-semibold">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {messageHistory.map(
+                                (item) => {
+
+                                    const analysis =
+                                        item.analysis_result || {};
+
+                                    return (
+
+                                        <tr
+                                            key={item.id}
+                                            className="border-b border-border last:border-b-0 hover:bg-muted/20"
+                                        >
+
+                                            <td className="max-w-[300px] px-5 py-4">
+
+                                                <p
+                                                    className="truncate"
+                                                    title={
+                                                        item.input_message
+                                                    }
+                                                >
+                                                    {
+                                                        item.input_message
+                                                    }
+                                                </p>
+
+                                            </td>
+
+
+                                            <td className="px-5 py-4">
+
+                                                {
+                                                    analysis.predicted_scam_type ||
+                                                    "Unknown"
+                                                }
+
+                                            </td>
+
+
+                                            <td className="px-5 py-4">
+
+                                                <span className="font-semibold">
+
+                                                    {
+                                                        analysis.risk_level ||
+                                                        "Unknown"
+                                                    }
+
+                                                </span>
+
+                                            </td>
+
+
+                                            <td className="whitespace-nowrap px-5 py-4 text-muted-foreground">
+
+                                                {
+                                                    new Date(
+                                                        item.created_at
+                                                    ).toLocaleString()
+                                                }
+
+                                            </td>
+
+
+                                            <td className="px-5 py-4 text-right">
+
+                                                <MuiButton
+                                                    variant="outlined"
+                                                    size="small"
+                                                    startIcon={
+                                                        <VisibilityRounded />
+                                                    }
+                                                    onClick={() =>
+                                                        handleOpenMessageHistory(
+                                                            item
+                                                        )
+                                                    }
+                                                    sx={{
+                                                        borderRadius: 2,
+                                                        textTransform: "none",
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                                                    View Analysis
+                                                </MuiButton>
+
+                                            </td>
+
+                                        </tr>
+
+                                    );
+
+                                }
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            )}
+
+        </div>
+
+
+        {/* ==========================================
+            BATCH HISTORY
+        ========================================== */}
+
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+
+            <div className="border-b border-border px-5 py-4">
+
+                <div className="flex items-center gap-2">
+
+                    <DescriptionRounded />
+
+                    <h3 className="font-bold">
+                        Previous Batch Analyses
+                    </h3>
+
+                </div>
+
+            </div>
+
+
+            {historyLoading ? (
+
+                <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+
+                    Loading batch history...
+
+                </div>
+
+            ) : batchHistory.length === 0 ? (
+
+                <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+
+                    You have no previous batch analyses.
+
+                </div>
+
+            ) : (
+
+                <div className="overflow-x-auto">
+
+                    <table className="w-full text-sm">
+
+                        <thead>
+
+                            <tr className="border-b border-border bg-muted/40">
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    File
+                                </th>
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    Messages
+                                </th>
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    Analysed
+                                </th>
+
+                                <th className="px-5 py-3 text-left font-semibold">
+                                    Date
+                                </th>
+
+                                <th className="px-5 py-3 text-right font-semibold">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {batchHistory.map(
+                                (item) => (
+
+                                    <tr
+                                        key={item.id}
+                                        className="border-b border-border last:border-b-0 hover:bg-muted/20"
+                                    >
+
+                                        <td className="px-5 py-4">
+
+                                            <div className="flex items-center gap-2">
+
+                                                <DescriptionRounded
+                                                    fontSize="small"
+                                                />
+
+                                                <span className="font-medium">
+
+                                                    {
+                                                        item.filename
+                                                    }
+
+                                                </span>
+
+                                            </div>
+
+                                        </td>
+
+
+                                        <td className="px-5 py-4">
+
+                                            {
+                                                item.total_messages
+                                            }
+
+                                        </td>
+
+
+                                        <td className="px-5 py-4">
+
+                                            {
+                                                item.successful_analyses
+                                            }
+
+                                        </td>
+
+
+                                        <td className="whitespace-nowrap px-5 py-4 text-muted-foreground">
+
+                                            {
+                                                new Date(
+                                                    item.created_at
+                                                ).toLocaleString()
+                                            }
+
+                                        </td>
+
+
+                                        <td className="px-5 py-4 text-right">
+
+                                            <MuiButton
+                                                variant="outlined"
+                                                size="small"
+                                                startIcon={
+                                                    <VisibilityRounded />
+                                                }
+                                                onClick={() =>
+                                                    handleOpenBatchHistory(
+                                                        item
+                                                    )
+                                                }
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    textTransform: "none",
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                View Batch
+                                            </MuiButton>
+
+                                        </td>
+
+                                    </tr>
+
+                                )
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            )}
+
+        </div>
+
+    </div>
+
+)}
 
             <ProcessingDialog
                 open={loading}
@@ -502,9 +1630,43 @@ function MessageScanPage() {
                 BATCH PROCESSING
             ========================================== */}
 
-            <BatchProcessingDialog
-                open={batchLoading}
-            />
+              <BatchProcessingDialog
+                  open={batchLoading}
+              />
+
+              <OCRTextDialog
+
+      open={ocrDialogOpen}
+
+      imageFile={ocrImageFile}
+
+      imagePreviewUrl={
+          ocrImagePreviewUrl
+      }
+
+      onClose={
+          handleCloseOCR
+      }
+
+      onUseText={
+          handleUseOCRText
+      }
+
+      onSelectNewImage={(newFile) => {
+    setOcrImageFile(newFile)
+
+    const newPreviewUrl = URL.createObjectURL(newFile)
+
+    setOcrImagePreviewUrl((current) => {
+        if (current) {
+            URL.revokeObjectURL(current)
+        }
+
+        return newPreviewUrl
+    })
+}}
+
+  />
 
             {/* ==========================================
                 FOOTER
@@ -527,8 +1689,11 @@ function MessageScanPage() {
                 </p>
 
             </footer>
+
         </>
+
     );
+
 }
 
 export default MessageScanPage;

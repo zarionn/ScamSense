@@ -1,7 +1,14 @@
 import {
     TextField,
-    Button
+    Button,
+    Alert
 } from "@mui/material";
+
+import {
+    ImageSearchRounded
+} from "@mui/icons-material";
+
+import { useRef } from "react";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
@@ -15,19 +22,23 @@ const MAX_LENGTH = 5000;
 
 
 function MessageInputCard({
-
     message,
     setMessage,
     onAnalyze,
     onAnalyzeDataset,
     onClear,
+    onOpenOCR,
     loading,
     batchLoading,
     selectedFile,
     setSelectedFile,
     isSingleMessageMode,
-
+    hasMultipleMessages,
+    detectedMessageCount,
 }) {
+
+
+    const imageInputRef = useRef(null);
 
     // ==========================================
     // VALIDATION
@@ -79,6 +90,58 @@ function MessageInputCard({
         setMessage(event.target.value);
 
     };
+
+
+    const handleOCRImageSelected = (event) => {
+
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+
+    const allowedTypes = [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/webp",
+    ];
+
+
+    if (!allowedTypes.includes(file.type)) {
+
+        alert(
+            "Please upload a PNG, JPG or WEBP image."
+        );
+
+        event.target.value = "";
+
+        return;
+    }
+
+
+    const MAX_SIZE = 10 * 1024 * 1024;
+
+
+    if (file.size > MAX_SIZE) {
+
+        alert(
+            "Image size must be less than 10 MB."
+        );
+
+        event.target.value = "";
+
+        return;
+    }
+
+
+    onOpenOCR?.(file);
+
+
+    event.target.value = "";
+
+};
 
 
     return (
@@ -214,6 +277,37 @@ function MessageInputCard({
 
                     />
 
+                    {hasMultipleMessages && (
+    <Alert
+        severity="warning"
+        sx={{
+            mt: 1.5,
+            borderRadius: 2,
+        }}
+    >
+        <strong>Multiple messages detected.</strong>{" "}
+        We detected {detectedMessageCount} messages in your input.
+        Single Message Analysis accepts only one message at a time.
+        To analyse multiple messages, use the{" "}
+        <strong>Upload Excel Dataset</strong> option. Create a{" "}
+        <strong>Text</strong> column and enter each message in a
+        separate row.
+    </Alert>
+)}
+
+                    <input
+    ref={imageInputRef}
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+    className="hidden"
+    onChange={handleOCRImageSelected}
+    disabled={
+        loading ||
+        batchLoading ||
+        selectedFile !== null
+    }
+/>
+
 
                     {/* ==========================================
                         ACTION ROW
@@ -238,9 +332,11 @@ function MessageInputCard({
                                 disabled={
                                     loading ||
                                     batchLoading ||
-                                    Boolean(inputError)
+                                    Boolean(inputError) ||
+                                    hasMultipleMessages
                                 }
 
+                               
                                 sx={{
 
                                     bgcolor:
@@ -275,6 +371,52 @@ function MessageInputCard({
 
                             >
                                 Analyze Message
+                            </Button>
+
+
+                            {/* Extract Text from Image */}
+
+                            <Button
+                                variant="outlined"
+                                startIcon={
+                                    <ImageSearchRounded />
+                                }
+                                onClick={() =>
+                                    imageInputRef.current?.click()
+                                }
+                                disabled={
+                                    loading ||
+                                    batchLoading ||
+                                    selectedFile !== null
+                                }
+                                sx={{
+                                    color:
+                                        "var(--primary)",
+
+                                    borderColor:
+                                        "var(--primary)",
+
+                                    px: 3,
+
+                                    borderRadius: 2,
+
+                                    textTransform:
+                                        "none",
+
+                                    fontWeight: 600,
+
+                                    "&:hover": {
+
+                                        borderColor:
+                                            "var(--primary-hover)",
+
+                                        backgroundColor:
+                                            "color-mix(in oklch, var(--primary) 8%, transparent)"
+
+                                    }
+                                }}
+                            >
+                                Extract Text
                             </Button>
 
 

@@ -43,6 +43,7 @@ function getStoredActivePage() {
 }
 
 function App() {
+
   // Smallest safe page-selection approach with no router installed — the app
   // still only ever renders one page inside the shared AppShell. Lazily
   // initialised from sessionStorage so a refresh reopens the page the user
@@ -163,12 +164,76 @@ function App() {
     document.documentElement.classList.toggle('reduce-motion', reducedMotion)
   }, [reducedMotion])
 
-  const handleOpenDetector = useCallback((detectorKey, file) => {
+  const handleOpenDetector = useCallback(
+  (detectorKey, file, message, mode) => {
+
+    // ==========================================================
+    // SCREENSHOT SCAN
+    // ==========================================================
+
     if (detectorKey === 'screenshot' && file) {
-      setDetectorHandoff({ detector: 'screenshot', file, source: 'assistant' })
+      setDetectorHandoff({
+        detector: 'screenshot',
+        file,
+        source: 'assistant',
+        mode: 'screenshot',
+      })
     }
+
+    // ==========================================================
+    // MESSAGE SCAN - OCR IMAGE
+    // ==========================================================
+
+    if (
+      detectorKey === 'message' &&
+      file &&
+      mode === 'ocr'
+    ) {
+      setDetectorHandoff({
+        detector: 'message',
+        file,
+        source: 'assistant',
+        mode: 'ocr',
+      })
+    }
+
+    // ==========================================================
+    // MESSAGE SCAN - BATCH EXCEL
+    // ==========================================================
+
+    else if (
+      detectorKey === 'message' &&
+      file &&
+      mode === 'batch'
+    ) {
+      setDetectorHandoff({
+        detector: 'message',
+        file,
+        source: 'assistant',
+        mode: 'batch',
+      })
+    }
+
+    // ==========================================================
+    // MESSAGE SCAN - NORMAL TEXT
+    // ==========================================================
+
+    else if (
+      detectorKey === 'message' &&
+      message
+    ) {
+      setDetectorHandoff({
+        detector: 'message',
+        message,
+        source: 'assistant',
+        mode: 'single',
+      })
+    }
+
     setActivePage(detectorKey)
-  }, [])
+  },
+  []
+)
 
   const handleHandoffConsumed = useCallback(() => {
     setDetectorHandoff(null)
@@ -224,6 +289,14 @@ function App() {
 
   const screenshotHandoffFile =
     detectorHandoff?.detector === 'screenshot' ? detectorHandoff.file : null
+  
+  const messageHandoffText =
+  detectorHandoff?.detector === 'message' ? detectorHandoff.message : null
+
+  const messageHandoffFile =
+  detectorHandoff?.detector === 'message' && detectorHandoff?.mode === 'batch' ? detectorHandoff.file : null
+
+  const messageHandoffImage = detectorHandoff?.detector === 'message' && detectorHandoff?.mode === 'ocr' ? detectorHandoff.file : null
 
   const assistantHistory = {
     isSignedIn: !!user,
@@ -267,7 +340,17 @@ function App() {
           onInitialFileConsumed={handleHandoffConsumed}
         />
       )}
-      {activePage === 'message' && <MessageScanPage />}
+      {activePage === 'message' && (
+        <MessageScanPage
+          initialMessage={messageHandoffText}
+          initialFile={messageHandoffFile}
+          initialImage={messageHandoffImage}
+          handoffMode={detectorHandoff?.mode}
+          onInitialMessageConsumed={handleHandoffConsumed}
+          onInitialFileConsumed={handleHandoffConsumed}
+          onInitialImageConsumed={handleHandoffConsumed}
+        />
+      )}
       {activePage === 'url' && <URLScanPage />}
       {activePage === 'transaction' && <TransactionScanPage />}
       {activePage === 'about' && <AboutPage />}

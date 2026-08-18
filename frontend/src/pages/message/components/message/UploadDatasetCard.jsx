@@ -140,14 +140,90 @@ function UploadDatasetCard({
                     TITLE
                 ========================================== */}
 
-                <h3 className="text-2xl font-bold text-foreground">
-                    Upload Excel Dataset
-                </h3>
+<h3 className="text-xl font-bold text-foreground">
+    Upload Excel Dataset
+</h3>
+
+<p className="mt-1 text-sm text-muted-foreground">
+    Supports .xlsx, .xls and .csv
+</p>
 
 
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Supports .xlsx, .xls and .csv
-                </p>
+{/* ==========================================
+    BATCH DATASET INSTRUCTIONS
+========================================== */}
+
+<div
+    className="
+        mt-4
+        w-full
+        rounded-lg
+        border
+        border-primary/20
+        bg-primary/[0.04]
+        p-4
+        text-left
+    "
+>
+    <p className="text-sm font-semibold text-foreground">
+        How to analyse multiple messages
+    </p>
+
+    <div className="mt-3 space-y-2.5 text-sm text-muted-foreground">
+
+        <div className="flex items-start gap-2">
+            <span className="font-semibold text-foreground">
+                1.
+            </span>
+
+            <span>
+                Create an Excel or CSV file.
+            </span>
+        </div>
+
+
+        <div className="flex items-start gap-2">
+            <span className="font-semibold text-foreground">
+                2.
+            </span>
+
+            <span>
+                Create a column named{" "}
+                <strong className="text-foreground">
+                    Text
+                </strong>
+                .
+            </span>
+        </div>
+
+
+        <div className="flex items-start gap-2">
+            <span className="font-semibold text-foreground">
+                3.
+            </span>
+
+            <span>
+                Enter each message in a separate row.
+            </span>
+        </div>
+
+
+        <div className="flex items-start gap-2">
+            <span className="font-semibold text-foreground">
+                4.
+            </span>
+
+            <span>
+                Upload the file and click{" "}
+                <strong className="text-foreground">
+                    Analyze Dataset
+                </strong>
+                .
+            </span>
+        </div>
+
+    </div>
+</div>
 
 
                 {/* ==========================================
