@@ -200,7 +200,7 @@ export default function TransactionScanPage() {
 
           {flaggedRows.length === 0 ? (
             <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-6 text-center">
-              <h3 className="text-xl font-semibold text-emerald-300">No possible fraudulent transactions</h3>
+              <h3 className="text-xl font-semibold text-emerald-300">No possible fraudulent transactions | 安全 | selamat | பாதுகாப்பான</h3>
               <p className="mt-2 text-sm text-emerald-100/80">
                 No uploaded row exceeded the fraud detection threshold.
               </p>
