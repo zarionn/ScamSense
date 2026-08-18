@@ -15,6 +15,37 @@ export default function TransactionScanPage() {
   const [emailError, setEmailError] = useState('')
   const [copied, setCopied] = useState(false)
 
+  const [exporting, setExporting] = useState(false)
+
+  const handleExportPdf = async () => {
+    if (!result?.results?.length) return
+    setExporting(true)
+    try {
+      const response = await fetch('/api/transaction/export/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ results: result.results }),
+      })
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data?.error || 'Export failed')
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'scamsense_transaction_results.pdf'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const handleDraftEmail = async () => {
     setEmailLoading(true)
     setEmailError('')
@@ -135,6 +166,17 @@ export default function TransactionScanPage() {
               </div>
             </div>
 
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              disabled={exporting}
+              className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-amber-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {exporting === 'pdf' ? 'Exporting…' : 'Download output PDF'}
+            </button>
           </div>
 
           {flaggedRows.length === 0 ? (

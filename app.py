@@ -16,6 +16,14 @@ from services.transaction import transaction_service
 import pandas as pd
 from services.transaction.feature_engineering import engineer_features_from_transcript
 
+#for transaction PDF print
+import io
+from flask import send_file
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+
 app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 CORS(app)
 
@@ -137,6 +145,7 @@ def upload_transaction_batch():
         "results": results,
     })
 
+#transaction email draft endpoint
 @app.route("/api/transaction/draft-email", methods=["POST"])
 def draft_transaction_email():
     body = request.get_json(silent=True) or {}
@@ -151,6 +160,61 @@ def draft_transaction_email():
         return jsonify({"error": f"Could not draft email: {str(exc)}"}), 500
 
     return jsonify({"escalation_email": email})
+
+#transaction pdf report generation
+EXPORT_COLUMNS = [
+    ("row_index", "Row"),
+    ("timestamp", "Timestamp"),
+    ("amount", "Amount"),
+    ("merchant_category", "Merchant"),
+    ("device_type", "Device"),
+    ("is_foreign_transaction", "Foreign"),
+    ("risk_score", "Risk Score"),
+    ("verdict", "Verdict"),
+    ("ai_explanation", "AI Explanation"),
+]
+
+
+@app.route("/api/transaction/export/pdf", methods=["POST"])
+def export_transactions_pdf():
+    body = request.get_json(silent=True) or {}
+    results = body.get("results")
+    if not isinstance(results, list) or not results:
+        return jsonify({"error": "No results to export"}), 400
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), title="ScamSense Transaction Results")
+    styles = getSampleStyleSheet()
+    elements = [Paragraph("ScamSense — Transaction Screening Results", styles["Title"]), Spacer(1, 12)]
+
+    headers = [label for _, label in EXPORT_COLUMNS]
+    table_data = [headers]
+    for row in results:
+        table_data.append([
+            str(row.get(key, "") if key != "is_foreign_transaction"
+                else ("Yes" if row.get(key) else "No"))
+            for key, _ in EXPORT_COLUMNS
+        ])
+
+    table = Table(table_data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2937")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elements.append(table)
+    doc.build(elements)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="scamsense_transaction_results.pdf",
+        mimetype="application/pdf",
+    )
 
 @app.errorhandler(413)
 def too_large(e):
