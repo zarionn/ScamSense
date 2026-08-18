@@ -1,0 +1,13 @@
+﻿timestamp,amount,is_foreign_transaction,merchant_category,device_type
+1/6/2026 8:05,18.2,0,Grocery,Mobile
+2/6/2026 10:12,45.6,0,Restaurant,POS
+3/6/2026 12:30,22,0,Gas,Mobile
+4/6/2026 9:00,60.75,0,Utilities,Desktop
+5/6/2026 19:45,134.5,0,Retail,POS
+6/6/2026 21:20,15.99,0,Entertainment,Mobile
+7/6/2026 3:47,899.99,1,Online,Desktop
+7/6/2026 3:52,749,1,Online,Desktop
+8/6/2026 14:20,28.35,0,Pharmacy,Mobile
+9/6/2026 7:10,412,0,Travel,Desktop
+10/6/2026 2:05,500,0,Other,ATM
+11/6/2026 11:00,56.1,0,Grocery,Mobile
