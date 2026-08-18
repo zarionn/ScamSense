@@ -1,0 +1,578 @@
+[
+  {
+    "text": "A banking scam is a type of fraud in which criminals impersonate banks, financial institutions, payment service providers or trusted organisations to deceive individuals into revealing sensitive financial information or authorising fraudulent transactions. These scams commonly occur through SMS messages, phone calls, emails, messaging applications and fake websites that closely resemble legitimate banking platforms. Scammers often create a false sense of urgency by claiming that a bank account has been compromised, unusual transactions have been detected or immediate verification is required. Their ultimate objective is to gain access to bank accounts, steal money or obtain confidential information such as passwords, One-Time Passwords (OTPs), PINs and online banking credentials.",
+    "category": "Banking Scam",
+    "section": "Overview",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "- Impersonating banks through SMS, emails or phone calls using official-looking names and branding.\n- Sending phishing links that direct victims to fake online banking login pages.\n- Claiming that suspicious transactions or security breaches require immediate verification.\n- Requesting victims to confirm banking credentials, passwords or security questions.\n- Asking victims to provide One-Time Passwords (OTPs) under the pretext of identity verification.\n- Convincing victims to install remote access applications that allow scammers to control their devices.\n- Spoofing caller identification so incoming calls appear to originate from legitimate banks.\n- Pretending to be bank officers conducting fraud investigations or account recovery procedures.\n- Encouraging victims to transfer funds to a so-called \"safe\" or \"secure\" account controlled by scammers.\n- Using fear, urgency or authority to pressure victims into acting without verifying the request.",
+    "category": "Banking Scam",
+    "section": "Common Scam Tactics",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "- Unexpected messages claiming that a bank account has been suspended or compromised.\n- Requests for confidential banking information through SMS, email or phone calls.\n- Messages containing shortened or unfamiliar website links.\n- Poor grammar, unusual wording or formatting inconsistencies in communications.\n- Urgent deadlines that discourage careful verification.\n- Requests to download unfamiliar applications or software.\n- Phone calls demanding immediate action to prevent financial loss.\n- Emails or websites with domain names that differ slightly from official bank websites.\n- Unexpected requests for OTPs, PINs or security codes.\n- Pressure to bypass normal banking procedures.",
+    "category": "Banking Scam",
+    "section": "Common Warning Signs",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "- Log in to a banking account using a provided link.\n- Reveal online banking usernames and passwords.\n- Share One-Time Passwords (OTPs) or authentication codes.\n- Confirm debit or credit card information.\n- Transfer money to another bank account for \"security purposes.\"\n- Install remote access or screen-sharing software.\n- Verify personal identity by submitting NRIC numbers or other personal information.\n- Approve banking transactions that were initiated by scammers.\n- Disable security features such as transaction alerts or authentication measures.",
+    "category": "Banking Scam",
+    "section": "Typical Victim Requests",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "- Access online banking services only through official banking applications or websites.\n- Never share passwords, PINs or OTPs with anyone, regardless of who they claim to be.\n- Verify suspicious messages by contacting the bank through official customer service channels.\n- Carefully inspect website addresses before entering login credentials.\n- Enable multi-factor authentication and banking transaction notifications whenever available.\n- Keep mobile devices and banking applications updated with the latest security patches.\n- Avoid clicking links received through unsolicited SMS messages or emails.\n- Be cautious of callers requesting immediate financial actions.\n- Regularly review bank account activity for unauthorised transactions.",
+    "category": "Banking Scam",
+    "section": "Prevention Tips",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "- Stop communicating with the suspected scammer immediately.\n- Do not click additional links or provide further personal information.\n- Contact the bank using its official hotline to verify the message or call.\n- Freeze or temporarily suspend affected bank cards or accounts if credentials may have been compromised.\n- Change online banking passwords and update authentication methods.\n- Report suspicious communications through ScamShield where applicable.\n- File a police report if financial losses or attempted fraud have occurred.\n- Monitor bank accounts closely for any unauthorised transactions.\n- Preserve screenshots, messages, emails and transaction records as evidence.",
+    "category": "Banking Scam",
+    "section": "Recommended Actions",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "Banking scams are among the most frequently reported scam categories in Singapore and often involve SMS phishing, fake banking websites and impersonation of financial institutions. Victims are commonly deceived into revealing banking credentials or authorising fraudulent transfers through convincing social engineering techniques.\n\nIndividuals are encouraged to verify suspicious banking communications directly with their financial institution instead of responding to unsolicited messages. The Monetary Authority of Singapore (MAS) works with financial institutions to strengthen banking security measures, while the Singapore Police Force (SPF) regularly publishes scam advisories and emerging scam trends. ScamShield provides tools that help users identify and reduce exposure to scam calls and messages. The Cyber Security Agency of Singapore (CSA) also promotes cybersecurity awareness and safe online practices to reduce phishing and credential theft.",
+    "category": "Banking Scam",
+    "section": "Singapore Context",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "Banking scams primarily rely on social engineering rather than technical hacking. Scammers exploit fear, urgency and trust to persuade victims into voluntarily disclosing sensitive information or approving transactions. Modern banking scams often imitate genuine communications with remarkable accuracy, making them difficult to distinguish from legitimate notifications based solely on appearance.\n\nA genuine bank will generally not request passwords, PINs or One-Time Passwords through phone calls, SMS messages or emails. Users should independently verify unexpected requests using official contact information rather than details provided in suspicious communications. Even when a message appears authentic, verifying its legitimacy before taking action significantly reduces the risk of financial loss.",
+    "category": "Banking Scam",
+    "section": "Additional Notes",
+    "source": "Banking_Scam.md"
+  },
+  {
+    "text": "An e-commerce scam is a type of fraud in which scammers exploit online shopping platforms, social media marketplaces and classified advertisement websites to deceive buyers or sellers into losing money, personal information or valuable goods. These scams often involve fake product listings, fraudulent online stores, counterfeit goods, non-delivery of purchased items or deceptive payment requests. Scammers frequently impersonate legitimate sellers or buyers and take advantage of the trust associated with well-known e-commerce platforms. As online shopping continues to grow, e-commerce scams have become increasingly sophisticated and often rely on convincing product advertisements, attractive prices and time-sensitive offers to persuade victims to act quickly.",
+    "category": "E-Commerce Scam",
+    "section": "Overview",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "- Creating fake online stores that imitate legitimate e-commerce websites.\n- Advertising popular products at prices significantly lower than the market value.\n- Listing products that do not exist or are never intended to be delivered.\n- Requesting payment through direct bank transfers or other non-refundable payment methods.\n- Sending fake payment confirmations or fraudulent receipts.\n- Pretending to be buyers who overpay and request partial refunds.\n- Directing users away from official marketplace platforms to continue conversations through private messaging applications.\n- Selling counterfeit or poor-quality products while advertising them as genuine.\n- Using fake customer reviews, ratings or testimonials to increase credibility.\n- Claiming that limited-time promotions or low stock require immediate payment.",
+    "category": "E-Commerce Scam",
+    "section": "Common Scam Tactics",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "- Prices that appear unusually low compared to similar products.\n- Sellers refusing to use secure payment methods provided by the marketplace.\n- Requests to continue communication outside the official platform.\n- Newly created seller accounts with limited transaction history.\n- Poorly designed websites with spelling mistakes or inconsistent branding.\n- Requests for full payment before providing shipping information.\n- Product images copied from other websites or containing inconsistent descriptions.\n- Lack of clear return, refund or contact information.\n- Pressure to complete payment immediately to secure a discount or limited stock.\n- Payment requests through unfamiliar personal accounts instead of official business accounts.",
+    "category": "E-Commerce Scam",
+    "section": "Common Warning Signs",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "- Transfer money directly to a personal bank account.\n- Make payment before receiving the product.\n- Pay additional fees for shipping, customs or insurance after the initial purchase.\n- Share personal information such as addresses, phone numbers or payment details.\n- Click links that lead to fake payment or login pages.\n- Continue conversations outside the official marketplace.\n- Accept fake proof of payment without verifying the transaction.\n- Release goods before confirming that payment has been successfully received.",
+    "category": "E-Commerce Scam",
+    "section": "Typical Victim Requests",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "- Purchase products through reputable and established online marketplaces.\n- Verify seller ratings, customer reviews and transaction history before making purchases.\n- Compare prices with other sellers to identify unrealistic discounts.\n- Use secure payment methods offered by the platform whenever possible.\n- Avoid transferring money directly to unknown individuals.\n- Keep all communication within the official marketplace messaging system.\n- Carefully inspect website URLs before entering payment information.\n- Review return, refund and warranty policies before completing a purchase.\n- Be cautious of sellers or buyers who create unnecessary urgency.",
+    "category": "E-Commerce Scam",
+    "section": "Prevention Tips",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "- Stop communicating with the suspected scammer if suspicious behaviour is detected.\n- Do not make additional payments or provide further personal information.\n- Report the suspicious seller or buyer through the online marketplace.\n- Contact your bank immediately if payment has already been made.\n- Preserve screenshots, payment receipts, advertisements and conversations as evidence.\n- File a police report if financial loss has occurred.\n- Report fraudulent websites or listings to the relevant online platform.\n- Monitor bank and credit card transactions for unauthorised activity.",
+    "category": "E-Commerce Scam",
+    "section": "Recommended Actions",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "E-commerce scams are among the most commonly reported scams in Singapore, particularly through online marketplaces, social media platforms and messaging applications. Victims may encounter fake sellers advertising electronics, concert tickets, luxury goods, household items or rental services at attractive prices. In some cases, scammers also target legitimate sellers by sending fake payment confirmations or impersonating delivery services.\n\nThe Singapore Police Force (SPF) regularly issues advisories on emerging e-commerce scam trends and encourages members of the public to verify sellers before making purchases. ScamShield helps users identify scam messages and suspicious communications, while the Cyber Security Agency of Singapore (CSA) promotes safe online practices to reduce the risk of online fraud. Consumers are encouraged to use secure payment methods and remain within trusted marketplace platforms throughout the transaction process.",
+    "category": "E-Commerce Scam",
+    "section": "Singapore Context",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "E-commerce scams frequently exploit trust and urgency rather than technical vulnerabilities. Scammers often invest considerable effort into creating convincing advertisements, professional-looking websites and believable customer interactions. A well-designed website or responsive seller does not necessarily indicate legitimacy.\n\nUsing secure marketplace features, including buyer protection programmes, verified payment systems and official messaging channels, significantly reduces the likelihood of becoming a victim. Users should independently verify unfamiliar online stores, avoid making decisions based solely on low prices and remember that genuine sellers generally do not discourage the use of secure payment methods or platform protections.",
+    "category": "E-Commerce Scam",
+    "section": "Additional Notes",
+    "source": "E-Commerce_Scam.md"
+  },
+  {
+    "text": "A general scam refers to fraudulent activities that do not fall exclusively within a specific scam category such as banking, investment or romance scams. These scams typically rely on deception, impersonation, urgency or false promises to manipulate victims into providing money, personal information or access to their accounts. General scams may occur through SMS messages, emails, phone calls, social media platforms, messaging applications or fake websites. Because scammers constantly adapt their tactics, general scams often combine elements from multiple scam types, making them difficult to classify based on a single theme. The primary objective is to exploit trust, fear or curiosity to convince victims to take actions that benefit the scammer.",
+    "category": "General Scam",
+    "section": "Overview",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "- Impersonating trusted organisations, companies or service providers.\n- Claiming that immediate action is required to avoid penalties or account restrictions.\n- Offering fake prizes, rewards, giveaways or promotional benefits.\n- Pretending to provide technical support for nonexistent computer or mobile device issues.\n- Sending fraudulent links that lead to phishing websites.\n- Using spoofed phone numbers, email addresses or social media accounts to appear legitimate.\n- Requesting payments for fabricated fees, taxes or administrative charges.\n- Creating fake emergencies involving family members or friends to pressure victims into sending money.\n- Promising unrealistic financial opportunities or exclusive offers.\n- Exploiting current events or trending topics to make fraudulent messages appear more convincing.",
+    "category": "General Scam",
+    "section": "Common Scam Tactics",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "- Unsolicited messages from unknown individuals or organisations.\n- Requests for immediate action without allowing time for verification.\n- Unexpected offers that seem unusually attractive or too good to be true.\n- Requests for confidential personal or financial information.\n- Messages containing suspicious or shortened website links.\n- Poor grammar, spelling mistakes or inconsistent formatting.\n- Pressure to keep the conversation confidential.\n- Requests for payment using unconventional or irreversible methods.\n- Unexpected phone calls claiming urgent problems that require immediate resolution.\n- Inconsistent contact information or unofficial communication channels.",
+    "category": "General Scam",
+    "section": "Common Warning Signs",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "- Click a link to verify personal information or account details.\n- Transfer money to resolve an alleged issue or claim a reward.\n- Share passwords, authentication codes or sensitive personal information.\n- Download unfamiliar software or mobile applications.\n- Purchase gift cards or vouchers and send the redemption codes.\n- Confirm identity using personal documents.\n- Continue conversations on private messaging platforms.\n- Make repeated payments to resolve fabricated problems or unlock promised benefits.",
+    "category": "General Scam",
+    "section": "Typical Victim Requests",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "- Treat unsolicited messages with caution, even if they appear professional.\n- Verify unexpected requests using official contact information obtained independently.\n- Avoid clicking links or downloading attachments from unknown sources.\n- Never share passwords, One-Time Passwords (OTPs) or security codes.\n- Take time to evaluate unexpected offers before responding.\n- Enable multi-factor authentication on important online accounts.\n- Keep devices and security software updated.\n- Discuss suspicious requests with trusted family members or friends before taking action.\n- Stay informed about common scam techniques and emerging fraud trends.",
+    "category": "General Scam",
+    "section": "Prevention Tips",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "- Stop communicating with the suspected scammer immediately.\n- Do not provide additional personal, financial or authentication information.\n- Block the scammer's phone number, email address or online account where appropriate.\n- Report suspicious communications through ScamShield if applicable.\n- Contact your bank immediately if financial information has been disclosed.\n- Preserve messages, screenshots and transaction records as evidence.\n- Report the incident to the Singapore Police Force (SPF) if money has been lost or fraud has occurred.\n- Monitor financial accounts and online services for suspicious activity.\n- Change passwords for affected accounts if login credentials may have been compromised.",
+    "category": "General Scam",
+    "section": "Recommended Actions",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "General scams remain one of the most common forms of fraud reported in Singapore because they cover a wide range of deceptive activities that evolve rapidly. Scammers frequently exploit SMS messages, messaging applications, phone calls, emails and social media platforms to target members of the public. Many scams also impersonate local organisations or exploit public concerns about security, financial matters or government services.\n\nThe Singapore Police Force (SPF) regularly publishes scam alerts and educational materials to help the public recognise new scam variants. ScamShield assists users by filtering scam calls and messages, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness and safe online behaviour. Depending on the nature of the scam, other government agencies may also issue public advisories relating to specific fraud trends.",
+    "category": "General Scam",
+    "section": "Singapore Context",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "General scams are highly adaptable and frequently evolve to exploit changing technologies, public events and consumer behaviour. Although the specific stories used by scammers may differ, many scams rely on similar psychological techniques, including creating urgency, establishing false authority, promising unrealistic rewards or exploiting fear of financial loss.\n\nUsers should evaluate unexpected communications based on the behaviours they encourage rather than the specific claims they make. Requests involving secrecy, immediate payment, disclosure of sensitive information or unusual financial transactions should always be treated with caution. Developing good verification habits and remaining sceptical of unsolicited requests significantly reduces the likelihood of becoming a scam victim.",
+    "category": "General Scam",
+    "section": "Additional Notes",
+    "source": "General_Scam.md"
+  },
+  {
+    "text": "A government scam is a type of fraud in which scammers impersonate government agencies, public officials or regulatory authorities to deceive individuals into providing money, personal information or access to sensitive accounts. These scams commonly involve fake phone calls, SMS messages, emails or letters claiming that the victim has violated a law, owes outstanding fines, has unclaimed government benefits or is involved in a criminal investigation. Scammers rely on the authority and credibility associated with government institutions to create fear and urgency, pressuring victims into complying without independently verifying the claims.",
+    "category": "Government Scam",
+    "section": "Overview",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "- Impersonating government agencies through phone calls, SMS messages or emails.\n- Claiming that the victim has unpaid taxes, fines or legal penalties.\n- Pretending that the victim is under criminal investigation for offences such as money laundering or identity theft.\n- Threatening arrest, legal action or account suspension unless immediate action is taken.\n- Sending phishing links to fake government websites that request personal information.\n- Requesting payment of administrative fees, penalties or processing charges.\n- Asking victims to verify their identity by providing personal or financial information.\n- Spoofing official phone numbers, email addresses or government logos to appear legitimate.\n- Claiming that government grants, subsidies or financial assistance require advance payments or verification.\n- Transferring victims between multiple fake officials to create the appearance of an ongoing investigation.",
+    "category": "Government Scam",
+    "section": "Common Scam Tactics",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "- Unexpected contact from a government agency demanding immediate action.\n- Threats of arrest, prosecution or legal consequences if payment is not made immediately.\n- Requests for payment through bank transfers, gift cards or cryptocurrency.\n- Messages containing suspicious links to unofficial government websites.\n- Requests for passwords, One-Time Passwords (OTPs) or banking credentials.\n- High-pressure tactics discouraging victims from seeking advice or verification.\n- Instructions to keep the investigation confidential.\n- Poor grammar, unusual wording or inconsistent formatting in official-looking communications.\n- Contact from unofficial email addresses or personal phone numbers.\n- Requests for payment before official documentation is provided.",
+    "category": "Government Scam",
+    "section": "Common Warning Signs",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "- Pay outstanding fines or administrative fees immediately.\n- Transfer money to designated bank accounts for investigation or verification purposes.\n- Provide NRIC numbers, passport details or other personal identification documents.\n- Share banking information or authentication codes.\n- Click links to verify identity or update personal records.\n- Download software or applications for identity verification.\n- Remain on the phone throughout the investigation process.\n- Avoid informing family members, banks or other authorities about the ongoing investigation.",
+    "category": "Government Scam",
+    "section": "Typical Victim Requests",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "- Verify unexpected communications by contacting the relevant government agency through its official website or hotline.\n- Do not rely on phone numbers or links provided in unsolicited messages.\n- Never share passwords, One-Time Passwords (OTPs) or banking credentials with anyone.\n- Be cautious of threats demanding immediate payment or legal action.\n- Avoid clicking links received through unsolicited SMS messages or emails.\n- Check whether the communication originates from an official government domain.\n- Take time to verify claims before responding or making payments.\n- Discuss suspicious communications with trusted family members or friends if uncertain.\n- Stay informed about the latest scam advisories issued by government agencies.",
+    "category": "Government Scam",
+    "section": "Prevention Tips",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "- End communication with the suspected scammer immediately.\n- Do not make payments or disclose additional personal information.\n- Verify the claims by contacting the relevant government agency using official contact information.\n- Report suspicious calls or messages through ScamShield where appropriate.\n- Contact your bank immediately if financial information has been disclosed or money has been transferred.\n- Preserve screenshots, emails, SMS messages and call records as evidence.\n- File a police report if financial loss has occurred or sensitive information has been compromised.\n- Monitor financial accounts and personal records for suspicious activity.",
+    "category": "Government Scam",
+    "section": "Recommended Actions",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "Government impersonation scams are regularly reported in Singapore and often involve scammers pretending to represent agencies such as the Singapore Police Force (SPF), the Inland Revenue Authority of Singapore (IRAS), the Immigration & Checkpoints Authority (ICA), the Ministry of Manpower (MOM), or other public institutions. Victims may receive calls claiming they are involved in criminal investigations, have immigration issues, owe taxes or are required to verify personal information.\n\nThe Singapore Police Force (SPF) frequently publishes advisories warning the public about government impersonation scams and reminds individuals that legitimate government agencies do not demand immediate payments through unofficial methods or request sensitive banking credentials over the phone. ScamShield helps reduce exposure to scam calls and messages, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness and safe online practices. The Ministry of Manpower (MOM) also issues public advisories regarding scams targeting job seekers and work pass holders, while the Monetary Authority of Singapore (MAS) may issue warnings when scams involve financial institutions or banking services.",
+    "category": "Government Scam",
+    "section": "Singapore Context",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "Government scams are particularly effective because they exploit authority, fear and uncertainty. Scammers often attempt to convince victims that failing to comply immediately will result in severe legal or financial consequences. In reality, legitimate government agencies generally follow established procedures and provide official documentation when necessary. They do not request passwords, One-Time Passwords (OTPs) or immediate transfers to personal bank accounts during investigations.\n\nUsers should remember that caller identification, official logos and professional language can all be forged. Regardless of how convincing a communication appears, independent verification through official government websites or published contact numbers is one of the most effective ways to prevent becoming a victim of government impersonation scams.",
+    "category": "Government Scam",
+    "section": "Additional Notes",
+    "source": "Government_Scam.md"
+  },
+  {
+    "text": "An investment scam is a type of fraud in which scammers deceive individuals into investing money in fake, misleading or non-existent investment opportunities. These scams often promise high returns with little or no risk, claiming that the investment is exclusive, time-sensitive or guaranteed to generate substantial profits. Scammers may impersonate financial advisors, investment firms, trading platforms or experienced investors to gain credibility. Investment scams commonly involve cryptocurrencies, foreign exchange (Forex), stocks, commodities, precious metals and other financial products. The primary objective is to convince victims to transfer money, after which the scammers either disappear or continue requesting additional payments under various pretexts.",
+    "category": "Investment Scam",
+    "section": "Overview",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "- Promising guaranteed or exceptionally high investment returns with minimal risk.\n- Claiming that the investment opportunity is exclusive or available for a limited time.\n- Impersonating licensed investment professionals or financial institutions.\n- Creating fake investment platforms that display fabricated profits.\n- Encouraging victims to start with a small investment before requesting larger amounts.\n- Using fake testimonials, success stories or celebrity endorsements to build credibility.\n- Contacting victims through social media, messaging applications or unsolicited phone calls.\n- Manipulating victims with fabricated account balances showing unrealistic profits.\n- Requesting additional payments for taxes, withdrawal fees or account verification before allowing withdrawals.\n- Pressuring victims to recruit friends or family members to increase their investments.",
+    "category": "Investment Scam",
+    "section": "Common Scam Tactics",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "- Guarantees of high returns with little or no investment risk.\n- Pressure to invest immediately to avoid missing an opportunity.\n- Unsolicited investment recommendations from strangers.\n- Investment platforms that lack clear company information or regulatory licensing.\n- Difficulty withdrawing funds despite showing profits.\n- Requests for additional payments before profits can be withdrawn.\n- Communication primarily conducted through private messaging applications.\n- Unrealistic claims of consistent or rapid financial growth.\n- Vague explanations of how the investment generates returns.\n- Requests to keep the investment opportunity confidential.",
+    "category": "Investment Scam",
+    "section": "Common Warning Signs",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "- Transfer money to investment or trading accounts.\n- Create accounts on unfamiliar investment platforms.\n- Purchase cryptocurrencies to fund investments.\n- Provide personal identification documents for account verification.\n- Pay withdrawal fees, taxes or administrative charges before accessing profits.\n- Increase investment amounts after initial returns appear successful.\n- Invite additional investors to participate in the opportunity.\n- Share banking information or payment details.",
+    "category": "Investment Scam",
+    "section": "Typical Victim Requests",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "- Research investment opportunities thoroughly before committing any funds.\n- Verify that investment companies and representatives are properly licensed where applicable.\n- Be cautious of promises of guaranteed or unusually high returns.\n- Avoid making investment decisions under pressure or artificial deadlines.\n- Use only reputable investment platforms and financial institutions.\n- Seek independent financial advice before making significant investments.\n- Be sceptical of investment opportunities introduced by strangers online.\n- Verify company information through official sources before transferring money.\n- Remember that all legitimate investments carry some level of risk.",
+    "category": "Investment Scam",
+    "section": "Prevention Tips",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "- Stop communicating with the suspected scammer immediately.\n- Do not transfer additional funds, even if promised that existing investments can be recovered.\n- Contact your bank immediately if money has already been transferred.\n- Preserve screenshots, transaction records, emails and chat conversations as evidence.\n- Report suspicious investment platforms or individuals to the appropriate authorities.\n- File a police report if financial loss has occurred.\n- Monitor financial accounts for unauthorised transactions.\n- Warn family members and friends if they may also have been approached by the same scam.",
+    "category": "Investment Scam",
+    "section": "Recommended Actions",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "Investment scams have become increasingly common in Singapore, particularly those involving cryptocurrency investments, online trading platforms and fraudulent wealth-building opportunities promoted through social media and messaging applications. Scammers often establish long-term communication with victims before introducing investment opportunities and may use fake trading platforms that display fabricated profits to encourage larger investments.\n\nThe Singapore Police Force (SPF) regularly publishes advisories on emerging investment scam trends and encourages the public to verify investment opportunities before transferring funds. The Monetary Authority of Singapore (MAS) reminds consumers to deal only with appropriately regulated financial institutions and to be cautious of investment offers that promise guaranteed returns. ScamShield helps reduce exposure to scam calls and messages, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness to reduce online fraud.",
+    "category": "Investment Scam",
+    "section": "Singapore Context",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "Investment scams commonly exploit greed, trust and fear of missing out (FOMO). Scammers often spend considerable time building relationships with victims before introducing investment opportunities, making the scams appear more credible. In many cases, victims initially receive small returns or are shown fabricated profits to encourage larger investments.\n\nLegitimate investments involve varying levels of financial risk, and no investment can guarantee consistently high returns without risk. Users should evaluate investment opportunities carefully, verify regulatory information independently and avoid making financial decisions based solely on persuasive marketing, social media recommendations or pressure from unfamiliar individuals. If an investment opportunity appears unusually profitable with little explanation of its risks, it should be treated with caution.",
+    "category": "Investment Scam",
+    "section": "Additional Notes",
+    "source": "Investment_Scam.md"
+  },
+  {
+    "text": "A job scam is a type of fraud in which scammers deceive individuals by offering fake employment opportunities or misrepresenting legitimate jobs to obtain money, personal information or financial benefits. These scams commonly target job seekers through online job portals, social media platforms, messaging applications, emails or unsolicited phone calls. Scammers often advertise attractive salaries, flexible working arrangements or positions requiring little experience to entice victims. Instead of providing genuine employment, they may request upfront payments, personal documents or participation in illegal financial activities. Job scams exploit the urgency and optimism of individuals seeking employment, making them particularly effective during periods of economic uncertainty.",
+    "category": "Job Scam",
+    "section": "Overview",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "- Advertising fake job vacancies with unusually high salaries or generous benefits.\n- Contacting individuals with unsolicited job offers without a formal application process.\n- Claiming that applicants have been selected immediately without interviews or proper assessments.\n- Requesting upfront payments for training, administrative fees, work permits or equipment.\n- Asking applicants to purchase products or services before starting work.\n- Recruiting victims for fake work-from-home or part-time online jobs.\n- Instructing victims to receive or transfer money on behalf of the company, turning them into money mules.\n- Using fake company websites, email addresses or recruitment documents to appear legitimate.\n- Impersonating well-known companies or recruitment agencies.\n- Conducting interviews exclusively through messaging applications without official communication channels.",
+    "category": "Job Scam",
+    "section": "Common Scam Tactics",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "- Job offers received without submitting an application.\n- Salaries or benefits that are significantly higher than similar positions.\n- No formal interview, skills assessment or verification process.\n- Requests for payment before employment begins.\n- Vague job descriptions with unclear responsibilities.\n- Pressure to accept the job offer immediately.\n- Communication conducted mainly through personal messaging applications.\n- Email addresses that do not match the company's official domain.\n- Requests for sensitive personal or banking information early in the recruitment process.\n- Employers unwilling to provide verifiable company information.",
+    "category": "Job Scam",
+    "section": "Common Warning Signs",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "- Pay registration, training, visa or administrative fees.\n- Purchase work materials, software or equipment from designated suppliers.\n- Provide copies of identification documents, bank account details or personal information.\n- Receive and transfer money on behalf of the company.\n- Open new bank accounts or digital wallets for business purposes.\n- Download unfamiliar applications for work-related activities.\n- Share login credentials or verification codes.\n- Recruit additional individuals into the same employment opportunity.",
+    "category": "Job Scam",
+    "section": "Typical Victim Requests",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "- Verify job advertisements through the company's official website or recognised recruitment platforms.\n- Be cautious of job offers that promise high income for minimal work or experience.\n- Never pay fees to secure employment opportunities.\n- Research the employer before accepting any job offer.\n- Confirm recruiter identities using official company contact information.\n- Be cautious of employers who avoid formal interviews or written employment contracts.\n- Avoid sharing sensitive personal or financial information unless the employer has been verified.\n- Read employment contracts carefully before accepting any offer.\n- Be aware that legitimate employers generally do not require applicants to transfer money or act as intermediaries for financial transactions.",
+    "category": "Job Scam",
+    "section": "Prevention Tips",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "- Stop communicating with the suspected scammer immediately.\n- Do not make additional payments or provide further personal information.\n- Verify the job offer directly with the company through official contact channels.\n- Report fraudulent job advertisements to the recruitment platform or website.\n- Contact your bank immediately if financial information has been disclosed or payments have been made.\n- Preserve emails, chat conversations, payment records and job advertisements as evidence.\n- File a police report if financial loss has occurred.\n- Monitor personal accounts for suspicious activity if sensitive information has been shared.",
+    "category": "Job Scam",
+    "section": "Recommended Actions",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "Job scams are regularly reported in Singapore and frequently target students, fresh graduates, part-time workers and individuals seeking flexible or remote employment. Common scam variants include fake administrative jobs, parcel processing roles, online marketing positions and commission-based tasks that eventually require victims to make payments. Some job scams also recruit victims as money mules by instructing them to receive or transfer funds through their personal bank accounts.\n\nThe Ministry of Manpower (MOM) advises job seekers to verify employment opportunities and be cautious of recruiters requesting payments or sensitive information. The Singapore Police Force (SPF) regularly publishes advisories on emerging job scam trends, while ScamShield helps reduce exposure to scam calls and messages. The Cyber Security Agency of Singapore (CSA) also promotes cybersecurity awareness to help individuals recognise fraudulent online recruitment activities and phishing attempts.",
+    "category": "Job Scam",
+    "section": "Singapore Context",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "Job scams often exploit financial needs, career aspirations and the desire for flexible work arrangements. Scammers intentionally design recruitment processes that appear professional by using company logos, employment contracts and convincing interview conversations. However, legitimate employers typically follow structured hiring procedures and do not require applicants to pay recruitment fees or transfer money as part of their employment.\n\nUsers should evaluate job opportunities carefully by verifying the employer's identity, reviewing company information independently and being cautious of unrealistic salary offers or unusually simple hiring processes. Any request involving upfront payments, handling other people's money or disclosing sensitive financial information should be treated as a significant warning sign of potential fraud.",
+    "category": "Job Scam",
+    "section": "Additional Notes",
+    "source": "Job_Scam.md"
+  },
+  {
+    "text": "A legitimate message is a genuine communication sent by a trusted individual, organisation or service provider for valid and non-fraudulent purposes. These messages may include banking notifications, government announcements, appointment reminders, delivery updates, account confirmations, promotional offers from verified businesses or personal conversations. Unlike scam messages, legitimate communications do not attempt to deceive recipients into revealing sensitive information, making unnecessary payments or performing suspicious actions. Although some legitimate messages may contain links, requests for confirmation or account-related information, they generally follow established communication practices and can be verified through official channels.",
+    "category": "Legitimate",
+    "section": "Overview",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "- Sent by recognised organisations, businesses or known individuals.\n- Contains information that matches recent activities or expected communications.\n- Uses official contact details, websites or mobile applications.\n- Provides clear and accurate information without creating unnecessary panic.\n- Includes professional language, consistent branding and appropriate formatting.\n- Allows recipients sufficient time to respond without unreasonable pressure.\n- Directs users to official customer service channels when assistance is required.\n- Requests only information that is necessary for the intended service.\n- Provides transparent explanations for any required actions.\n- Supports verification through official websites, customer service hotlines or authorised applications.",
+    "category": "Legitimate",
+    "section": "Common Characteristics",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "- Communication matches an expected transaction, purchase or service request.\n- Website links belong to official domains associated with the organisation.\n- Contact information matches details published on official websites.\n- Messages contain accurate customer or transaction information.\n- Requests follow normal business or government procedures.\n- No threats of immediate legal action or account suspension without prior notice.\n- No requests for passwords, One-Time Passwords (OTPs) or confidential banking credentials.\n- Payment requests are consistent with previously agreed transactions or services.\n- Customer support is available through official communication channels.",
+    "category": "Legitimate",
+    "section": "Common Indicators of Authenticity",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "- Confirm appointments, deliveries or reservations.\n- Review account activity or transaction notifications.\n- Access official websites or mobile applications through recognised channels.\n- Update non-sensitive account information when appropriate.\n- Respond to customer service enquiries related to existing services.\n- Complete legitimate purchases or service renewals through authorised payment systems.\n- Verify identity using official authentication procedures where required.\n- Contact customer support for clarification or assistance.",
+    "category": "Legitimate",
+    "section": "Typical User Requests",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "- Continue verifying important communications through official channels when uncertain.\n- Access online services by typing official website addresses or using trusted mobile applications instead of relying solely on message links.\n- Protect passwords, One-Time Passwords (OTPs) and authentication codes, even when communicating with legitimate organisations.\n- Review sender information carefully to identify possible impersonation attempts.\n- Keep software and security applications updated to protect against phishing attempts.\n- Enable multi-factor authentication for important online accounts.\n- Monitor financial accounts regularly for unusual activity.\n- Stay informed about common scam techniques that imitate legitimate communications.\n- When in doubt, contact the organisation directly using verified contact information.",
+    "category": "Legitimate",
+    "section": "Prevention Tips",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "- Read the message carefully before responding.\n- Verify unexpected requests through official communication channels if there is any uncertainty.\n- Follow normal procedures for legitimate transactions or account activities.\n- Do not disclose confidential information unless you have confirmed the authenticity of the request.\n- Contact the organisation directly if any part of the communication appears suspicious.\n- Keep records of important communications when appropriate.\n- Report suspected impersonation attempts to the affected organisation.\n- Continue practising good cybersecurity habits when interacting with online services.",
+    "category": "Legitimate",
+    "section": "Recommended Actions",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "Legitimate communications in Singapore are commonly received from banks, government agencies, healthcare providers, educational institutions, delivery companies and other registered organisations. Many organisations provide account notifications, appointment reminders, billing information and service updates through SMS, email, mobile applications or official websites.\n\nDespite being genuine, legitimate messages may resemble scam messages because scammers often imitate trusted organisations. The Singapore Police Force (SPF), ScamShield and the Cyber Security Agency of Singapore (CSA) encourage members of the public to verify unexpected communications before taking action. Financial institutions regulated by the Monetary Authority of Singapore (MAS) also implement security measures such as multi-factor authentication and transaction notifications to help customers recognise legitimate account activities and reduce the risk of fraud.",
+    "category": "Legitimate",
+    "section": "Singapore Context",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "Legitimate messages should not be assumed to be safe solely because they appear professional or contain familiar branding. Scammers frequently imitate the appearance of genuine communications, making independent verification an important cybersecurity practice. Users should evaluate messages based on their overall behaviour, including whether they request sensitive information, create unnecessary urgency or direct recipients to unofficial websites.\n\nThe absence of common scam indicators does not automatically guarantee authenticity. When uncertainty exists, users should verify communications through official websites, mobile applications or published customer service numbers instead of responding directly to unsolicited messages. Maintaining cautious verification habits helps users distinguish legitimate communications from increasingly sophisticated scam attempts while reducing the risk of becoming a victim of impersonation or phishing attacks.",
+    "category": "Legitimate",
+    "section": "Additional Notes",
+    "source": "Legitimate.md"
+  },
+  {
+    "text": "A loan scam is a type of fraud in which scammers target individuals seeking personal, business or emergency loans by offering fake loan services or impersonating legitimate financial institutions and licensed moneylenders. These scams typically promise fast approval, low interest rates or guaranteed loans regardless of the applicant's financial history. Once victims express interest, scammers request advance payments, processing fees, insurance charges or personal information before the loan is supposedly disbursed. In reality, no legitimate loan is provided, and victims often lose money or have their personal information misused. Loan scams commonly exploit individuals experiencing financial difficulties or those urgently requiring financial assistance.",
+    "category": "Loan Scam",
+    "section": "Overview",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "- Advertising guaranteed loan approval regardless of credit history or income.\n- Promising unusually low interest rates or highly favourable repayment terms.\n- Claiming that loans can be approved immediately with minimal documentation.\n- Requesting upfront payments for processing, administrative, insurance or legal fees.\n- Impersonating banks, licensed moneylenders or financial service providers.\n- Using fake websites, mobile applications or social media advertisements to appear legitimate.\n- Sending fraudulent loan approval letters or contracts.\n- Requesting sensitive personal or banking information during the application process.\n- Claiming additional payments are required before the loan can be released.\n- Continuing to request new fees after earlier payments have already been made.",
+    "category": "Loan Scam",
+    "section": "Common Scam Tactics",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "- Loan approval is guaranteed without assessing financial eligibility.\n- Requests for advance payments before loan disbursement.\n- Pressure to make immediate payments to secure the loan.\n- Communication primarily conducted through personal messaging applications.\n- Unlicensed lenders or companies with limited verifiable information.\n- Websites or emails containing spelling mistakes or unofficial domain names.\n- Requests for passwords, One-Time Passwords (OTPs) or online banking credentials.\n- Loan offers received without submitting an application.\n- Frequent changes to payment requirements during the application process.\n- Representatives refusing to provide official company or licensing information.",
+    "category": "Loan Scam",
+    "section": "Common Warning Signs",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "- Pay processing, administration or insurance fees before receiving the loan.\n- Transfer money to verify identity or demonstrate financial capability.\n- Submit NRIC details, passport information or other personal identification documents.\n- Provide bank account information and supporting financial documents.\n- Share online banking credentials or authentication codes.\n- Sign loan agreements before independently verifying the lender.\n- Download unfamiliar applications for loan processing.\n- Make additional payments after being told the initial fees were insufficient.",
+    "category": "Loan Scam",
+    "section": "Typical Victim Requests",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "- Verify that the lender is legitimate before applying for a loan.\n- Be cautious of loan offers promising guaranteed approval or unusually attractive terms.\n- Never pay upfront fees before receiving a legitimate loan.\n- Confirm company information using official websites and published contact details.\n- Compare loan offers from multiple reputable financial institutions.\n- Read loan agreements carefully before signing any documents.\n- Never disclose passwords, One-Time Passwords (OTPs) or online banking credentials.\n- Take time to research unfamiliar lenders before providing personal information.\n- Seek financial advice if uncertain about a loan offer.",
+    "category": "Loan Scam",
+    "section": "Prevention Tips",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "- Stop communicating with the suspected scammer immediately.\n- Do not make additional payments or provide further personal information.\n- Contact your bank immediately if financial information has been disclosed or money has been transferred.\n- Preserve loan advertisements, contracts, payment records and conversations as evidence.\n- Verify the lender's legitimacy before taking further action.\n- Report the suspected scam to the Singapore Police Force (SPF).\n- Monitor bank accounts and credit records for suspicious activity.\n- Change passwords and authentication methods if account credentials may have been compromised.",
+    "category": "Loan Scam",
+    "section": "Recommended Actions",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "Loan scams are regularly reported in Singapore and often involve scammers impersonating licensed moneylenders, banks or financial institutions. Victims commonly encounter fake loan advertisements through SMS messages, social media platforms, messaging applications and online advertisements. Scammers frequently target individuals experiencing financial difficulties by promising quick approval and requiring advance payments before the loan is supposedly released.\n\nThe Singapore Police Force (SPF) regularly advises members of the public that legitimate financial institutions and licensed moneylenders do not require borrowers to pay processing fees before loan disbursement. The Monetary Authority of Singapore (MAS) encourages consumers to obtain financial services only from authorised institutions and to verify unfamiliar financial offers carefully. ScamShield helps reduce exposure to scam messages and calls, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness to reduce phishing and online financial fraud.",
+    "category": "Loan Scam",
+    "section": "Singapore Context",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "Loan scams primarily exploit financial stress, urgency and the desire for immediate financial assistance. Victims may believe that advance payments are necessary administrative procedures, especially when scammers provide convincing documents, professional websites or persuasive explanations. However, repeated requests for additional fees after initial payments are a common characteristic of fraudulent loan schemes.\n\nLegitimate lenders generally evaluate applicants through established financial assessment procedures and clearly explain loan terms, interest rates and repayment obligations. Users should independently verify the identity of any lender, carefully review all documentation and avoid making financial decisions based solely on unsolicited loan offers or promises of guaranteed approval. If a lender requests payment before releasing a loan, the offer should be treated with extreme caution.",
+    "category": "Loan Scam",
+    "section": "Additional Notes",
+    "source": "Loan_Scam.md"
+  },
+  {
+    "text": "A lottery scam is a type of fraud in which scammers falsely inform individuals that they have won a lottery, lucky draw, sweepstake or prize despite never participating in such a competition. The scam is designed to convince victims that they are entitled to a valuable reward but must first complete certain requirements before receiving their winnings. These requirements often involve paying fees, providing personal information or sharing banking details. Lottery scams commonly arrive through SMS messages, emails, phone calls, social media platforms or messaging applications and often use the names of well-known companies or international organisations to appear credible.",
+    "category": "Lottery Scam",
+    "section": "Overview",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "- Claiming that the victim has won a lottery, lucky draw or sweepstake without entering any competition.\n- Impersonating well-known companies, international organisations or promotional campaigns.\n- Requesting payment of taxes, administrative charges, processing fees or delivery costs before releasing the prize.\n- Sending fake certificates, award letters or winning notifications to increase credibility.\n- Claiming that the prize must be collected within a limited period to create urgency.\n- Requesting personal information for so-called prize verification.\n- Directing victims to communicate through unofficial email addresses or messaging applications.\n- Using fake websites that imitate legitimate lottery organisations.\n- Promising luxury prizes such as cash rewards, vehicles, holidays or expensive electronic devices.\n- Continuing to request additional payments after the victim has already paid earlier fees.",
+    "category": "Lottery Scam",
+    "section": "Common Scam Tactics",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "- Receiving notifications about prizes without entering any competition.\n- Requests for advance payments before the prize can be claimed.\n- Claims that taxes or administrative fees must be paid upfront.\n- Messages containing unrealistic prize amounts or extravagant rewards.\n- Pressure to respond immediately to avoid losing the prize.\n- Requests for confidential personal or banking information.\n- Communication from unofficial email domains or unfamiliar phone numbers.\n- Poor grammar, spelling mistakes or inconsistent formatting.\n- Instructions to keep the prize confidential.\n- Requests to transfer money through unusual payment methods.",
+    "category": "Lottery Scam",
+    "section": "Common Warning Signs",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "- Pay processing, administrative or tax fees before collecting the prize.\n- Provide NRIC details, passport information or other personal identification documents.\n- Share bank account details for prize transfers.\n- Submit copies of identification documents for verification.\n- Click links leading to fake prize claim websites.\n- Contact designated representatives through unofficial communication channels.\n- Purchase gift cards or transfer money to release the winnings.\n- Make repeated payments for additional verification or delivery charges.",
+    "category": "Lottery Scam",
+    "section": "Typical Victim Requests",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "- Remember that legitimate lotteries require participants to enter before prizes can be awarded.\n- Be sceptical of unexpected prize notifications, especially if no competition was entered.\n- Never pay fees to claim lottery winnings or promotional prizes.\n- Verify promotional campaigns through official company websites.\n- Avoid clicking links contained in unsolicited prize notifications.\n- Protect personal and financial information from unknown individuals.\n- Research unfamiliar organisations before responding.\n- Discuss suspicious prize notifications with trusted family members or friends.\n- Stay informed about common lottery scam techniques.",
+    "category": "Lottery Scam",
+    "section": "Prevention Tips",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "- Ignore and delete suspicious prize notifications.\n- Do not make payments or provide personal information.\n- Do not click links or download attachments from unsolicited messages.\n- Report suspicious messages through ScamShield where applicable.\n- Contact your bank immediately if financial information has been disclosed or payments have been made.\n- Preserve emails, SMS messages and payment records as evidence.\n- Report the scam to the Singapore Police Force (SPF) if financial loss has occurred.\n- Monitor financial accounts for suspicious activity.",
+    "category": "Lottery Scam",
+    "section": "Recommended Actions",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "Lottery scams continue to affect individuals in Singapore through SMS messages, emails, messaging applications and social media platforms. Victims are commonly informed that they have won international lotteries, overseas sweepstakes or promotional campaigns organised by well-known brands despite having no prior participation. The scammers then request administrative fees, taxes or processing charges before the prize can supposedly be released.\n\nThe Singapore Police Force (SPF) regularly publishes advisories reminding the public that legitimate prize organisers do not require winners to pay upfront fees before receiving their prizes. ScamShield helps users reduce exposure to scam messages and calls, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness to help users recognise phishing attempts and fraudulent online promotions. Members of the public are encouraged to verify promotional campaigns through official company websites rather than relying on information provided in unsolicited messages.",
+    "category": "Lottery Scam",
+    "section": "Singapore Context",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "Lottery scams rely heavily on excitement, curiosity and the desire for unexpected financial gain. Scammers often create convincing prize notifications using official-looking logos, certificates and congratulatory messages to make victims believe that the rewards are genuine. However, legitimate lottery organisers and promotional campaigns generally follow transparent procedures and do not require advance payments before distributing prizes.\n\nUsers should remember a simple principle: if they did not enter a lottery, lucky draw or sweepstake, they cannot legitimately win one. Even if the notification appears professional or references a well-known company, any request for upfront payment, confidential information or urgent action should be treated as a significant warning sign. Verifying promotional claims independently through official sources is one of the most effective ways to avoid becoming a victim of lottery scams.",
+    "category": "Lottery Scam",
+    "section": "Additional Notes",
+    "source": "Lottery_Scam.md"
+  },
+  {
+    "text": "A parcel scam is a type of fraud in which scammers exploit online shopping, courier services and parcel deliveries to deceive individuals into making payments, revealing personal information or clicking malicious links. These scams often involve fake delivery notifications, claims that a parcel cannot be delivered, or messages stating that customs duties, taxes or redelivery fees must be paid before a package can be released. In some cases, scammers impersonate courier companies or postal services to create a sense of legitimacy. Parcel scams have become increasingly common as online shopping and home deliveries continue to grow, making fraudulent delivery notifications appear more believable.",
+    "category": "Parcel Scam",
+    "section": "Overview",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "- Impersonating courier companies, postal services or delivery personnel.\n- Sending SMS messages or emails claiming that a parcel cannot be delivered due to an incorrect address.\n- Requesting payment of customs duties, shipping charges or redelivery fees before releasing a parcel.\n- Directing victims to fake parcel tracking or payment websites.\n- Claiming that prohibited or suspicious items have been found inside a parcel.\n- Requesting personal information to verify delivery details.\n- Using fake parcel tracking numbers or fabricated delivery updates.\n- Sending phishing links through SMS messages, emails or messaging applications.\n- Creating urgency by claiming that parcels will be returned or destroyed if immediate action is not taken.\n- Pretending that identity verification is required before completing delivery.",
+    "category": "Parcel Scam",
+    "section": "Common Scam Tactics",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "- Receiving delivery notifications for parcels that were never ordered.\n- Requests for payment before a parcel can be delivered.\n- Messages containing suspicious or shortened website links.\n- Delivery notifications from unfamiliar courier companies.\n- Poor grammar, spelling mistakes or inconsistent branding.\n- Unexpected requests for personal or financial information.\n- Urgent deadlines requiring immediate payment or verification.\n- Parcel tracking websites with unofficial or unfamiliar web addresses.\n- Requests for passwords, One-Time Passwords (OTPs) or banking credentials.\n- Notifications that do not match any recent online purchases.",
+    "category": "Parcel Scam",
+    "section": "Common Warning Signs",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "- Pay customs duties, shipping charges or redelivery fees.\n- Click links to track parcels or update delivery information.\n- Enter banking or credit card details on fake payment websites.\n- Provide personal identification information such as NRIC or passport details.\n- Verify addresses or contact information through suspicious websites.\n- Download applications for parcel tracking or delivery management.\n- Share authentication codes or verification numbers.\n- Contact fake customer service representatives through unofficial communication channels.",
+    "category": "Parcel Scam",
+    "section": "Typical Victim Requests",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "- Verify parcel notifications by checking your recent purchases and expected deliveries.\n- Track parcels only through the courier company's official website or mobile application.\n- Avoid clicking links contained in unsolicited delivery messages.\n- Confirm unexpected delivery notifications with the sender or retailer.\n- Never provide passwords, One-Time Passwords (OTPs) or banking credentials through delivery websites.\n- Carefully inspect website addresses before entering payment information.\n- Be cautious of requests for unexpected delivery fees.\n- Keep devices and web browsers updated with the latest security patches.\n- Report suspicious delivery messages instead of responding to them.",
+    "category": "Parcel Scam",
+    "section": "Prevention Tips",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "- Do not click suspicious links or download attachments.\n- Ignore and delete fraudulent parcel notifications.\n- Verify parcel information directly with the courier company using official contact channels.\n- Contact your bank immediately if payment information has been submitted.\n- Preserve SMS messages, emails and screenshots as evidence.\n- Report suspicious messages through ScamShield where appropriate.\n- File a police report if financial loss or identity theft has occurred.\n- Monitor bank accounts and online accounts for suspicious activity.",
+    "category": "Parcel Scam",
+    "section": "Recommended Actions",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "Parcel scams are frequently reported in Singapore due to the widespread use of e-commerce platforms and courier delivery services. Scammers commonly impersonate delivery companies by sending SMS messages or emails claiming that parcels are awaiting delivery, customs clearance or address verification. Victims are then directed to fake websites where they are asked to pay small delivery fees or provide banking credentials. Because many Singapore residents regularly shop online, these scam messages often appear believable.\n\nThe Singapore Police Force (SPF) regularly issues advisories warning the public about parcel delivery scams and encourages individuals to verify delivery notifications through official courier websites or mobile applications. ScamShield helps reduce exposure to scam calls and messages, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness and advises users to avoid clicking suspicious links. Consumers are encouraged to verify delivery requests independently before making any payments or providing personal information.",
+    "category": "Parcel Scam",
+    "section": "Singapore Context",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "Parcel scams primarily exploit familiarity and routine behaviour. Many people receive genuine delivery notifications regularly, making it easier for scammers to blend fraudulent messages with legitimate communications. The requested payment is often relatively small, which may reduce suspicion and encourage victims to act quickly without verification.\n\nLegitimate courier companies generally provide tracking information through official websites and mobile applications, and any additional delivery charges are communicated using established procedures. Users should independently verify unexpected delivery notifications, especially those requesting urgent payments, confidential information or account credentials. Even if a message contains accurate personal details or convincing branding, it should always be verified before any action is taken.",
+    "category": "Parcel Scam",
+    "section": "Additional Notes",
+    "source": "Parcel_Scam.md"
+  },
+  {
+    "text": "A romance scam is a type of fraud in which scammers establish fake romantic or emotional relationships with victims to gain their trust before exploiting them for financial gain or personal information. These scams commonly begin through social media platforms, dating applications, messaging services or online communities. Scammers often spend weeks or even months building a close relationship with the victim by expressing affection, providing emotional support and creating a sense of commitment. Once trust has been established, they fabricate emergencies, financial difficulties or future plans together to persuade victims to send money or disclose sensitive information.",
+    "category": "Romance Scam",
+    "section": "Overview",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "- Creating fake online profiles using stolen photographs and fabricated personal information.\n- Initiating conversations through dating applications, social media platforms or messaging services.\n- Building emotional relationships by communicating frequently and expressing affection quickly.\n- Claiming to work overseas, serve in the military or travel frequently to avoid meeting in person.\n- Inventing emergencies involving medical expenses, travel costs or financial hardships.\n- Promising future meetings, marriage or relocation together.\n- Requesting financial assistance through bank transfers, gift cards or cryptocurrency.\n- Avoiding video calls or making excuses for repeatedly cancelling planned meetings.\n- Sending fake documents such as passports, travel itineraries or medical reports to support fabricated stories.\n- Continuing to create new emergencies that require additional financial assistance.",
+    "category": "Romance Scam",
+    "section": "Common Scam Tactics",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "- Rapid declarations of love or emotional commitment despite knowing each other for only a short time.\n- Refusal or inability to meet in person or participate in live video calls.\n- Frequent requests for money, gifts or financial assistance.\n- Stories involving repeated emergencies, accidents or unexpected financial problems.\n- Inconsistent personal details or changing life stories.\n- Requests to keep the relationship or financial assistance private.\n- Pressure to make urgent financial decisions.\n- Communication conducted exclusively through messaging applications or social media.\n- Requests for personal identification documents or banking information.\n- Profiles with limited online history or suspiciously perfect photographs.",
+    "category": "Romance Scam",
+    "section": "Common Warning Signs",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "- Transfer money for medical treatment, travel expenses or emergency situations.\n- Purchase gift cards or digital vouchers.\n- Send cryptocurrency or international money transfers.\n- Provide bank account details or personal identification documents.\n- Receive and transfer money on behalf of the scammer.\n- Invest in financial opportunities introduced by the scammer.\n- Share confidential personal information.\n- Continue providing financial support for newly created emergencies.",
+    "category": "Romance Scam",
+    "section": "Typical Victim Requests",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "- Take time to develop online relationships and avoid making decisions based solely on emotions.\n- Be cautious of individuals who express strong romantic feelings unusually quickly.\n- Verify the person's identity through live video calls or other reliable methods.\n- Never send money to someone you have not met and independently verified.\n- Be sceptical of repeated requests for financial assistance.\n- Discuss online relationships with trusted family members or friends before making financial commitments.\n- Protect personal information and avoid sharing sensitive documents.\n- Research profile photographs and information if authenticity is uncertain.\n- Be cautious of excuses that repeatedly prevent face-to-face meetings.",
+    "category": "Romance Scam",
+    "section": "Prevention Tips",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "- Stop communicating with the suspected scammer immediately.\n- Do not send additional money or provide further personal information.\n- Block the individual's accounts on social media and messaging platforms.\n- Contact your bank immediately if money has already been transferred.\n- Preserve chat conversations, payment records and profile information as evidence.\n- Report the fraudulent account to the relevant social media or dating platform.\n- File a police report if financial loss has occurred.\n- Inform trusted family members or friends for emotional and practical support.\n- Monitor financial accounts and online accounts for suspicious activity.",
+    "category": "Romance Scam",
+    "section": "Recommended Actions",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "Romance scams continue to affect individuals in Singapore and frequently begin through dating applications, social media platforms and messaging services. Scammers often invest significant time building emotional relationships before requesting financial assistance for fabricated emergencies or introducing victims to fraudulent investment opportunities. In some cases, romance scams evolve into investment scams after trust has been established.\n\nThe Singapore Police Force (SPF) regularly publishes advisories highlighting romance scam trends and encourages members of the public to remain cautious when developing online relationships. ScamShield helps reduce exposure to scam calls and messages, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness and safe online practices. Members of the public are encouraged to verify online identities independently and avoid sending money to individuals they have never met in person.",
+    "category": "Romance Scam",
+    "section": "Singapore Context",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "Romance scams rely primarily on emotional manipulation rather than technical deception. Scammers carefully build trust over an extended period, making victims feel emotionally connected before introducing financial requests. Because victims often believe they are helping someone they care about, these scams can continue for months and may result in substantial financial losses.\n\nA genuine relationship should not depend on repeated financial assistance or constant emergency payments. Users should remain cautious if an online acquaintance consistently avoids meeting in person, requests secrecy or introduces urgent financial problems shortly after establishing a relationship. Independent verification, open discussions with trusted family members or friends and taking time before making financial decisions are among the most effective ways to reduce the risk of becoming a victim of a romance scam.",
+    "category": "Romance Scam",
+    "section": "Additional Notes",
+    "source": "Romance_Scam.md"
+  },
+  {
+    "text": "A subscription scam is a type of fraud in which scammers deceive individuals into making recurring payments or renewing fake services under the guise of legitimate subscriptions. These scams often involve fraudulent notifications claiming that an existing subscription is about to expire, has been automatically renewed or requires immediate payment to avoid service interruption. In other cases, scammers advertise fake subscription services for streaming platforms, software, digital products or memberships at unusually low prices. Their objective is to obtain payment information, personal data or unauthorised recurring payments by convincing victims that the subscription is genuine or urgently requires action.",
+    "category": "Subscription Scam",
+    "section": "Overview",
+    "source": "Subscription_Scam.md"
+  },
+  {
+    "text": "- Sending fake renewal notices for streaming services, antivirus software or online subscriptions.\n- Claiming that a subscription has been automatically renewed and payment has already been processed.\n- Creating fake invoices that encourage victims to contact fraudulent customer support.\n- Directing victims to phishing websites that imitate legitimate subscription providers.\n- Offering heavily discounted subscriptions for popular digital services.\n- Requesting payment to prevent account suspension or service interruption.\n- Impersonating customer service representatives to obtain payment details.\n- Convincing victims to install remote access software to resolve supposed billing issues.\n- Using fake receipts or payment confirmations to make the scam appear legitimate.\n- Hiding recurring charges within fraudulent subscription offers or misleading free trial promotions.",
+    "category": "Subscription Scam",
+    "section": "Common Scam Tactics",
+    "source": "Subscription_Scam.md"
+  },
+  {
+    "text": "- Receiving subscription renewal notices for services that were never purchased.\n- Unexpected invoices or receipts for unfamiliar subscriptions.\n- Requests for immediate payment to prevent service cancellation.\n- Emails or SMS messages containing suspicious links or attachments.\n- Customer support phone numbers that are not listed on the company's official website.\n- Offers for premium subscriptions at prices that are significantly below market value.\n- Requests for passwords, One-Time Passwords (OTPs) or banking credentials.\n- Poor grammar, spelling mistakes or inconsistent branding in subscription notifications.\n- Pressure to act immediately without allowing time for verification.\n- Payment requests through unusual or unofficial methods.",
+    "category": "Subscription Scam",
+    "section": "Common Warning Signs",
+    "source": "Subscription_Scam.md"
+  },
+  {
+    "text": "- Confirm payment information for a subscription renewal.\n- Click links to cancel or renew a subscription.\n- Provide credit card or banking details.\n- Pay renewal fees or service charges immediately.\n- Download software or remote access applications for technical assistance.\n- Verify personal information or account credentials.\n- Share authentication codes or security verification numbers.\n- Purchase discounted subscription packages through unofficial websites.",
+    "category": "Subscription Scam",
+    "section": "Typical Victim Requests",
+    "source": "Subscription_Scam.md"
+  },
+  {
+    "text": "- Verify subscription notices by logging in directly through the service provider's official website or mobile application.\n- Keep track of active subscriptions and recurring payments.\n- Avoid clicking links contained in unsolicited renewal notifications.\n- Never provide passwords, One-Time Passwords (OTPs) or banking credentials through email or SMS.\n- Review bank and credit card statements regularly for unauthorised recurring charges.\n- Confirm customer support contact details through official company websites.\n- Be cautious of subscription offers that appear significantly cheaper than normal market prices.\n- Enable transaction notifications for payment cards where available.\n- Cancel subscriptions only through official platforms or verified customer support channels.",
+    "category": "Subscription Scam",
+    "section": "Prevention Tips",
+    "source": "Subscription_Scam.md"
+  },
+  {
+    "text": "- Do not respond to suspicious subscription notifications.\n- Verify the subscription directly with the service provider through official contact channels.\n- Contact your bank immediately if payment information has been disclosed.\n- Cancel compromised payment cards if unauthorised recurring charges are detected.\n- Preserve emails, SMS messages, invoices and payment records as evidence.\n- Report suspicious messages through ScamShield where appropriate.\n- File a police report if financial loss has occurred.\n- Monitor bank accounts and credit card statements for further unauthorised transactions.\n- Change account passwords if login credentials may have been compromised.",
+    "category": "Subscription Scam",
+    "section": "Recommended Actions",
+    "source": "Subscription_Scam.md"
+  },
+  {
+    "text": "Subscription scams are increasingly reported in Singapore as more individuals subscribe to digital services such as streaming platforms, software applications, cloud storage and online memberships. Victims commonly receive fake emails or SMS messages claiming that their subscription has been renewed, payment has failed or their account will be suspended unless immediate action is taken. These messages often direct users to phishing websites that collect payment information or login credentials.\n\nThe Singapore Police Force (SPF) regularly advises the public to verify subscription-related communications through official websites and warns against clicking suspicious links contained in unsolicited messages. ScamShield helps reduce exposure to scam calls and messages, while the Cyber Security Agency of Singapore (CSA) promotes cybersecurity awareness and safe online practices to reduce phishing attacks. When subscription scams involve payment cards or financial services, consumers are encouraged to contact their financial institutions immediately to prevent further unauthorised transactions.",
+    "category": "Subscription Scam",
+    "section": "Singapore Context",
+    "source": "Subscription_Scam.md"
+  },
+  {
+    "text": "Subscription scams commonly exploit routine digital services that many people use every day. Because users frequently receive genuine renewal reminders and billing notifications, fraudulent messages can easily blend in with legitimate communications. Scammers often rely on urgency, claiming that accounts will be suspended or automatic payments have already been processed, prompting victims to act without careful verification.\n\nLegitimate service providers generally allow customers to manage subscriptions through official websites or mobile applications and do not request passwords, One-Time Passwords (OTPs) or confidential banking credentials through unsolicited emails or SMS messages. Users should independently verify unexpected subscription notifications, regularly review recurring payments and exercise caution before responding to any communication requesting immediate financial action or sensitive personal information.",
+    "category": "Subscription Scam",
+    "section": "Additional Notes",
+    "source": "Subscription_Scam.md"
+  }
+]
