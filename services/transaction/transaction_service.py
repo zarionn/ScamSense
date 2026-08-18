@@ -147,6 +147,7 @@ def explain_flagged_transaction(row: dict) -> str:
     reasons = infer_flag_reasons(row)
     prompt = f"""
     Transaction flagged as potentially fraudulent:
+    - Timestamp: {row.get('timestamp')}
     - Amount: ${row.get('amount')}
     - Merchant category: {row.get('merchant_category')}
     - Device: {row.get('device_type')}
@@ -234,6 +235,18 @@ def enrich_flagged_rows(results: list):
 
     return results, escalation_email
 
+def format_timestamp(ts) -> str:
+    """e.g. 1/6/2026 8:05:00 am — no leading zeros, lowercase am/pm."""
+    if pd.isna(ts):
+        return None
+    formatted = ts.strftime("%m/%d/%Y %I:%M:%S %p")
+    # strip leading zeros from month/day/hour, since %-m isn't portable on Windows
+    month, rest = formatted.split("/", 1)
+    day, rest = rest.split("/", 1)
+    year, rest = rest.split(" ", 1)
+    hour, rest = rest.split(":", 1)
+    return f"{int(month)}/{int(day)}/{year} {int(hour)}:{rest.lower()}"
+
 def score_upload_rows(df):
     cleaned = feature_engineering.engineer_features_from_transcript(df)
     model_frame = build_feature_frame_for_model(cleaned)
@@ -242,6 +255,7 @@ def score_upload_rows(df):
     results = []
     for i, p in enumerate(probs):
         risk = float(p)
+        ts = cleaned.iloc[i]["timestamp"] if "timestamp" in cleaned.columns else None
         results.append({
             "row_index": i,
             "risk_score": round(risk, 4),
@@ -253,6 +267,7 @@ def score_upload_rows(df):
             "merchant_category": str(cleaned.iloc[i]["merchant_category"]) if "merchant_category" in cleaned.columns else None,
             "device_type": str(cleaned.iloc[i]["device_type"]) if "device_type" in cleaned.columns else None,
             "is_foreign_transaction": int(cleaned.iloc[i]["is_foreign_transaction"]) if "is_foreign_transaction" in cleaned.columns else None,
+            "timestamp": format_timestamp(ts) if ts is not None else None,
         })
 
     return results

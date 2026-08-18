@@ -134,7 +134,7 @@ export default function TransactionScanPage() {
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div>
                         <div className="text-xs uppercase tracking-[0.12em] text-slate-400">
-                          Row {item.row_index ?? index}
+                          Row {item.row_index ?? index}{item.timestamp ? ` - ${item.timestamp}` : ''}
                         </div>
                         <div className="mt-1 text-xl font-semibold text-white">
                           {isFraud ? 'Likely fraud' : 'Low risk'}
