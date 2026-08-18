@@ -10,12 +10,34 @@ export default function TransactionScanPage() {
   const [error, setError] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
   const [expandedRow, setExpandedRow] = useState(null)
+  const [emailDraft, setEmailDraft] = useState(null)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [emailError, setEmailError] = useState('')
   const [copied, setCopied] = useState(false)
 
-  const handleCopyEmail = async () => {
-    if (!result?.escalation_email) return
+  const handleDraftEmail = async () => {
+    setEmailLoading(true)
+    setEmailError('')
     try {
-      await navigator.clipboard.writeText(result.escalation_email)
+      const response = await fetch('/api/transaction/draft-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flagged_rows: flaggedRows }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data?.error || 'Could not draft email')
+      setEmailDraft(data.escalation_email)
+    } catch (err) {
+      setEmailError(err.message)
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
+  const handleCopyEmail = async () => {
+    if (!emailDraft) return
+    try {
+      await navigator.clipboard.writeText(emailDraft)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -112,7 +134,7 @@ export default function TransactionScanPage() {
                 {result.flagged_rows ?? flaggedRows.length}
               </div>
             </div>
-            
+
           </div>
 
           {flaggedRows.length === 0 ? (
@@ -191,23 +213,49 @@ export default function TransactionScanPage() {
             </div>
           )}
           {flaggedRows.length > 0 && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5 ">
-              <div className="flex w-full items-center justify-between gap-4">
-                <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-amber-300">
-                  Bank / SPF escalation email
-                </h3>
-                <button
-                  type="button"
-                  onClick={handleCopyEmail}
-                  disabled={!result.escalation_email}
-                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-amber-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {copied ? 'Copied ✓' : 'Copy to clipboard'}
-                </button>
-              </div>
-              <div className="mt-3 whitespace-pre-wrap rounded-lg border border-slate-700 bg-slate-950/50 p-4 text-sm text-slate-200">
-                {result.escalation_email || 'Generating…'}
-              </div>
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-amber-300">
+                Next step
+              </h3>
+
+              {!emailDraft ? (
+                <div className="mt-3 flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
+                  <p className="text-sm text-slate-300">
+                    {flaggedRows.length} transaction{flaggedRows.length > 1 ? 's' : ''} flagged.
+                    Draft an escalation email to send to the bank / SPF for review.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleDraftEmail}
+                    disabled={emailLoading}
+                    className="shrink-0 rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {emailLoading ? 'Drafting…' : 'Draft escalation email'}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-3 flex w-full items-center justify-between gap-4">
+                    <span className="text-sm text-slate-300">Draft ready</span>
+                    <button
+                      type="button"
+                      onClick={handleCopyEmail}
+                      className="shrink-0 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-amber-400 hover:text-white"
+                    >
+                      {copied ? 'Copied ✓' : 'Copy to clipboard'}
+                    </button>
+                  </div>
+                  <div className="mt-3 whitespace-pre-wrap rounded-lg border border-slate-700 bg-slate-950/50 p-4 text-sm text-slate-200">
+                    {emailDraft}
+                  </div>
+                </>
+              )}
+
+              {emailError && (
+                <div className="mt-3 rounded-lg border border-red-500/40 bg-red-950/20 p-2 text-xs text-red-200">
+                  {emailError}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -127,7 +127,7 @@ def upload_transaction_batch():
 
     try:
         results = transaction_service.score_upload_rows(df)
-        results, escalation_email = transaction_service.enrich_flagged_rows(results)
+        results = transaction_service.enrich_flagged_rows(results)
     except Exception as exc:
         return jsonify({"error": f"Could not process file: {str(exc)}"}), 400
 
@@ -135,8 +135,22 @@ def upload_transaction_batch():
         "total_rows": len(results),
         "flagged_rows": sum(1 for item in results if item["is_fraud"]),
         "results": results,
-        "escalation_email": escalation_email,
     })
+
+@app.route("/api/transaction/draft-email", methods=["POST"])
+def draft_transaction_email():
+    body = request.get_json(silent=True) or {}
+    flagged_rows = body.get("flagged_rows")
+
+    if not isinstance(flagged_rows, list) or not flagged_rows:
+        return jsonify({"error": "No flagged transactions provided"}), 400
+
+    try:
+        email = transaction_service.draft_escalation_email(flagged_rows)
+    except Exception as exc:
+        return jsonify({"error": f"Could not draft email: {str(exc)}"}), 500
+
+    return jsonify({"escalation_email": email})
 
 @app.errorhandler(413)
 def too_large(e):

@@ -231,9 +231,7 @@ def enrich_flagged_rows(results: list):
         else:
             r['ai_explanation'] = explanation
 
-    escalation_email = draft_escalation_email(flagged) if flagged else None
-
-    return results, escalation_email
+    return results
 
 def format_timestamp(ts) -> str:
     """e.g. 1/6/2026 8:05:00 am — no leading zeros, lowercase am/pm."""
