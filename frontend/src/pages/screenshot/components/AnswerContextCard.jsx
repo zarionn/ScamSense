@@ -1,3 +1,4 @@
+import { ClipboardCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -25,7 +26,10 @@ export default function AnswerContextCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Based on Your Answers</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <ClipboardCheck className="size-4 text-primary" aria-hidden="true" />
+          Based on Your Answers
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {relevantQuestions.map((question) => {

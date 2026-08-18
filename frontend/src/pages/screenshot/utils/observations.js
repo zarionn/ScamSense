@@ -20,7 +20,7 @@ import {
 // (see SignalType in gen_ai.py). Only the title/icon are static — the evidence text
 // shown alongside each one always comes from the API response.
 export const SIGNAL_META = {
-  credential_request: { title: 'Credential Request', icon: KeyRound },
+  credential_request: { title: 'Login Details Requested', icon: KeyRound },
   otp_request: { title: 'OTP Request', icon: Fingerprint },
   personal_information_request: { title: 'Personal Information Request', icon: IdCard },
   urgent_account_threat: { title: 'Urgency or Pressure', icon: Clock },

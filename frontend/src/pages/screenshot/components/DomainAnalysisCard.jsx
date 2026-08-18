@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 const RELATIONSHIP_LABEL = {
-  match: 'Matches claimed organisation',
-  mismatch: 'Does not match claimed organisation',
+  match: 'Visual review suggests a possible match',
+  mismatch: 'Visual review suggests a possible mismatch',
   cannot_determine: 'Cannot be determined',
 }
 
@@ -37,7 +37,6 @@ export default function DomainAnalysisCard({ domainAnalysis }) {
     claimed_entity: claimedEntity,
     domain_relationship: relationship,
     domain_readability: readability,
-    evidence,
   } = domainAnalysis
 
   return (
@@ -62,7 +61,9 @@ export default function DomainAnalysisCard({ domainAnalysis }) {
           </Field>
           <Field label="Readability">{READABILITY_LABEL[readability] ?? 'Unreadable'}</Field>
         </div>
-        {evidence && <Field label="Supporting evidence">{evidence}</Field>}
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          This is a visual-review assessment only. Domain ownership was not independently verified.
+        </p>
       </CardContent>
     </Card>
   )

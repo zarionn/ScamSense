@@ -46,13 +46,13 @@ async function analyseScreenshot(file) {
   return parseJsonResponse(response)
 }
 
-async function respondToAnalysis(analysisContext, answers) {
+async function respondToAnalysis(analysisToken, answers) {
   let response
   try {
     response = await fetch('/api/respond', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ analysis_context: analysisContext, answers }),
+      body: JSON.stringify({ analysis_token: analysisToken, answers }),
     })
   } catch {
     throw new Error(
@@ -121,7 +121,7 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
     setRespondStatus('loading')
     setRespondError('')
     try {
-      const data = await respondToAnalysis(context, answers)
+      const data = await respondToAnalysis(context.analysis_token, answers)
       setFinalResult(data)
       setRespondStatus('success')
       setPhase(PHASE.RESULT)
@@ -178,7 +178,12 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
   // The zero-questions path calls /api/respond while still visually in the upload
   // phase (no questions screen to show), so give it its own loading affordance.
   const isAutoResponding = respondStatus === 'loading' && phase === PHASE.UPLOAD
-  const isAuditDegraded = analysisContext?.audit_status?.startsWith('degraded')
+  const auditStatus = analysisContext?.audit_status
+  const isAuditDegraded = auditStatus && auditStatus !== 'available'
+  const auditStatusNote =
+    auditStatus === 'malformed'
+      ? 'The independent visual review returned an unreadable result, so these questions are based on the official classifier result.'
+      : 'The independent visual review was unavailable, so these questions are based on the official classifier result.'
   const hasResult = phase === PHASE.RESULT && finalResult
 
   return (
@@ -210,7 +215,7 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
       ) : phase === PHASE.QUESTIONS && analysisContext ? (
         <div className="mx-auto w-full max-w-[900px] space-y-4">
           {isAuditDegraded && (
-            <UncertaintyNote note="The independent visual review was temporarily unavailable, so these questions are based on the official classifier result." />
+            <UncertaintyNote note={auditStatusNote} />
           )}
           <DynamicQuestionnaire
             exposureQuestions={analysisContext.exposure_questions}
