@@ -156,8 +156,11 @@ def explain_flagged_transaction(row: dict) -> str:
     
     Reasons the system flagged it: {', '.join(reasons)}
 
-    In 2-3 short sentences, explain in plain language why this transaction looks
+    explain in plain language why this transaction looks
     risky, based only on the details above. No technical ML jargon.
+    This explaination should be simple enough for people of all ages to undestand
+    including elderlies. have it around 2 to 3 sentences long. Do not 
+    invent any details about the transaction.
     """
     try:
         reply = genai_client.models.generate_content(
