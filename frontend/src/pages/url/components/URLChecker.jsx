@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/providers/auth-provider'
 import { useURLScanHistory } from '@/hooks/use-url-scan-history'
 import { checkURL } from '@/services/url-service'
+import QRScanDialog from './QRScanDialog'
 import URLRecentScans from './URLRecentScans'
 import URLResultCard, { PANEL_CLASS, PipelineTimeline } from './URLResultCard'
 
@@ -24,6 +25,9 @@ export default function URLChecker() {
   const [errorMessage, setErrorMessage] = useState('')
   const [litSteps, setLitSteps] = useState(0)
   const { user, loading: authLoading } = useAuth()
+  // Claimed synchronously, so a repeated activation cannot start a second
+  // request or a second history row before isLoading has re-rendered.
+  const isCheckingRef = useRef(false)
   const history = useURLScanHistory(user, authLoading)
 
   // The model and AI review can take a few seconds, so reveal the real pipeline
@@ -43,7 +47,9 @@ export default function URLChecker() {
   }, [isLoading])
 
   async function runCheck(url) {
-    if (!url) return
+    if (!url || isCheckingRef.current) return
+
+    isCheckingRef.current = true
 
     setIsLoading(true)
     setResult(null)
@@ -61,12 +67,19 @@ export default function URLChecker() {
       setErrorMessage(error instanceof Error ? error.message : 'Could not check that link.')
     } finally {
       setIsLoading(false)
+      isCheckingRef.current = false
     }
   }
 
   function handleSubmit(event) {
     event.preventDefault()
     runCheck(urlInput.trim())
+  }
+
+  // Runs the normal detector flow on the address the QR dialog already confirmed.
+  function handleQRLink(url) {
+    setURLInput(url)
+    runCheck(url)
   }
 
   // Runs the normal detector flow on the stored address; never navigates to it.
@@ -110,9 +123,16 @@ export default function URLChecker() {
             autoFocus
             className="h-10 flex-1 bg-background text-base"
           />
-          <Button type="submit" disabled={isLoading || !urlInput.trim()} className="h-10 px-5">
-            {isLoading ? 'Checking…' : 'Check Link'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              disabled={isLoading || !urlInput.trim()}
+              className="h-10 flex-1 px-5 sm:flex-none"
+            >
+              {isLoading ? 'Checking…' : 'Check Link'}
+            </Button>
+            <QRScanDialog onConfirm={handleQRLink} disabled={isLoading} />
+          </div>
         </form>
 
         <div className="flex flex-wrap items-center gap-2">

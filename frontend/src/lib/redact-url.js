@@ -9,20 +9,10 @@
 // Separate from the model's own normalisation in url_normalizer.py — that
 // decides what the detector sees, this decides what we are willing to store.
 
+import { parseWebAddress } from './web-address'
+
 // Matches the char_length check on url_scan_feedback.url_redacted.
 export const REDACTED_URL_MAX_LENGTH = 2048
-
-const AUTHORITY_SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:\/\//i
-
-// A leading "token:" that is neither "scheme://" nor a port. "mailto:someone@…"
-// and a scheme-less "user:password@host" have the same shape and cannot be told
-// apart, so both are refused. The digit lookahead keeps "example.com:8080/path"
-// out of this pattern.
-const OPAQUE_SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:(?!\/\/)(?!\d)/i
-
-// Restricting the stored scheme also stops a mailto: or javascript: string being
-// recorded as "a URL".
-const ALLOWED_PROTOCOLS = new Set(['http:', 'https:'])
 
 const CANNOT_REDACT_MESSAGE =
   "We couldn't read that link well enough to store it safely, so this feedback was not sent."
@@ -35,27 +25,12 @@ export class URLRedactionError extends Error {
 }
 
 export function redactURL(rawURL) {
-  const trimmed = typeof rawURL === 'string' ? rawURL.trim() : ''
-  if (!trimmed) throw new URLRedactionError()
+  const address = parseWebAddress(rawURL)
+  if (!address) throw new URLRedactionError()
 
-  // A link typed without a scheme is parsed with a temporary one, but the result
-  // keeps none: recording "https://" would claim the user submitted something
-  // they did not.
-  const hadScheme = AUTHORITY_SCHEME_PATTERN.test(trimmed)
-
-  if (!hadScheme && OPAQUE_SCHEME_PATTERN.test(trimmed)) throw new URLRedactionError()
-
-  let parsed
-  try {
-    parsed = new URL(hadScheme ? trimmed : `https://${trimmed}`)
-  } catch {
-    throw new URLRedactionError()
-  }
-
-  if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) throw new URLRedactionError()
-  // Rules out inputs the URL parser accepts but that carry no host, such as
-  // "https://" on its own.
-  if (!parsed.hostname) throw new URLRedactionError()
+  // A link submitted without a scheme keeps none in the stored result:
+  // recording "https://" would claim the user sent something they did not.
+  const { parsed, hasScheme: hadScheme } = address
 
   // hostname excludes username, password and port by definition, so credentials
   // are dropped by never being read rather than by stripping.
