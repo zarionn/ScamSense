@@ -1,14 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
-import { Loader2, RefreshCw } from 'lucide-react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Loader2, RefreshCw, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/providers/auth-provider'
 import { useURLScanHistory } from '@/hooks/use-url-scan-history'
+import { parseSupportedWebAddress } from '@/lib/web-address'
 import { checkURL } from '@/services/url-service'
 import QRScanDialog from './QRScanDialog'
 import URLRecentScans from './URLRecentScans'
 import URLResultCard, { PANEL_CLASS } from './URLResultCard'
+import { headlineFor, summaryFor } from '../utils/result-presentation'
 import { toneForKey } from '../utils/verdict-styles'
+
+const INVALID_ADDRESS_MESSAGE = 'Enter a website address such as example.com.'
 
 const DEMO_URLS = [
   { label: 'Safe link', url: 'https://www.dbs.com.sg' },
@@ -60,11 +64,17 @@ export default function URLChecker() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [inputMessage, setInputMessage] = useState('')
   const [litSteps, setLitSteps] = useState(0)
   const { user, loading: authLoading } = useAuth()
   // Claimed synchronously, so a repeated activation cannot start a second
   // request or a second history row before isLoading has re-rendered.
   const isCheckingRef = useRef(false)
+  // Focus target for a rejected value, and for the QR dialog after a confirmed
+  // link: its own trigger is disabled by the scan that then starts, which would
+  // otherwise drop focus onto the page body.
+  const urlInputRef = useRef(null)
+  const inputMessageId = useId()
   const history = useURLScanHistory(user, authLoading)
 
   // The model and AI review can take a few seconds, so reveal the real pipeline
@@ -86,8 +96,17 @@ export default function URLChecker() {
   async function runCheck(url) {
     if (!url || isCheckingRef.current) return
 
+    // Same contract as a decoded QR code: free text such as "hello" parses as a
+    // hostname and would otherwise come back with a verdict.
+    if (!parseSupportedWebAddress(url)) {
+      setInputMessage(INVALID_ADDRESS_MESSAGE)
+      urlInputRef.current?.focus()
+      return
+    }
+
     isCheckingRef.current = true
 
+    setInputMessage('')
     setIsLoading(true)
     setResult(null)
     setErrorMessage('')
@@ -147,6 +166,12 @@ export default function URLChecker() {
     },
   ]
 
+  const statusAnnouncement = isLoading
+    ? 'Checking this link…'
+    : result
+      ? `Result ready. ${headlineFor(result)}. ${summaryFor(result)}`
+      : ''
+
   return (
     <div className="space-y-5">
       <div className="space-y-3">
@@ -155,11 +180,17 @@ export default function URLChecker() {
           className="flex flex-col gap-2 rounded-xl border border-border bg-card p-1.5 sm:flex-row sm:items-center"
         >
           <Input
+            ref={urlInputRef}
             type="text"
             aria-label="Link to check"
             placeholder="Paste a link here, e.g. https://example.com"
             value={urlInput}
-            onChange={(event) => setURLInput(event.target.value)}
+            onChange={(event) => {
+              setURLInput(event.target.value)
+              if (inputMessage) setInputMessage('')
+            }}
+            aria-invalid={inputMessage ? true : undefined}
+            aria-describedby={inputMessage ? inputMessageId : undefined}
             autoFocus
             className="h-10 flex-1 border-transparent bg-transparent text-base dark:bg-transparent"
           />
@@ -171,9 +202,24 @@ export default function URLChecker() {
             >
               {isLoading ? 'Checking…' : 'Check Link'}
             </Button>
-            <QRScanDialog onConfirm={handleQRLink} disabled={isLoading} />
+            <QRScanDialog
+              onConfirm={handleQRLink}
+              disabled={isLoading}
+              focusAfterConfirmRef={urlInputRef}
+            />
           </div>
         </form>
+
+        {inputMessage && (
+          <p
+            id={inputMessageId}
+            role="alert"
+            className="flex items-start gap-1.5 px-1 text-sm text-destructive"
+          >
+            <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            {inputMessage}
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 px-1">
           <span className="text-sm text-muted-foreground">Try an example:</span>
@@ -192,7 +238,13 @@ export default function URLChecker() {
         </div>
       </div>
 
-      <div aria-live="polite" className="space-y-4">
+      {/* Short spoken counterpart to the panels below: announcing the result
+          card itself would read out every step, control and form in it. */}
+      <p role="status" className="sr-only">
+        {statusAnnouncement}
+      </p>
+
+      <div className="space-y-4">
         {isLoading && (
           <div className={`${PANEL_CLASS} p-5`}>
             <p className="mb-4 font-medium text-heading">Checking this link…</p>
@@ -201,7 +253,10 @@ export default function URLChecker() {
         )}
 
         {errorMessage && !isLoading && (
-          <div className={`${PANEL_CLASS} space-y-3 border-l-4 border-l-destructive p-5`}>
+          <div
+            role="alert"
+            className={`${PANEL_CLASS} space-y-3 border-l-4 border-l-destructive p-5`}
+          >
             <p className="font-medium text-heading">We couldn&apos;t check that link</p>
             <p className="text-sm text-muted-foreground">{errorMessage}</p>
             <Button

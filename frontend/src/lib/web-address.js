@@ -1,5 +1,6 @@
-// The one frontend definition of a supported web address, shared by QR scanning and
-// redaction. url_normalizer.py stays the final authority on what the detector sees.
+// The one frontend definition of a supported web address, shared by the pasted-link
+// input, QR scanning and redaction. url_normalizer.py stays the final authority on
+// what the detector sees.
 
 const AUTHORITY_SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:\/\//i
 
@@ -35,4 +36,46 @@ export function parseWebAddress(rawValue) {
   if (!parsed.hostname) return null
 
   return { value, parsed, hasScheme }
+}
+
+// Matches the length guard on /api/url/predict.
+export const MAX_WEB_ADDRESS_LENGTH = 2000
+
+// Refused rather than cleaned up: the URL parser drops or rewrites these, which would
+// let the address the user reads differ from the string the detector receives.
+const UNSAFE_ADDRESS_CHARACTERS = /[\s\\]/
+
+// Written as a code-point range: a regular expression cannot match control
+// characters without tripping the linter.
+function hasControlCharacter(value) {
+  for (const character of value) {
+    const code = character.codePointAt(0)
+    if (code <= 0x1f || (code >= 0x7f && code <= 0x9f)) return true
+  }
+  return false
+}
+
+// What a submitted value must be before any request is made — one contract for a pasted
+// link and a decoded QR code, so neither path accepts text the other refuses. The value
+// is returned exactly as given: a scheme the user never supplied is never added.
+export function parseSupportedWebAddress(rawValue) {
+  const url = typeof rawValue === 'string' ? rawValue.trim() : ''
+
+  if (!url || url.length > MAX_WEB_ADDRESS_LENGTH) return null
+  if (UNSAFE_ADDRESS_CHARACTERS.test(url) || hasControlCharacter(url)) return null
+
+  const address = parseWebAddress(url)
+  if (!address) return null
+
+  const hostname = address.parsed.hostname
+
+  // Free text such as "hello" parses as a hostname, so a scheme-less value has to at
+  // least look like a domain.
+  if (!address.hasScheme && !hostname.includes('.')) return null
+
+  // Anything the parser mapped away — zero-width characters, a punycoded host — would
+  // leave the user reading a different address from the one we check.
+  if (!url.toLowerCase().includes(hostname)) return null
+
+  return { url, hostname, hasScheme: address.hasScheme }
 }

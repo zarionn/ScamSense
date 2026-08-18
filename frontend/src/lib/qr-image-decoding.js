@@ -2,14 +2,10 @@
 // user confirms is sent on. The decoder is imported on demand to keep it out of the URL
 // page's initial bundle.
 
-import { parseWebAddress } from './web-address'
+import { parseSupportedWebAddress } from './web-address'
 
 export const MAX_QR_IMAGE_MB = 10
 export const MAX_QR_IMAGE_BYTES = MAX_QR_IMAGE_MB * 1024 * 1024
-
-// Matches the length guard on /api/url/predict, so a QR code cannot submit a
-// link the pasted-input path would have refused.
-export const MAX_QR_URL_LENGTH = 2000
 
 export const QR_MESSAGES = {
   noFile: 'Choose an image containing a QR code.',
@@ -62,29 +58,9 @@ export async function decodeQRImage(file, containerElementId) {
   }
 }
 
-// Refused rather than cleaned up: the URL parser drops or rewrites these, which would let
-// the hostname shown to the user differ from the string the detector receives.
-const UNSAFE_URL_CHARACTERS = /[\s\\]/
-
-// Accepts the same address forms as the pasted-link input. url stays exactly as scanned,
-// so a scheme the QR did not carry is never sent to the detector.
+// A QR can hold arbitrary text, so the decoded value goes through the same website-address
+// contract as a pasted link. url stays exactly as scanned, so a scheme the QR did not
+// carry is never sent to the detector.
 export function parseQRWebsiteURL(decodedText) {
-  const url = typeof decodedText === 'string' ? decodedText.trim() : ''
-
-  if (!url || url.length > MAX_QR_URL_LENGTH) return null
-  if (UNSAFE_URL_CHARACTERS.test(url)) return null
-
-  const address = parseWebAddress(url)
-  if (!address) return null
-
-  const hostname = address.parsed.hostname
-
-  // A QR can hold arbitrary text, so a scheme-less value must at least look like a domain.
-  if (!address.hasScheme && !hostname.includes('.')) return null
-
-  // Anything the parser mapped away — zero-width characters, a punycoded or numeric host
-  // — would leave the user reading a different address from the one we check.
-  if (!url.toLowerCase().includes(hostname)) return null
-
-  return { url, hostname, hasScheme: address.hasScheme }
+  return parseSupportedWebAddress(decodedText)
 }

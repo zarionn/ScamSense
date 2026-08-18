@@ -87,7 +87,7 @@ function UploadSurface({ id, disabled, onChange }) {
   )
 }
 
-export default function QRScanDialog({ onConfirm, disabled }) {
+export default function QRScanDialog({ onConfirm, disabled, focusAfterConfirmRef }) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState('image')
   const [status, setStatus] = useState('idle')
@@ -195,6 +195,14 @@ export default function QRScanDialog({ onConfirm, disabled }) {
     setErrorMessage('')
   }
 
+  // Cancelling returns focus to the trigger as usual, but a confirmed link
+  // disables that trigger while the scan runs, which would strand focus on the
+  // page body — so the confirmed address in the input takes it instead.
+  function resolveFinalFocus() {
+    if (!hasConfirmedRef.current) return true
+    return focusAfterConfirmRef?.current ?? true
+  }
+
   function handleConfirm() {
     if (hasConfirmedRef.current || !foundLink) return
     hasConfirmedRef.current = true
@@ -224,7 +232,10 @@ export default function QRScanDialog({ onConfirm, disabled }) {
         Scan QR
       </DialogTrigger>
 
-      <DialogContent className="flex h-[min(90dvh,660px)] flex-col sm:max-w-lg">
+      <DialogContent
+        finalFocus={resolveFinalFocus}
+        className="flex h-[min(90dvh,660px)] flex-col sm:max-w-lg"
+      >
         <DialogHeader>
           <DialogTitle>Scan a QR code</DialogTitle>
           <DialogDescription>

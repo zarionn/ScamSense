@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Check, Flag, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -39,6 +39,9 @@ export default function URLFeedback({ result, finalLevel }) {
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  // Claimed synchronously: two clicks in the same tick both read isSubmitting
+  // as false and would each insert a row for the same report.
+  const isSubmittingRef = useRef(false)
 
   const groupLabelId = `${fieldId}-expected`
   const commentId = `${fieldId}-comment`
@@ -66,8 +69,9 @@ export default function URLFeedback({ result, finalLevel }) {
     event.preventDefault()
     // Second guard behind the disabled button: a keyboard submit or double click
     // cannot start a second insert while one is in flight.
-    if (!canSubmit) return
+    if (!canSubmit || isSubmittingRef.current) return
 
+    isSubmittingRef.current = true
     setIsSubmitting(true)
     setErrorMessage('')
 
@@ -80,6 +84,7 @@ export default function URLFeedback({ result, finalLevel }) {
         error instanceof Error && error.message ? error.message : SUBMIT_FAILED_MESSAGE,
       )
     } finally {
+      isSubmittingRef.current = false
       setIsSubmitting(false)
     }
   }
@@ -230,7 +235,7 @@ export default function URLFeedback({ result, finalLevel }) {
           disabled={!canSubmit}
           aria-describedby={matchesCurrentResult ? sameLevelId : undefined}
         >
-          {isSubmitting && <Spinner className="size-3.5" />}
+          {isSubmitting && <Spinner className="size-3.5" aria-hidden="true" />}
           {isSubmitting ? 'Sending…' : 'Submit feedback'}
         </Button>
         <Button

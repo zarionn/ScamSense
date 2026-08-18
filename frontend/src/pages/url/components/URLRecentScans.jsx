@@ -89,7 +89,7 @@ export default function URLRecentScans({
             <div aria-live="polite" className="space-y-1.5">
               {isAuthResolving && (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Spinner className="size-3.5" />
+                  <Spinner className="size-3.5" aria-hidden="true" />
                   Checking your sign-in…
                 </p>
               )}
@@ -100,7 +100,7 @@ export default function URLRecentScans({
 
               {isSignedIn && isLoading && (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Spinner className="size-3.5" />
+                  <Spinner className="size-3.5" aria-hidden="true" />
                   Loading your recent scans…
                 </p>
               )}
@@ -246,7 +246,7 @@ export default function URLRecentScans({
               disabled={isClearing}
               onClick={handleConfirmClear}
             >
-              {isClearing && <Spinner className="size-3.5" />}
+              {isClearing && <Spinner className="size-3.5" aria-hidden="true" />}
               {isClearing ? 'Clearing…' : clearError ? 'Try again' : 'Clear history'}
             </AlertDialogAction>
           </AlertDialogFooter>
