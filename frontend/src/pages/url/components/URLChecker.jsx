@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/providers/auth-provider'
@@ -7,7 +7,8 @@ import { useURLScanHistory } from '@/hooks/use-url-scan-history'
 import { checkURL } from '@/services/url-service'
 import QRScanDialog from './QRScanDialog'
 import URLRecentScans from './URLRecentScans'
-import URLResultCard, { PANEL_CLASS, PipelineTimeline } from './URLResultCard'
+import URLResultCard, { PANEL_CLASS } from './URLResultCard'
+import { toneForKey } from '../utils/verdict-styles'
 
 const DEMO_URLS = [
   { label: 'Safe link', url: 'https://www.dbs.com.sg' },
@@ -17,6 +18,42 @@ const DEMO_URLS = [
     url: 'http://dbs-secure-verify.com/verify-now/account-locked',
   },
 ]
+
+// The running check keeps its own vertical timeline: the steps light up in
+// order while the request is in flight, which the finished result's cards
+// cannot show.
+function PipelineTimeline({ steps }) {
+  return (
+    <ol className="flex flex-col">
+      {steps.map((step, index) => {
+        const isLast = index === steps.length - 1
+        const tone = toneForKey(step.toneKey)
+        const StepIcon = step.spinner ? Loader2 : tone.stepIcon
+
+        return (
+          <li key={step.title} className={`flex gap-3 ${step.dimmed ? 'opacity-40' : ''}`}>
+            <div className="flex flex-col items-center">
+              <span
+                className={`flex size-7 shrink-0 items-center justify-center rounded-full border ${tone.bg} ${tone.border} ${tone.text}`}
+              >
+                <StepIcon
+                  className={`size-3.5 ${step.spinner ? 'animate-spin' : ''}`}
+                  aria-hidden="true"
+                />
+              </span>
+              {!isLast && <span className="my-1 w-px flex-1 bg-border" />}
+            </div>
+
+            <div className={isLast ? 'flex-1' : 'flex-1 pb-5'}>
+              <p className="font-medium text-heading">{step.title}</p>
+              <p className="text-sm text-muted-foreground">{step.detail}</p>
+            </div>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
 
 export default function URLChecker() {
   const [urlInput, setURLInput] = useState('')
@@ -112,8 +149,11 @@ export default function URLChecker() {
 
   return (
     <div className="space-y-5">
-      <div className="space-y-3 rounded-xl border border-border bg-card p-5">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row">
+      <div className="space-y-3">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-2 rounded-xl border border-border bg-card p-1.5 sm:flex-row sm:items-center"
+        >
           <Input
             type="text"
             aria-label="Link to check"
@@ -121,7 +161,7 @@ export default function URLChecker() {
             value={urlInput}
             onChange={(event) => setURLInput(event.target.value)}
             autoFocus
-            className="h-10 flex-1 bg-background text-base"
+            className="h-10 flex-1 border-transparent bg-transparent text-base dark:bg-transparent"
           />
           <div className="flex gap-2">
             <Button
@@ -135,7 +175,7 @@ export default function URLChecker() {
           </div>
         </form>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 px-1">
           <span className="text-sm text-muted-foreground">Try an example:</span>
           {DEMO_URLS.map((example) => (
             <Button
@@ -152,22 +192,7 @@ export default function URLChecker() {
         </div>
       </div>
 
-      <URLRecentScans
-        entries={history.entries}
-        isSignedIn={!authLoading && Boolean(user)}
-        isAuthResolving={authLoading}
-        isLoading={history.isLoading}
-        loadError={history.loadError}
-        syncError={history.syncError}
-        isClearing={history.isClearing}
-        clearError={history.clearError}
-        isScanRunning={isLoading}
-        onCheckAgain={handleCheckAgain}
-        onClearHistory={history.clearHistory}
-        onDismissClearError={history.dismissClearError}
-      />
-
-      <div aria-live="polite" className="space-y-5">
+      <div aria-live="polite" className="space-y-4">
         {isLoading && (
           <div className={`${PANEL_CLASS} p-5`}>
             <p className="mb-4 font-medium text-heading">Checking this link…</p>
@@ -194,6 +219,21 @@ export default function URLChecker() {
 
         {result && !isLoading && <URLResultCard result={result} />}
       </div>
+
+      <URLRecentScans
+        entries={history.entries}
+        isSignedIn={!authLoading && Boolean(user)}
+        isAuthResolving={authLoading}
+        isLoading={history.isLoading}
+        loadError={history.loadError}
+        syncError={history.syncError}
+        isClearing={history.isClearing}
+        clearError={history.clearError}
+        isScanRunning={isLoading}
+        onCheckAgain={handleCheckAgain}
+        onClearHistory={history.clearHistory}
+        onDismissClearError={history.dismissClearError}
+      />
     </div>
   )
 }

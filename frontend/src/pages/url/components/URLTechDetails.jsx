@@ -11,7 +11,7 @@ export default function URLTechDetails({ result, opinionLabel }) {
   return (
     <Accordion>
       <AccordionItem value="url-technical-details">
-        <AccordionTrigger>Technical details</AccordionTrigger>
+        <AccordionTrigger className="py-4">Technical details</AccordionTrigger>
         <AccordionContent>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
             <dt className="text-muted-foreground">Whitelist hit</dt>
