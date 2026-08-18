@@ -34,7 +34,7 @@ from pydantic import ValidationError
 logger = logging.getLogger(__name__)
 
 # --- classifier loaded ONCE at import, not per request --------------------
-MODEL_PATH = Path(__file__).resolve().parents[2] / "model.tflite"
+MODEL_PATH = Path(__file__).resolve().parent / "model" / "screenshot_model.tflite"
 interpreter = Interpreter(model_path=str(MODEL_PATH))
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
