@@ -139,8 +139,15 @@ def infer_flag_reasons(row: dict) -> list:
         reasons.append("the transaction pattern deviates from the account's typical behaviour")
     return reasons
 
+SUPPORTED_LANGUAGES = {
+    "en": "English",
+    "zh": "Simplified Chinese",
+    "ms": "Malay",
+    "ta": "Tamil",
+}
 
-def explain_flagged_transaction(row: dict) -> str:
+def explain_flagged_transaction(row: dict, language: str = "en") -> str:
+    language_name = SUPPORTED_LANGUAGES.get(language, "English")
     if genai_client is None:
         return "AI explanation unavailable (GEMINI_API_KEY not set)."
 
@@ -156,7 +163,7 @@ def explain_flagged_transaction(row: dict) -> str:
     
     Reasons the system flagged it: {', '.join(reasons)}
 
-    explain in plain language why this transaction looks
+    Explain in {language_name} why this transaction looks
     risky, based only on the details above. No technical ML jargon.
     This explaination should be simple enough for people of all ages to undestand
     including elderlies. have it around 2 to 3 sentences long. Do not 
@@ -170,7 +177,9 @@ def explain_flagged_transaction(row: dict) -> str:
                 system_instruction=(
                     "You are ScamSense's fraud-explanation assistant. Be concise, "
                     "factual, and only use the details given — never invent "
-                    "transaction details."
+                    "transaction details.Always respond in the language specified "
+                    "in the user's instructions, regardless of the language used in "
+                    "the transaction data itself."
                 ),
                 temperature=0,
                 max_output_tokens=300,
@@ -182,7 +191,7 @@ def explain_flagged_transaction(row: dict) -> str:
         return None
 
 
-def draft_escalation_email(flagged_rows: list):
+def draft_escalation_email(flagged_rows: list, language: str = "en"):
     if not flagged_rows:
         return None
 
@@ -224,10 +233,10 @@ def draft_escalation_email(flagged_rows: list):
         return None
 
 
-def enrich_flagged_rows(results: list):
+def enrich_flagged_rows(results: list, language: str = "en"):
     flagged = [r for r in results if r.get('is_fraud')]
     for r in flagged:
-        explanation = explain_flagged_transaction(r)
+        explanation = explain_flagged_transaction(r, language=language)
         if explanation is None:
             r['ai_explanation'] = None
             r['ai_error'] = "AI explanation could not be generated."

@@ -14,6 +14,14 @@ export default function TransactionScanPage() {
   const [emailLoading, setEmailLoading] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [language, setLanguage] = useState('en')
+
+  const LANGUAGE_OPTIONS = [
+    { code: 'en', label: 'English' },
+    { code: 'zh', label: '中文 (Chinese)' },
+    { code: 'ms', label: 'Bahasa Melayu' },
+    { code: 'ta', label: 'தமிழ் (Tamil)' },
+  ]
 
   const [exporting, setExporting] = useState(false)
 
@@ -85,6 +93,7 @@ export default function TransactionScanPage() {
     try {
       const formData = new FormData()
       formData.append('file', selectedFile)
+      formData.append('language', language)
 
       const response = await fetch('/api/transaction/upload', {
         method: 'POST',
@@ -132,15 +141,25 @@ export default function TransactionScanPage() {
             />
             <span>{selectedFile ? selectedFile.name : 'Choose CSV / Excel file'}</span>
           </label>
-
-          <Button
-            type="button"
-            onClick={handleUpload}
-            disabled={loading || !selectedFile}
-            className="rounded-xl h-18 px-5 py-3 font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? 'Processing…' : 'Upload & Scan'}
-          </Button>
+          <div className="space-y-1">
+            <Button
+              type="button"
+              onClick={handleUpload}
+              disabled={loading || !selectedFile}
+              className="rounded-xl h-8 px-5 py-3 font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? 'Processing…' : 'Upload & Scan'}
+            </Button>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="rounded-xl border border-slate-600 bg-slate-950/40 px-3 py-1 text-sm text-slate-200"
+            >
+              {LANGUAGE_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

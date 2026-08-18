@@ -124,6 +124,7 @@ def upload_transaction_batch():
 
     uploaded = request.files["file"]
     filename = uploaded.filename.lower()
+    language = request.form.get("language", "en")
 
     try:
         if filename.endswith(".csv"):
@@ -135,7 +136,7 @@ def upload_transaction_batch():
 
     try:
         results = transaction_service.score_upload_rows(df)
-        results = transaction_service.enrich_flagged_rows(results)
+        results = transaction_service.enrich_flagged_rows(results, language=language)
     except Exception as exc:
         return jsonify({"error": f"Could not process file: {str(exc)}"}), 400
 
