@@ -1,4 +1,5 @@
 import { ShieldCheck } from 'lucide-react'
+import { FileSpreadsheet } from 'lucide-react'
 import { Message, MessageAvatar, MessageContent } from '@/components/ui/message'
 import { Bubble, BubbleContent } from '@/components/ui/bubble'
 import { cn } from '@/lib/utils'
@@ -18,18 +19,44 @@ export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpe
         </MessageAvatar>
       )}
       <MessageContent>
-        {message.attachment?.kind === 'transaction' ? (
+        {message.attachment?.type === 'image'?.kind === 'transaction' ? (
           <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
             <TransactionAttachmentPreview file={message.attachment.file} />
           </div>
         ) : message.attachment ? (
-          <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
-            <ImageAttachmentPreview
-              file={message.attachment.file}
-              previewUrl={message.attachment.previewUrl}
-            />
-          </div>
-        ): null}
+  <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
+    <ImageAttachmentPreview
+      file={message.attachment.file}
+      previewUrl={message.attachment.previewUrl}
+    />
+  </div>
+): null}
+
+{message.attachment?.type === 'excel' && (
+  <div
+    className={cn(
+      'flex w-full max-w-[360px] items-center gap-3 rounded-lg border border-border bg-muted/40 p-3',
+      isUser && 'self-end'
+    )}
+  >
+    <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10">
+      <FileSpreadsheet
+        className="size-5 text-primary"
+        aria-hidden="true"
+      />
+    </div>
+
+    <div className="min-w-0">
+      <p className="truncate text-sm font-medium">
+        {message.attachment.file.name}
+      </p>
+
+      <p className="text-xs text-muted-foreground">
+        Excel dataset
+      </p>
+    </div>
+  </div>
+)}
 
         {message.text && (
           <Bubble align={isUser ? 'end' : 'start'} variant={isUser ? 'default' : 'muted'}>
@@ -47,7 +74,14 @@ export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpe
               <DetectorSuggestionCard
                 key={detectorKey}
                 detectorKey={detectorKey}
-                onOpen={(key) => onOpenDetector(key, message.handoffFile)}
+                onOpen={(key) =>
+                  onOpenDetector(
+                    key,
+                    message.handoffFile,
+                    message.handoffMessage,
+                    message.handoffMode
+                  )
+                }
               />
             ))}
           </div>
