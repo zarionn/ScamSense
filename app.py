@@ -137,6 +137,7 @@ def upload_transaction_batch():
     try:
         results = transaction_service.score_upload_rows(df)
         results = transaction_service.enrich_flagged_rows(results, language=language)
+        statement_summary = transaction_service.summarize_statement(results, language=language)
     except Exception as exc:
         return jsonify({"error": f"Could not process file: {str(exc)}"}), 400
 
@@ -144,6 +145,7 @@ def upload_transaction_batch():
         "total_rows": len(results),
         "flagged_rows": sum(1 for item in results if item["is_fraud"]),
         "results": results,
+        "statement_summary": statement_summary
     })
 
 #transaction email draft endpoint
@@ -180,6 +182,7 @@ EXPORT_COLUMNS = [
 def export_transactions_pdf():
     body = request.get_json(silent=True) or {}
     results = body.get("results")
+    statement_summary = body.get("statement_summary", "")
     if not isinstance(results, list) or not results:
         return jsonify({"error": "No results to export"}), 400
 
@@ -187,6 +190,11 @@ def export_transactions_pdf():
     doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), title="ScamSense Transaction Results")
     styles = getSampleStyleSheet()
     elements = [Paragraph("ScamSense — Transaction Screening Results", styles["Title"]), Spacer(1, 12)]
+
+    if statement_summary:
+        elements.append(Paragraph("Executive Summary", styles["Heading2"]))
+        elements.append(Paragraph(statement_summary, styles["BodyText"]))
+        elements.append(Spacer(1, 16))
 
     headers = [label for _, label in EXPORT_COLUMNS]
     table_data = [headers]

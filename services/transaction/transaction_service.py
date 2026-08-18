@@ -146,6 +146,62 @@ SUPPORTED_LANGUAGES = {
     "ta": "Tamil",
 }
 
+def summarize_statement(results: list, language: str = "en") -> str:
+    language_name = SUPPORTED_LANGUAGES.get(language, "English")
+
+    total = len(results)
+    flagged = [r for r in results if r.get('is_fraud')]
+
+    if not flagged:
+        prompt = f"""
+        A bank statement with {total} transactions was screened for fraud. None
+        were flagged as suspicious.
+
+        Write a short 1-2 sentence summary in {language_name} telling the account
+        holder their statement was reviewed and nothing unusual was found. Warm,
+        reassuring tone. No technical jargon.
+        """
+    else:
+        lines = [
+            f"- ${r.get('amount')} at {r.get('merchant_category')} "
+            f"({r.get('timestamp')}, foreign={'Yes' if r.get('is_foreign_transaction') else 'No'}, "
+            f"risk {r.get('risk_score')})"
+            for r in flagged
+        ]
+        prompt = f"""
+        A bank statement with {total} transactions was screened for fraud.
+        {len(flagged)} were flagged as potentially fraudulent:
+
+        {chr(10).join(lines)}
+
+        Write a short executive summary in {language_name}, 3-4 sentences, for the
+        account holder. Structure it like: how many transactions were reviewed,
+        how many were flagged (briefly describe the most notable one — amount,
+        merchant, and anything unusual like time or foreign origin), and a closing
+        line reassuring them the rest of their spending looked normal. Plain
+        language, no technical ML jargon. Do not invent details not listed above.
+        """
+
+    try:
+        reply = genai_client.models.generate_content(
+            model=GENAI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=(
+                    "You are ScamSense's statement-summary assistant. Be concise, "
+                    "factual, and only use the details given — never invent "
+                    "transaction details. Always respond in the language specified "
+                    "in the instructions."
+                ),
+                temperature=0,
+                max_output_tokens=300,
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
+            ),
+        )
+        return reply.text.strip()
+    except Exception:
+        return None
+
 def explain_flagged_transaction(row: dict, language: str = "en") -> str:
     language_name = SUPPORTED_LANGUAGES.get(language, "English")
     if genai_client is None:
