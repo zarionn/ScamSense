@@ -23,9 +23,13 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from services.message_detector.routes.batch_routes import batch_bp
+from services.message_detector.routes.message_routes import message_bp
 
 app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 CORS(app)
+app.register_blueprint(message_bp, url_prefix="/api/message")
+app.register_blueprint(batch_bp, url_prefix="/api/batch")
 
 # read() loads the whole file into memory and the auditor base64-encodes it (~1.33x)
 # on top, so cap uploads to avoid OOM on the 512MB host.
