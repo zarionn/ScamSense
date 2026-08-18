@@ -4,6 +4,7 @@ import DomainAnalysisCard from './DomainAnalysisCard'
 import AnswerContextCard from './AnswerContextCard'
 import SafetyRecommendationsCard from './SafetyRecommendationsCard'
 import AIExplanationCard from './AIExplanationCard'
+import UncertaintyNote from './UncertaintyNote'
 
 export default function ResultView({ file, previewUrl, result }) {
   const {
@@ -11,6 +12,10 @@ export default function ResultView({ file, previewUrl, result }) {
     effective_caution_level: effectiveCautionLevel,
     response_message: responseMessage,
     audit,
+    audit_status: auditStatus,
+    display_observations: displayObservations = [],
+    response_guard: responseGuard,
+    fallback_guard: fallbackGuard,
     required_actions: requiredActions = [],
     exposure_questions: exposureQuestions = [],
     exposure_answers: answers = {},
@@ -19,8 +24,14 @@ export default function ResultView({ file, previewUrl, result }) {
     defaulted_exposures: defaultedExposures = [],
   } = result
 
-  const observations = audit?.observations ?? []
   const domainAnalysis = audit?.domain_analysis
+  const displayedGuard = fallbackGuard ?? responseGuard
+  const auditStatusNote =
+    auditStatus === 'malformed'
+      ? 'The independent visual review returned an unreadable result. The official classifier result remains available.'
+      : auditStatus === 'unavailable'
+        ? 'The independent visual review was unavailable. The official classifier result remains available.'
+        : null
 
   // These mirror each card's own "nothing to show" guard so the grid can decide
   // whether to reserve a column for it at all, rather than rendering an empty
@@ -41,9 +52,14 @@ export default function ResultView({ file, previewUrl, result }) {
         effectiveCautionLevel={effectiveCautionLevel}
       />
 
+      {auditStatusNote && <UncertaintyNote note={auditStatusNote} />}
+
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
         <div className={hasSafetyRecommendations ? 'lg:col-span-7' : 'lg:col-span-12'}>
-          <WarningSignsSection observations={observations} />
+          <WarningSignsSection
+            observations={displayObservations}
+            auditStatus={auditStatus}
+          />
         </div>
         {hasSafetyRecommendations && (
           <div className="lg:col-span-5">
@@ -69,7 +85,7 @@ export default function ResultView({ file, previewUrl, result }) {
         )}
 
         <div className="lg:col-span-12">
-          <AIExplanationCard message={responseMessage} />
+          <AIExplanationCard message={responseMessage} guard={displayedGuard} />
         </div>
       </div>
     </div>

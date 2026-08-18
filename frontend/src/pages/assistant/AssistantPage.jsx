@@ -7,7 +7,7 @@ import AssistantWelcome from './components/AssistantWelcome'
 import ChatMessage from './components/ChatMessage'
 import ChatComposer from './components/ChatComposer'
 import TypingIndicator from './components/TypingIndicator'
-import { IMAGE_ATTACHED_REPLY, STEPS, WELCOME_STEP_ID } from './assistant-flow'
+import { IMAGE_ATTACHED_REPLY, TRANSACTION_ATTACHED_REPLY, STEPS, WELCOME_STEP_ID } from './assistant-flow'
 
 const GEMINI_FAILURE_FALLBACK =
   "I'm having trouble generating a response right now, but I can still guide you using the options below."
@@ -109,35 +109,80 @@ export default function AssistantPage({
       })
 
       if (attachment) {
+      // ==========================================================
+      // SCREENSHOT ATTACHMENT
+      // ==========================================================
+
+      if (attachment.type === 'image') {
+        const isTransaction = attachment.kind === 'transaction'
         const apply = () => {
           pushMessage({
             role: 'assistant',
-            text: IMAGE_ATTACHED_REPLY,
-            suggestions: ['screenshot'],
+            text: isTransaction ? TRANSACTION_ATTACHED_REPLY : IMAGE_ATTACHED_REPLY,
+            suggestions: [ isTransaction ? 'transaction' : 'screenshot', 'message'],
             handoffFile: attachment.file,
+            handoffMode: 'ocr',
           })
         }
+
         if (!typingAnimation) {
           apply()
           return
         }
+
         setIsDeterministicTyping(true)
+
         window.setTimeout(() => {
           setIsDeterministicTyping(false)
           apply()
         }, 450)
+
         return
       }
+
+      // ==========================================================
+      // EXCEL / CSV ATTACHMENT
+      // ==========================================================
+
+      if (attachment.type === 'excel') {
+        const apply = () => {
+          pushMessage({
+            role: 'assistant',
+            text:
+              "I've got your Excel dataset. I can prepare it for Batch Message Analysis.",
+            suggestions: ['message'],
+            handoffFile: attachment.file,
+            handoffMode: 'batch',
+          })
+        }
+
+        if (!typingAnimation) {
+          apply()
+          return
+        }
+
+        setIsDeterministicTyping(true)
+
+        window.setTimeout(() => {
+          setIsDeterministicTyping(false)
+          apply()
+        }, 450)
+
+        return
+      }
+    }
 
       if (!text) return
 
       setIsGeminiTyping(true)
       try {
         const data = await requestAssistantReply(text)
-        pushMessage({
+       pushMessage({
           role: 'assistant',
           text: data.reply,
           isFallback: data.source === 'fallback',
+          suggestions: ['message'],
+          handoffMessage: text,
         })
       } catch {
         // Transient client-side error notice, not real Assistant content —

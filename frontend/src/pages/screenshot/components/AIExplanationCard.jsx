@@ -26,7 +26,7 @@ function findSplitIndex(message, length) {
   return nextSpace === -1 ? message.length : nextSpace
 }
 
-export default function AIExplanationCard({ message }) {
+export default function AIExplanationCard({ message, guard }) {
   const [open, setOpen] = useState(false)
   const splitIndex = findSplitIndex(message, PREVIEW_LENGTH)
   const isLong = splitIndex < message.length
@@ -42,10 +42,14 @@ export default function AIExplanationCard({ message }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* response_message is guard-verified by the backend to contain every mandatory
-            safety action — render it verbatim, do not parse or restructure it. Long
-            explanations are only visually split for the preview; the full text below
-            is the exact same string, never reworded or reordered. */}
+        <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+          {guard?.scope === 'classifier_statement_required_actions_order_identifiers_and_domain_qualification'
+            ? 'Automated checks cover the classifier statement, required action wording and order, domain- or number-like identifiers, and required domain qualification. Other AI-generated wording is not fully verified.'
+            : 'AI-generated wording is not fully verified. Follow the separately listed safety actions exactly.'}
+        </p>
+        {/* The backend supplies the guard result for the displayed response. The guard
+            checks a bounded contract, not all generated wording. Render the message
+            verbatim; visual splitting must never reword or reorder it. */}
         {isLong ? (
           <Collapsible open={open} onOpenChange={setOpen}>
             <p className="max-w-[80ch] whitespace-pre-wrap text-sm leading-relaxed text-foreground">

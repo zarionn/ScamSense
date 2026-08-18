@@ -1,5 +1,5 @@
-export const ACCEPTED_TYPES = ['image/jpeg', 'image/png']
-export const ACCEPTED_EXTENSIONS = ['.jpg', '.jpeg', '.png']
+export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+export const ACCEPTED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
 export const MAX_SIZE_BYTES = 10 * 1024 * 1024
 
 export function isAcceptedFile(file) {

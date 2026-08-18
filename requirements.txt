@@ -12,3 +12,8 @@ pydantic_core==2.46.4
 python-dotenv==1.2.2
 scikit-learn==1.9.0
 scipy==1.18.0
+xgboost
+reportlab
+openpyxl==3.1.5
+groq==1.6.0
+sentence-transformers==5.7.0

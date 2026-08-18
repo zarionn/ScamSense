@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, ShieldCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -14,7 +14,10 @@ export default function SafetyRecommendationsCard({ actions }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Safety Recommendations</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
+          Safety Recommendations
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {URGENCY_GROUPS.map((group) => {

@@ -1,0 +1,1 @@
+"""Message scam detector package."""

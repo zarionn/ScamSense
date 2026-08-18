@@ -1,0 +1,182 @@
+[
+  {
+    "id": "singpass-phishing-login-2022",
+    "authorities": ["Singapore Police Force"],
+    "title": "Advisory On Phishing Scams Involving Singpass",
+    "url": "https://www.police.gov.sg/media-hub/news/2022/20221002_advisory_on_phishing_scams_involving_singpass",
+    "publication_date": "2022-10-02",
+    "summary": "Scammers sent Singpass-like SMSes threatening account deactivation and linking to spoofed login pages that requested Singpass credentials and OTPs.",
+    "categories": [
+      "phishing and fake login pages",
+      "government impersonation",
+      "OTP or account takeover"
+    ],
+    "signal_tags": [
+      "credential_request",
+      "otp_request",
+      "urgent_account_threat",
+      "external_verification_link",
+      "impersonation_claim"
+    ],
+    "content_types": ["sms_or_chat", "login_page"],
+    "entity_tags": ["Singpass"]
+  },
+  {
+    "id": "marketplace-fake-buyer-phishing-2025",
+    "authorities": ["Singapore Police Force"],
+    "title": "Police Advisory On Phishing Scams Involving Fake Buyers On Online Marketplaces",
+    "url": "https://www.police.gov.sg/media-hub/news/2025/02/20250212_police_advisory_on_phishing_scams_involving_fake_buyers_on_online_marketplaces",
+    "publication_date": "2025-02-12",
+    "summary": "Fake marketplace buyers used purported order or delivery messages and links to redirect sellers to spoofed bank or delivery websites that collected personal information, banking credentials, card details, and OTPs.",
+    "categories": [
+      "phishing and fake login pages",
+      "bank or business impersonation",
+      "e-commerce or payment scams",
+      "OTP or account takeover"
+    ],
+    "signal_tags": [
+      "credential_request",
+      "otp_request",
+      "personal_information_request",
+      "external_verification_link",
+      "impersonation_claim"
+    ],
+    "content_types": [
+      "marketplace_listing",
+      "sms_or_chat",
+      "email",
+      "website"
+    ],
+    "entity_tags": [
+      "Carousell",
+      "Facebook Marketplace",
+      "Grab",
+      "Lalamove"
+    ]
+  },
+  {
+    "id": "technical-support-remote-access-2025",
+    "authorities": [
+      "Singapore Police Force",
+      "Cyber Security Agency of Singapore"
+    ],
+    "title": "Advisory On Technical Support Scams",
+    "url": "https://www.police.gov.sg/media-hub/news/2025/01/20250121_advisory_on_technical_support_scams",
+    "publication_date": "2025-01-21",
+    "summary": "Fraudulent browser alerts led victims to scammers impersonating software-support personnel who instructed them to download remote-access applications and approve bank transactions using digital authentication tokens.",
+    "categories": [
+      "remote-access or technical-support scams",
+      "download scams",
+      "impersonation"
+    ],
+    "signal_tags": [
+      "impersonation_claim",
+      "remote_access_request",
+      "attachment_or_download_request"
+    ],
+    "content_types": ["website"],
+    "entity_tags": [
+      "Microsoft",
+      "Apple",
+      "ConnectWise",
+      "UltraViewer",
+      "AnyDesk"
+    ]
+  },
+  {
+    "id": "cryptocurrency-malicious-links-2026",
+    "authorities": ["Singapore Police Force"],
+    "title": "Police Advisory On Cryptocurrency Scams Involving Malicious Links And Unauthorised Transactions",
+    "url": "https://www.police.gov.sg/Media-Hub/News/2026/07/20260701_police_advisory_on_cryptocurrency_scams_involving_malicious_links",
+    "publication_date": "2026-07-01",
+    "summary": "Scammers used messages and fraudulent websites to distribute malware through fake software updates and to solicit cryptocurrency payments or wallet connections through impersonated ticketing, token, and streaming services.",
+    "categories": [
+      "phishing and fake websites",
+      "malware or download scams",
+      "investment scams",
+      "payment or unusual-payment-method scams"
+    ],
+    "signal_tags": [
+      "payment_request",
+      "unusual_payment_method",
+      "external_verification_link",
+      "impersonation_claim",
+      "attachment_or_download_request"
+    ],
+    "content_types": ["sms_or_chat", "website"],
+    "entity_tags": ["FIFA", "World Cup"]
+  },
+  {
+    "id": "investment-scams-2025",
+    "authorities": ["Singapore Police Force"],
+    "title": "Police Advisory On Investment Scams",
+    "url": "https://www.police.gov.sg/media-hub/news/2025/02/20250211_police_advisory_on_investment_scams",
+    "publication_date": "2025-02-11",
+    "summary": "Scammers used social and messaging platforms, posed as investment representatives, collected personal particulars, and directed victims to fraudulent platforms where they transferred money or cryptocurrency and later paid increasing fees while being unable to withdraw supposed profits.",
+    "categories": [
+      "investment scams",
+      "payment or unusual-payment-method scams",
+      "impersonation"
+    ],
+    "signal_tags": [
+      "personal_information_request",
+      "payment_request",
+      "unusual_payment_method",
+      "impersonation_claim"
+    ],
+    "content_types": ["sms_or_chat", "website"],
+    "entity_tags": []
+  },
+  {
+    "id": "job-task-payment-scams-2024",
+    "authorities": ["Singapore Police Force"],
+    "title": "Police Advisory On Job Scams",
+    "url": "https://www.police.gov.sg/media-hub/news/2024/20240220_police_advisory_on_job_scams",
+    "publication_date": "2024-02-20",
+    "summary": "Fake job offers delivered through messaging and social platforms directed victims to scam websites and required increasingly large transfers to bank accounts, PayNow numbers, or cryptocurrency wallets before supposed earnings could be withdrawn.",
+    "categories": [
+      "job or upfront-fee scams",
+      "payment or unusual-payment-method scams"
+    ],
+    "signal_tags": [
+      "payment_request",
+      "upfront_fee_request",
+      "unusual_payment_method",
+      "impersonation_claim"
+    ],
+    "content_types": ["sms_or_chat", "website"],
+    "entity_tags": ["TikTok"]
+  },
+  {
+    "id": "facebook-live-lucky-draw-2026",
+    "authorities": ["Singapore Police Force"],
+    "title": "Police Advisory On Lucky Draw Scams Involving Facebook Live",
+    "url": "https://www.police.gov.sg/Media-Hub/News/2026/06/20260615_police_advisory_on_lucky_draw_scams_involving_facebook_live",
+    "publication_date": "2026-06-15",
+    "summary": "Facebook livestreams promoted scratch cards or lottery tickets, after which purported winners were asked to pay administrative fees through PayNow QR codes to claim cash prizes.",
+    "categories": ["prize or reward scams", "payment scams"],
+    "signal_tags": [
+      "prize_or_reward_claim",
+      "payment_request",
+      "upfront_fee_request"
+    ],
+    "content_types": ["other"],
+    "entity_tags": ["Facebook"]
+  },
+  {
+    "id": "whatsapp-account-impersonation-2026",
+    "authorities": ["Singapore Police Force"],
+    "title": "Police Advisory On Social Media Impersonation Scams Arising From Compromised Whatsapp Accounts",
+    "url": "https://www.police.gov.sg/Media-Hub/News/2026/05/20260508_police_advisory_on_social_media_impersonation_scams",
+    "publication_date": "2026-05-08",
+    "summary": "Scammers obtained WhatsApp verification OTPs, took control of accounts, impersonated the account owners to their contacts, and requested emergency money transfers.",
+    "categories": [
+      "OTP or account takeover",
+      "impersonation",
+      "payment scams"
+    ],
+    "signal_tags": ["otp_request", "impersonation_claim", "payment_request"],
+    "content_types": ["sms_or_chat"],
+    "entity_tags": ["WhatsApp"]
+  }
+]

@@ -15,9 +15,24 @@ from flask_cors import CORS
 from services.screenshot import screenshot_service
 from services.chatbot import chatbot_service
 from services.url import url_service
+from services.transaction import transaction_service
+import pandas as pd
+from services.transaction.feature_engineering import engineer_features_from_transcript
+
+#for transaction PDF print
+import io
+from flask import send_file
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from services.message_detector.routes.batch_routes import batch_bp
+from services.message_detector.routes.message_routes import message_bp
 
 app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 CORS(app)
+app.register_blueprint(message_bp, url_prefix="/api/message")
+app.register_blueprint(batch_bp, url_prefix="/api/batch")
 
 # read() loads the whole file into memory and the auditor base64-encodes it (~1.33x)
 # on top, so cap uploads to avoid OOM on the 512MB host.
@@ -32,35 +47,47 @@ def analyse():
 
     upload = request.files["file"]
     image_bytes = upload.read()
-    mime_type = upload.mimetype if upload.mimetype in screenshot_service.ALLOWED_MIMES else "image/png"
 
     try:
-        classification = screenshot_service.classify(image_bytes)
+        prepared_image = screenshot_service.prepare_image(image_bytes)
+        classification = screenshot_service.classify(prepared_image)
+    except screenshot_service.ImageValidationError as error:
+        return jsonify({"error": str(error)}), 400
     except Exception:
         return jsonify({"error": "Could not read that image"}), 400
 
     try:
-        analysis_context = screenshot_service.run_stage1_audit(classification, image_bytes)
+        analysis_context = screenshot_service.run_stage1_audit(
+            classification,
+            prepared_image,
+        )
+        analysis_token = screenshot_service.issue_analysis_token(
+            analysis_context
+        )
     except Exception:
         app.logger.exception("Stage 1 analysis failed")
         return jsonify({"error": "Analysis failed"}), 500
 
-    # The client holds analysis_context and posts it back to /api/respond with answers.
-    return jsonify(analysis_context)
+    return jsonify({
+        **analysis_context,
+        "analysis_token": analysis_token,
+    })
 
 
 # ── STAGE 2: user answers exposure questions, return the guarded response ──
 @app.route("/api/respond", methods=["POST"])
 def respond():
     body = request.get_json(silent=True) or {}
-    analysis_context = body.get("analysis_context")
+    analysis_token = body.get("analysis_token")
     answers = body.get("answers")
 
-    if not isinstance(analysis_context, dict) or not isinstance(answers, dict):
-        return jsonify({"error": "Expected JSON with 'analysis_context' and 'answers'"}), 400
+    if not isinstance(analysis_token, str) or not isinstance(answers, dict):
+        return jsonify({"error": "Invalid or expired analysis token"}), 400
 
     try:
-        result = screenshot_service.respond(analysis_context, answers)
+        result = screenshot_service.respond(analysis_token, answers)
+    except screenshot_service.AnalysisTokenError:
+        return jsonify({"error": "Invalid or expired analysis token"}), 400
     except ValueError as ve:
         # resolve_exposure_answers raises ValueError on missing/invalid answers
         return jsonify({"error": str(ve)}), 400
@@ -152,6 +179,114 @@ def predict_url():
 
     return jsonify(result)
 
+#Transaction Scam Scanner
+@app.route("/api/transaction/upload", methods=["POST"])
+def upload_transaction_batch():
+    if "file" not in request.files or request.files["file"].filename == "":
+        return jsonify({"error": "No file uploaded"}), 400
+
+    uploaded = request.files["file"]
+    filename = uploaded.filename.lower()
+    language = request.form.get("language", "en")
+
+    try:
+        if filename.endswith(".csv"):
+            df = pd.read_csv(uploaded)
+        else:
+            df = pd.read_excel(uploaded)
+    except Exception:
+        return jsonify({"error": "Could not read that file. Please upload a CSV or Excel file."}), 400
+
+    try:
+        results = transaction_service.score_upload_rows(df)
+        results = transaction_service.enrich_flagged_rows(results, language=language)
+        statement_summary = transaction_service.summarize_statement(results, language=language)
+    except Exception as exc:
+        return jsonify({"error": f"Could not process file: {str(exc)}"}), 400
+
+    return jsonify({
+        "total_rows": len(results),
+        "flagged_rows": sum(1 for item in results if item["is_fraud"]),
+        "results": results,
+        "statement_summary": statement_summary
+    })
+
+#transaction email draft endpoint
+@app.route("/api/transaction/draft-email", methods=["POST"])
+def draft_transaction_email():
+    body = request.get_json(silent=True) or {}
+    flagged_rows = body.get("flagged_rows")
+
+    if not isinstance(flagged_rows, list) or not flagged_rows:
+        return jsonify({"error": "No flagged transactions provided"}), 400
+
+    try:
+        email = transaction_service.draft_escalation_email(flagged_rows)
+    except Exception as exc:
+        return jsonify({"error": f"Could not draft email: {str(exc)}"}), 500
+
+    return jsonify({"escalation_email": email})
+
+#transaction pdf report generation
+EXPORT_COLUMNS = [
+    ("row_index", "Row"),
+    ("timestamp", "Timestamp"),
+    ("amount", "Amount"),
+    ("merchant_category", "Merchant"),
+    ("device_type", "Device"),
+    ("is_foreign_transaction", "Foreign"),
+    ("risk_score", "Risk Score"),
+    ("verdict", "Verdict"),
+    ("ai_explanation", "AI Explanation"),
+]
+
+
+@app.route("/api/transaction/export/pdf", methods=["POST"])
+def export_transactions_pdf():
+    body = request.get_json(silent=True) or {}
+    results = body.get("results")
+    statement_summary = body.get("statement_summary", "")
+    if not isinstance(results, list) or not results:
+        return jsonify({"error": "No results to export"}), 400
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), title="ScamSense Transaction Results")
+    styles = getSampleStyleSheet()
+    elements = [Paragraph("ScamSense — Transaction Screening Results", styles["Title"]), Spacer(1, 12)]
+
+    if statement_summary:
+        elements.append(Paragraph("Executive Summary", styles["Heading2"]))
+        elements.append(Paragraph(statement_summary, styles["BodyText"]))
+        elements.append(Spacer(1, 16))
+
+    headers = [label for _, label in EXPORT_COLUMNS]
+    table_data = [headers]
+    for row in results:
+        table_data.append([
+            str(row.get(key, "") if key != "is_foreign_transaction"
+                else ("Yes" if row.get(key) else "No"))
+            for key, _ in EXPORT_COLUMNS
+        ])
+
+    table = Table(table_data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2937")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elements.append(table)
+    doc.build(elements)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="scamsense_transaction_results.pdf",
+        mimetype="application/pdf",
+    )
 
 @app.errorhandler(413)
 def too_large(e):
