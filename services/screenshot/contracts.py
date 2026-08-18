@@ -91,6 +91,15 @@ class RecoveryAction(ScreenshotContract):
     theme: Optional[ShortText] = None
 
 
+class RelatedOfficialAdvisory(ScreenshotContract):
+    advisory_id: ShortText
+    title: EvidenceText
+    authority: ShortText
+    publication_date: ShortText
+    summary: EvidenceText
+    source_url: EvidenceText
+
+
 AuditStatus = Literal["available", "malformed", "unavailable"]
 CautionLevel = Literal["none", "medium", "high"]
 

@@ -173,6 +173,7 @@ def complete_analysis_with_answers(
         "fallback_guard": response.get(
             "fallback_guard"
         ),
+        "related_official_advisories": [],
     }
 
 

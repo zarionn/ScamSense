@@ -11,6 +11,7 @@ import binascii
 import hashlib
 import hmac
 import json
+import logging
 import tempfile
 import threading
 import time
@@ -22,8 +23,15 @@ import numpy as np
 from PIL import Image, ImageOps, UnidentifiedImageError
 from ai_edge_litert.interpreter import Interpreter
 from services.screenshot import screenshot_genai
-from services.screenshot.contracts import AnalysisContext, SignedAnalysisPayload
+from services.screenshot.contracts import (
+    AnalysisContext,
+    RelatedOfficialAdvisory,
+    SignedAnalysisPayload,
+)
 from pydantic import ValidationError
+
+
+logger = logging.getLogger(__name__)
 
 # --- classifier loaded ONCE at import, not per request --------------------
 MODEL_PATH = Path(__file__).resolve().parents[2] / "model.tflite"
@@ -284,6 +292,48 @@ def run_stage1_audit(classification: dict, image: PreparedImage) -> dict:
             os.unlink(tmp_path)
 
 
+def _retrieve_related_official_advisories(
+    analysis_context: dict,
+) -> list[dict]:
+    if analysis_context.get("audit_status") != "available":
+        return []
+
+    audit = analysis_context.get("audit")
+    signals = analysis_context.get("audit_signals")
+    if not isinstance(audit, dict):
+        return []
+    domain = audit.get("domain_analysis")
+    if not isinstance(signals, list) or not isinstance(domain, dict):
+        return []
+
+    from services.screenshot import advisory_retrieval
+
+    retrieval_context = advisory_retrieval.RetrievalContext(
+        signal_tags=tuple(signals),
+        content_type=audit["content_type"],
+        claimed_entity=domain.get("claimed_entity"),
+        domain_readability=domain.get("domain_readability"),
+        domain_relationship=domain.get("domain_relationship"),
+    )
+    retrieval = advisory_retrieval.retrieve_advisories(
+        retrieval_context,
+        max_results=1,
+    )
+    if not retrieval["results"]:
+        return []
+
+    top = retrieval["results"][0]
+    advisory = RelatedOfficialAdvisory(
+        advisory_id=top["corpus_id"],
+        title=top["official_title"],
+        authority=top["authorities"][0],
+        publication_date=top["publication_date"],
+        summary=top["summary"],
+        source_url=top["official_url"],
+    )
+    return [advisory.model_dump(mode="json")]
+
+
 def respond(analysis_token: str, answers: dict) -> dict:
     """STAGE 2: user answers exposure questions, return the guarded response.
     Thin passthrough to screenshot_genai.respond, kept here so app.py only talks to the
@@ -291,4 +341,18 @@ def respond(analysis_token: str, answers: dict) -> dict:
     screenshot_genai.respond -> resolve_exposure_answers already did — app.py converts
     that into the existing 400 response."""
     analysis_context = verify_analysis_token(analysis_token)
-    return screenshot_genai.respond(analysis_context, answers)
+    response = screenshot_genai.respond(analysis_context, answers)
+    try:
+        related_advisories = _retrieve_related_official_advisories(
+            analysis_context
+        )
+    except Exception as error:
+        logger.warning(
+            "Optional official advisory retrieval failed (%s).",
+            type(error).__name__,
+        )
+        related_advisories = []
+    return {
+        **response,
+        "related_official_advisories": related_advisories,
+    }

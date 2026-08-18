@@ -10,13 +10,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from services.screenshot.advisory_retrieval import (  # noqa: E402
+from services.screenshot.advisory_retrieval import ( 
     RetrievalContext,
     retrieve_advisories,
     validate_retrieval_signals,
 )
-from services.screenshot.advisory_corpus import ALLOWED_SIGNAL_TAGS  # noqa: E402
-from services.screenshot.contracts import SignalType  # noqa: E402
+from services.screenshot.advisory_corpus import ALLOWED_SIGNAL_TAGS  
+from services.screenshot.contracts import SignalType  
 
 
 SATURATED_EVALUATION_LABEL = "Saturated metadata-alignment evaluation"
