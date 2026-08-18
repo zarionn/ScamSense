@@ -10,6 +10,18 @@ export default function TransactionScanPage() {
   const [error, setError] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
   const [expandedRow, setExpandedRow] = useState(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyEmail = async () => {
+    if (!result?.escalation_email) return
+    try {
+      await navigator.clipboard.writeText(result.escalation_email)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      setError('Could not copy to clipboard')
+    }
+  }
 
   const handleUpload = async () => {
     if (!selectedFile) return
@@ -49,16 +61,13 @@ export default function TransactionScanPage() {
     : []
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <PageHeader
         title="Transaction Fraud Detector"
         description="Upload a CSV or Excel file to review suspicious transactions."
       />
 
       <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/20">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white">Upload Excel file</h2>
-        </div>
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <label className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-slate-600 bg-slate-950/40 px-4 py-6 text-sm text-slate-300 hover:border-amber-400 hover:text-white">
@@ -91,7 +100,7 @@ export default function TransactionScanPage() {
 
       {result && (
         <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
               <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Total rows</div>
               <div className="mt-2 text-2xl font-bold text-white">{result.total_rows ?? 0}</div>
@@ -103,11 +112,7 @@ export default function TransactionScanPage() {
                 {result.flagged_rows ?? flaggedRows.length}
               </div>
             </div>
-
-            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
-              <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Risk threshold</div>
-              <div className="mt-2 text-2xl font-bold text-emerald-400">0.50</div>
-            </div>
+            
           </div>
 
           {flaggedRows.length === 0 ? (
@@ -122,6 +127,10 @@ export default function TransactionScanPage() {
               {flaggedRows.map((item, index) => {
                 const score = Number(item?.risk_score ?? item?.probability ?? 0)
                 const isFraud = Boolean(item?.is_fraud) || score >= 0.5
+                const getRiskStatus = (score) => {
+                  if (score < 0.7) return "Likely fraud"
+                  if (score >= 0.7) return "Is fraud"
+                }
 
                 return (
                   <div
@@ -133,17 +142,15 @@ export default function TransactionScanPage() {
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <div className="text-xs uppercase tracking-[0.12em] text-slate-400">
+                        <div className="text-m uppercase tracking-[0.12em] text-white">
                           Row {item.row_index ?? index}{item.timestamp ? ` - ${item.timestamp}` : ''}
-                        </div>
-                        <div className="mt-1 text-xl font-semibold text-white">
-                          {isFraud ? 'Likely fraud' : 'Low risk'}
                         </div>
                       </div>
 
                       <div className="rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2">
-                        <span className="text-xs uppercase tracking-[0.12em] text-slate-400">Risk</span>
-                        <div className="text-2xl font-bold text-white">{score.toFixed(4)}</div>
+                        <div className={`text-sm ${getRiskStatus(score) === 'Is fraud' ? 'text-red-500' : getRiskStatus(score) === 'Likely fraud' ? 'text-orange-500' : 'text-emerald-500'}`}>
+                          {getRiskStatus(score)}
+                        </div>
                       </div>
                     </div>
 
@@ -177,9 +184,6 @@ export default function TransactionScanPage() {
                       <span className="rounded-full border border-slate-600 px-2 py-1">
                         Verdict: {item.verdict ?? (isFraud ? 'Likely fraud' : 'Low risk')}
                       </span>
-                      <span className="rounded-full border border-slate-600 px-2 py-1">
-                        Label: {item.label ?? (isFraud ? 'fraud' : 'safe')}
-                      </span>
                     </div>
                   </div>
                 )
@@ -187,10 +191,20 @@ export default function TransactionScanPage() {
             </div>
           )}
           {flaggedRows.length > 0 && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-amber-300">
-                Bank / SPF escalation email
-              </h3>
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5 ">
+              <div className="flex w-full items-center justify-between gap-4">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-amber-300">
+                  Bank / SPF escalation email
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  disabled={!result.escalation_email}
+                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-amber-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {copied ? 'Copied ✓' : 'Copy to clipboard'}
+                </button>
+              </div>
               <div className="mt-3 whitespace-pre-wrap rounded-lg border border-slate-700 bg-slate-950/50 p-4 text-sm text-slate-200">
                 {result.escalation_email || 'Generating…'}
               </div>
