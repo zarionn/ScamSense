@@ -164,8 +164,8 @@ function App() {
   }, [reducedMotion])
 
   const handleOpenDetector = useCallback((detectorKey, file) => {
-    if (detectorKey === 'screenshot' && file) {
-      setDetectorHandoff({ detector: 'screenshot', file, source: 'assistant' })
+    if (file && (detectorKey === 'screenshot' || detectorKey === 'transaction')) {
+      setDetectorHandoff({ detector: detectorKey, file, source: 'assistant' })
     }
     setActivePage(detectorKey)
   }, [])
@@ -225,6 +225,9 @@ function App() {
   const screenshotHandoffFile =
     detectorHandoff?.detector === 'screenshot' ? detectorHandoff.file : null
 
+  const transactionHandoffFile =
+    detectorHandoff?.detector === 'transaction' ? detectorHandoff.file : null
+
   const assistantHistory = {
     isSignedIn: !!user,
     conversations: conversationHistory.conversations,
@@ -269,7 +272,12 @@ function App() {
       )}
       {activePage === 'message' && <MessageScanPage />}
       {activePage === 'url' && <URLScanPage />}
-      {activePage === 'transaction' && <TransactionScanPage />}
+      {activePage === 'transaction' && (
+        <TransactionScanPage
+          initialFile={transactionHandoffFile}
+          onInitialFileConsumed={handleHandoffConsumed}
+        />
+      )}
       {activePage === 'about' && <AboutPage />}
       {activePage === 'history' && (
         <ChatHistoryPage

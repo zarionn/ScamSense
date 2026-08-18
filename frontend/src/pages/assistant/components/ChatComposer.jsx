@@ -3,7 +3,9 @@ import { ImagePlus, SendHorizontal } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { validateFile } from '@/lib/screenshot-file-validation'
+import { validateTransactionFile, isAcceptedTransactionFile } from '@/lib/transaction-file-validation'
 import ImageAttachmentPreview from './ImageAttachmentPreview'
+import TransactionAttachmentPreview from './TransactionAttachmentPreview'
 
 export default function ChatComposer({ onSend, disabled }) {
   const [value, setValue] = useState('')
@@ -15,6 +17,16 @@ export default function ChatComposer({ onSend, disabled }) {
   const handleFilesPicked = useCallback((fileList) => {
     const picked = fileList?.[0]
     if (!picked) return
+    if (isAcceptedTransactionFile(picked)) {
+      const error = validateTransactionFile(picked)
+      if (error) {
+        setAttachmentError(error)
+        return
+      }
+      setAttachmentError('')
+      setAttachment({ file: picked, kind: 'transaction' })
+      return
+    }
     // Same validation Screenshot Scan uses (type/extension + 10MB max) — no
     // second, conflicting set of limits.
     const error = validateFile(picked)
@@ -50,13 +62,11 @@ export default function ChatComposer({ onSend, disabled }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {attachment && (
-        <ImageAttachmentPreview
-          file={attachment.file}
-          previewUrl={attachment.previewUrl}
-          onRemove={handleRemoveAttachment}
-        />
-      )}
+      {attachment?.kind === 'transaction' ? (
+        <TransactionAttachmentPreview file={attachment.file} onRemove={handleRemoveAttachment} />
+      ) : attachment ? (
+        <ImageAttachmentPreview file={attachment.file} previewUrl={attachment.previewUrl} onRemove={handleRemoveAttachment} />
+      ) : null}
       {attachmentError && <p className="text-xs text-destructive">{attachmentError}</p>}
 
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
@@ -67,7 +77,7 @@ export default function ChatComposer({ onSend, disabled }) {
           ref={fileInputRef}
           id={fileInputId}
           type="file"
-          accept="image/png,image/jpeg"
+          accept="image/png,image/jpeg, .csv"
           className="sr-only"
           disabled={disabled}
           onChange={(event) => {

@@ -7,7 +7,7 @@ import AssistantWelcome from './components/AssistantWelcome'
 import ChatMessage from './components/ChatMessage'
 import ChatComposer from './components/ChatComposer'
 import TypingIndicator from './components/TypingIndicator'
-import { IMAGE_ATTACHED_REPLY, STEPS, WELCOME_STEP_ID } from './assistant-flow'
+import { IMAGE_ATTACHED_REPLY, TRANSACTION_ATTACHED_REPLY, STEPS, WELCOME_STEP_ID } from './assistant-flow'
 
 const GEMINI_FAILURE_FALLBACK =
   "I'm having trouble generating a response right now, but I can still guide you using the options below."
@@ -109,11 +109,12 @@ export default function AssistantPage({
       })
 
       if (attachment) {
+        const isTransaction = attachment.kind === 'transaction'
         const apply = () => {
           pushMessage({
             role: 'assistant',
-            text: IMAGE_ATTACHED_REPLY,
-            suggestions: ['screenshot'],
+            text: isTransaction ? TRANSACTION_ATTACHED_REPLY : IMAGE_ATTACHED_REPLY,
+            suggestions: [ isTransaction ? 'transaction' : 'screenshot'],
             handoffFile: attachment.file,
           })
         }

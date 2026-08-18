@@ -7,7 +7,7 @@
 export const DETECTORS = {
   message: { key: 'message', label: 'Message Scan', available: false },
   url: { key: 'url', label: 'URL Scan', available: false },
-  transaction: { key: 'transaction', label: 'Transaction Scan', available: false },
+  transaction: { key: 'transaction', label: 'Transaction Scan', available: true },
   screenshot: { key: 'screenshot', label: 'Screenshot Scan', available: true },
 }
 
@@ -79,22 +79,20 @@ export const STEPS = {
 
   // ---- TRANSACTION ----
   transaction_sent: {
-    assistant: 'Has money already been sent?',
+    assistant: 'Do you have your bank transcript on hand?',
     quickReplies: [
-      { label: 'Yes', next: 'transaction_sent_yes' },
-      { label: 'No', next: 'transaction_sent_no' },
-      { label: "I'm not sure", next: 'transaction_sent_no' },
+      { label: 'Yes', next: 'transcript_yes' },
+      { label: 'No', next: 'transcript_no' },
+      { label: "I'm not sure", next: 'transcript_no' },
     ],
   },
-  transaction_sent_yes: {
+  transcript_yes: {
     assistant:
-      "If money has already been sent, contact your bank's 24/7 anti-scam hotline as soon as you can. Transaction Scan can help you review the details.",
-    suggestions: ['transaction'],
+      "Please upload the transcript file before navigating forward.",
   },
-  transaction_sent_no: {
+  transcript_no: {
     assistant:
-      "Good, nothing sent yet. Transaction Scan can help you check the request before you go any further.",
-    suggestions: ['transaction'],
+      "Please go to your mobile bank application to retrieve your bank transcript, then upload it in this chat before moving forward.",
   },
 
   // ---- SCREENSHOT ----
@@ -133,3 +131,6 @@ export const WELCOME_STEP_ID = 'welcome'
 // looked at the screenshot).
 export const IMAGE_ATTACHED_REPLY =
   "I've got the screenshot. I can prepare it for Screenshot Scan for a detailed visual analysis."
+
+export const TRANSACTION_ATTACHED_REPLY =
+  "I've got the file. I can prepare it for Transaction Scan so you can review the flagged rows."

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import QuickReplies from './QuickReplies'
 import DetectorSuggestionCard from './DetectorSuggestionCard'
 import ImageAttachmentPreview from './ImageAttachmentPreview'
+import TransactionAttachmentPreview from './TransactionAttachmentPreview'
 
 export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpenDetector }) {
   const isUser = message.role === 'user'
@@ -17,14 +18,18 @@ export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpe
         </MessageAvatar>
       )}
       <MessageContent>
-        {message.attachment && (
+        {message.attachment?.kind === 'transaction' ? (
+          <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
+            <TransactionAttachmentPreview file={message.attachment.file} />
+          </div>
+        ) : message.attachment ? (
           <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
             <ImageAttachmentPreview
               file={message.attachment.file}
               previewUrl={message.attachment.previewUrl}
             />
           </div>
-        )}
+        ): null}
 
         {message.text && (
           <Bubble align={isUser ? 'end' : 'start'} variant={isUser ? 'default' : 'muted'}>

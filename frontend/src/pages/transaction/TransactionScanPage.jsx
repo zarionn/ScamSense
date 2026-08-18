@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PageHeader from '@/components/layout/PageHeader'
 import { checkTransaction } from '@/services/transaction-service'
 import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export default function TransactionScanPage() {
+export default function TransactionScanPage({ initialFile, onInitialFileConsumed, onOpenAssistant }) {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -15,6 +15,14 @@ export default function TransactionScanPage() {
   const [emailError, setEmailError] = useState('')
   const [copied, setCopied] = useState(false)
   const [language, setLanguage] = useState('en')
+
+  useEffect(() => {
+    if (initialFile) {
+      setSelectedFile(initialFile)
+      onInitialFileConsumed?.()
+    }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const LANGUAGE_OPTIONS = [
     { code: 'en', label: 'English' },
