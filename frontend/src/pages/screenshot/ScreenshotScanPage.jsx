@@ -117,11 +117,11 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const submitAnswers = useCallback(async (context, answers) => {
+  const submitAnswers = useCallback(async (analysisToken, answers) => {
     setRespondStatus('loading')
     setRespondError('')
     try {
-      const data = await respondToAnalysis(context.analysis_token, answers)
+      const data = await respondToAnalysis(analysisToken, answers)
       setFinalResult(data)
       setRespondStatus('success')
       setPhase(PHASE.RESULT)
@@ -142,7 +142,7 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
 
       if (!data.exposure_questions || data.exposure_questions.length === 0) {
         // Low-risk screenshot: nothing to ask, go straight to the final response.
-        await submitAnswers(data, {})
+        await submitAnswers(data.analysis_token, {})
       } else {
         setPhase(PHASE.QUESTIONS)
       }
@@ -155,7 +155,7 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
   const handleAnswersSubmit = useCallback(
     (answers) => {
       if (!analysisContext) return
-      submitAnswers(analysisContext, answers)
+      submitAnswers(analysisContext.analysis_token, answers)
     },
     [analysisContext, submitAnswers]
   )
