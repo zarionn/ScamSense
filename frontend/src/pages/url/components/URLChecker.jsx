@@ -59,7 +59,7 @@ function PipelineTimeline({ steps }) {
   )
 }
 
-export default function URLChecker() {
+export default function URLChecker({ initialURL, initialResult, onInitialConsumed }) {
   const [urlInput, setURLInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState(null)
@@ -76,6 +76,23 @@ export default function URLChecker() {
   const urlInputRef = useRef(null)
   const inputMessageId = useId()
   const history = useURLScanHistory(user, authLoading)
+
+  // A scan the Assistant already completed is shown as-is. runCheck is
+  // deliberately not called: re-running would spend a second API call and could
+  // return different AI-analyst wording for the same link.
+  useEffect(() => {
+    if (initialResult) {
+      setURLInput(initialResult.url ?? initialURL ?? '')
+      setResult(initialResult)
+    } else if (initialURL) {
+      setURLInput(initialURL)
+    }
+    if (initialResult || initialURL) {
+      onInitialConsumed?.()
+    }
+    // Consumes whatever handoff was present at mount; each visit mounts fresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // The model and AI review can take a few seconds, so reveal the real pipeline
   // progressively while the request is running. These timers never delay it.

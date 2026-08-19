@@ -3,7 +3,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Message, MessageAvatar, MessageContent } from '@/components/ui/message'
 import { Bubble, BubbleContent } from '@/components/ui/bubble'
 
-export default function TypingIndicator() {
+export default function TypingIndicator({ label = 'ScamSense is typing…' }) {
   return (
     <Message align="start">
       <MessageAvatar>
@@ -13,7 +13,7 @@ export default function TypingIndicator() {
         <Bubble variant="muted">
           <BubbleContent className="flex items-center gap-2 text-muted-foreground">
             <Spinner className="size-3.5" />
-            <span role="status">ScamSense is typing…</span>
+            <span role="status">{label}</span>
           </BubbleContent>
         </Bubble>
       </MessageContent>
