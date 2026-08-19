@@ -14,11 +14,14 @@ import { IMAGE_ATTACHED_REPLY, TRANSACTION_ATTACHED_REPLY, STEPS, WELCOME_STEP_I
 const GEMINI_FAILURE_FALLBACK =
   "I'm having trouble generating a response right now, but I can still guide you using the options below."
 
-async function requestAssistantReply(message) {
+async function requestAssistantReply(message, awaitingAdvisoryTopic = false) {
   const response = await fetch('/api/assistant/message', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, context: {} }),
+    body: JSON.stringify({
+      message,
+      context: { awaiting_advisory_topic: awaitingAdvisoryTopic },
+    }),
   })
   const data = await response.json().catch(() => null)
   if (!response.ok || !data) {
@@ -32,7 +35,8 @@ async function requestAssistantReply(message) {
 // away and back rather than reappearing as a fresh welcome every visit.
 // onOpenDetector: (detectorKey, file?) => void — App.jsx handles navigation + handoff.
 // typingAnimation/guidedSuggestions: Settings-controlled presentation prefs only.
-// onPersistMessage: (role, text) => void — App.jsx's conversation-history hook.
+// onPersistMessage: (role, text, advisorySearch?) => void — App.jsx's
+// conversation-history hook.
 // A no-op for guests; it decides itself whether/how to save. Called once per
 // pushMessage with meaningful text, never from a broad effect over `messages`.
 // onConversationReset: () => void — clears the active saved-conversation id
@@ -56,14 +60,15 @@ export default function AssistantPage({
 
   const pushMessage = useCallback(
     (partial) => {
-      // `persist` is internal bookkeeping only (e.g. the network-failure
-      // fallback below opts out) — stripped before it reaches the rendered
-      // message or, further downstream, the database.
-      const { persist = true, ...rest } = partial
+      // Persistence controls are internal bookkeeping only (e.g. the network-
+      // failure fallback below opts out) — stripped before the rendered message.
+      // The hook receives the readable text plus validated advisory structure.
+      const { persist = true, persistText, persistAdvisorySearch, ...rest } = partial
       const id = crypto.randomUUID()
       onMessagesChange((prev) => [...prev, { id, ...rest }])
-      if (persist && rest.text) {
-        onPersistMessage?.(rest.role, rest.text)
+      const textToPersist = persistText ?? rest.text
+      if (persist && textToPersist) {
+        onPersistMessage?.(rest.role, textToPersist, persistAdvisorySearch)
       }
     },
     [onMessagesChange, onPersistMessage]
@@ -106,6 +111,16 @@ export default function AssistantPage({
   // so the Assistant can never appear to have inspected the screenshot.
   const handleSend = useCallback(
     async ({ text, attachment }) => {
+      // Derived from the transcript, never from React-only state: `messages`
+      // is rehydrated from saved history, so a pending clarification survives
+      // a refresh and a reopened conversation. Read before this turn's own
+      // message is appended, and superseded by whatever reply follows — which
+      // is what makes it a single-turn state.
+      const previousMessage = messages[messages.length - 1]
+      const awaitingAdvisoryTopic =
+        previousMessage?.role === 'assistant' &&
+        previousMessage.advisorySearch?.status === 'needs_clarification'
+
       pushMessage({
         role: 'user',
         text: text || undefined,
@@ -151,11 +166,13 @@ export default function AssistantPage({
         }
 
         if (attachment.type === 'image') {
+          const isTransaction = attachment.kind === 'transaction'
+
           const apply = () => {
             pushMessage({
               role: 'assistant',
-              text: IMAGE_ATTACHED_REPLY,
-              suggestions: ['screenshot', 'message'],
+              text: isTransaction ? TRANSACTION_ATTACHED_REPLY : IMAGE_ATTACHED_REPLY,
+              suggestions: [isTransaction ? 'transaction' : 'screenshot', 'message'],
               handoffFile: attachment.file,
               handoffMode: 'ocr',
             })
@@ -226,13 +243,35 @@ export default function AssistantPage({
 
       setIsGeminiTyping(true)
       try {
-        const data = await requestAssistantReply(text)
+        const data = await requestAssistantReply(text, awaitingAdvisoryTopic)
+
+        const advisorySearch = data.advisory_search
+        const hasAdvisoryCards =
+          advisorySearch?.status === 'matches' &&
+          advisorySearch.advisories?.length > 0
+
+        const isClarification =
+          advisorySearch?.status === 'needs_clarification'
+
+        const isAdvisoryResponse = Boolean(advisorySearch)
+
+        const structuredSearch =
+          hasAdvisoryCards || isClarification
+            ? advisorySearch
+            : undefined
+
         pushMessage({
           role: 'assistant',
-          text: data.reply,
+          text: hasAdvisoryCards ? advisorySearch.message : data.reply,
+          advisorySearch: structuredSearch,
+          advisories: hasAdvisoryCards
+            ? advisorySearch.advisories
+            : undefined,
+          persistText: data.reply,
+          persistAdvisorySearch: structuredSearch,
           isFallback: data.source === 'fallback',
-          suggestions: ['message'],
-          handoffMessage: text,
+          suggestions: isAdvisoryResponse ? undefined : ['message'],
+          handoffMessage: isAdvisoryResponse ? undefined : text,
         })
       } catch {
         // Transient client-side error notice, not real Assistant content —
@@ -248,7 +287,7 @@ export default function AssistantPage({
         setIsGeminiTyping(false)
       }
     },
-    [pushMessage, typingAnimation]
+    [messages, pushMessage, typingAnimation]
   )
 
   const handleNewChat = useCallback(() => {
@@ -257,7 +296,7 @@ export default function AssistantPage({
     onMessagesChange([])
     setIsDeterministicTyping(false)
     setIsGeminiTyping(false)
-    setExpectedDetector(null) 
+    setExpectedDetector(null)
     // Signed-in only in practice (a no-op for guests) — clears the active
     // saved-conversation id without creating or deleting anything, so the
     // *next* message starts a new conversation instead of appending to the

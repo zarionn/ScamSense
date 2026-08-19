@@ -95,7 +95,7 @@ export const STEPS = {
     assistant:
       "Please go to your mobile bank application to retrieve your bank transcript, then upload it in this chat before moving forward.",
       expectsAttachment: 'transaction',
-  
+
   },
 
   // ---- SCREENSHOT ----

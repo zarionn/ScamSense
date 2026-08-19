@@ -305,7 +305,7 @@ function App() {
 
   const screenshotHandoffFile =
     detectorHandoff?.detector === 'screenshot' ? detectorHandoff.file : null
-  
+
   const messageHandoffText =
   detectorHandoff?.detector === 'message' ? detectorHandoff.message : null
 
@@ -318,7 +318,7 @@ function App() {
   detectorHandoff?.detector === 'transaction'
     ? detectorHandoff.file
     : null
-    
+
   const assistantHistory = {
     isSignedIn: !!user,
     conversations: conversationHistory.conversations,

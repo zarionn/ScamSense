@@ -1,7 +1,13 @@
+import { ImageOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import ImagePreviewDialog from '@/components/shared/ImagePreviewDialog'
 import { getPrimaryStatus, getVerdict } from '../utils/verdict'
 import { cn } from '@/lib/utils'
+
+// Shared by both branches so the summary keeps the same shape whether or not a
+// preview exists — a reopened scan must not reflow the card.
+const THUMBNAIL_CLASS =
+  'h-40 w-full shrink-0 overflow-hidden rounded-lg border border-border sm:h-[168px] sm:w-44'
 
 export default function ResultSummary({ file, previewUrl, classifier, effectiveCautionLevel }) {
   const primary = getPrimaryStatus(classifier.label, effectiveCautionLevel)
@@ -15,26 +21,52 @@ export default function ResultSummary({ file, previewUrl, classifier, effectiveC
     // currently resolve to the same white in this theme.
     <Card className="bg-card-elevated">
       <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-center">
-        <ImagePreviewDialog
-          src={previewUrl}
-          filename={file.name}
-          trigger={
-            <button
-              type="button"
-              className="group relative h-40 w-full shrink-0 overflow-hidden rounded-lg border border-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-[168px] sm:w-44"
-              aria-label={`View a larger preview of ${file.name}`}
+        {/* Tile + caption share one column so the caption sits below the tile
+            without changing the tile's own dimensions. Rendered in both states,
+            which is what keeps the card the same height whether the result is
+            live or reopened — no reserved-space placeholder needed. */}
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-44">
+          {previewUrl ? (
+            <ImagePreviewDialog
+              src={previewUrl}
+              filename={file.name}
+              trigger={
+                <button
+                  type="button"
+                  className={cn(
+                    'group relative focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                    THUMBNAIL_CLASS
+                  )}
+                  aria-label={`View a larger preview of ${file.name}`}
+                >
+                  <img
+                    src={previewUrl}
+                    alt="Analysed screenshot"
+                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                  />
+                  <span className="absolute inset-x-0 bottom-0 bg-background/80 px-2 py-1 text-center text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                    Click to enlarge
+                  </span>
+                </button>
+              }
+            />
+          ) : (
+            // Saved history keeps the analysis but never the screenshot itself,
+            // so there is deliberately nothing to enlarge here. THUMBNAIL_CLASS
+            // holds the live tile's exact dimensions so the card does not reflow.
+            // Decorative on purpose: the caption below is the accessible text,
+            // so labelling the tile too would announce it twice.
+            <div
+              aria-hidden="true"
+              className={cn('flex items-center justify-center bg-muted/40', THUMBNAIL_CLASS)}
             >
-              <img
-                src={previewUrl}
-                alt="Analysed screenshot"
-                className="h-full w-full object-cover transition-transform group-hover:scale-105"
-              />
-              <span className="absolute inset-x-0 bottom-0 bg-background/80 px-2 py-1 text-center text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                Click to enlarge
-              </span>
-            </button>
-          }
-        />
+              <ImageOff className="size-6 text-muted-foreground" aria-hidden="true" />
+            </div>
+          )}
+          <p className="text-center text-xs leading-snug text-muted-foreground">
+            Screenshot not stored for privacy
+          </p>
+        </div>
 
         <div className="min-w-0 flex-1 space-y-4">
           <div
