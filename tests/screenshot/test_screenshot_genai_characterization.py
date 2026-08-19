@@ -1814,7 +1814,30 @@ class ScreenshotGenAICharacterizationTests(unittest.TestCase):
             evidence_source,
         )
         self.assertIn("<CheckCircle2", recommendations_source)
-        self.assertNotIn("h-full", recommendations_source)
+
+        # Cards sharing a row now share one bottom edge, replacing the earlier
+        # deliberately-ragged layout: ResultView drops items-start so grid items
+        # stretch, and each card is h-full with a flex-1 content region. Purely
+        # CSS — no measurement, no clamping.
+        result_view_source = (component_root / "ResultView.jsx").read_text(
+            encoding="utf-8"
+        )
+        # Pins the grid's own className rather than searching the whole file,
+        # so prose mentioning the old value cannot make this pass or fail.
+        self.assertIn(
+            '<div className="grid grid-cols-1 gap-5 lg:grid-cols-12">',
+            result_view_source,
+        )
+        for filename in (
+            "WarningSignsSection.jsx",
+            "SafetyRecommendationsCard.jsx",
+            "AnswerContextCard.jsx",
+            "DomainAnalysisCard.jsx",
+        ):
+            with self.subTest(filename=filename):
+                source = (component_root / filename).read_text(encoding="utf-8")
+                self.assertIn('<Card className="h-full">', source)
+                self.assertIn('<CardContent className="flex-1', source)
 
     def test_empty_visual_warning_wording_depends_on_audit_availability(self):
         component_root = (
