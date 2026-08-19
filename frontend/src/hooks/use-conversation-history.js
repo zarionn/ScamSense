@@ -8,6 +8,10 @@ import {
   saveMessage,
   touchConversation,
 } from '@/services/conversation-service'
+import {
+  deserializeConversationMessage,
+  serializeConversationMessage,
+} from '@/services/conversation-message-codec'
 
 // The sidebar only ever shows the most recently active conversations, not
 // the full history (that's the dedicated Chat History page's job).
@@ -45,7 +49,11 @@ function setStoredConversationId(conversationId) {
 }
 
 function toTranscriptMessage(row) {
-  return { id: row.id, role: row.role, text: row.content }
+  return {
+    id: row.id,
+    role: row.role,
+    ...deserializeConversationMessage(row.content, row.role),
+  }
 }
 
 // Moves a conversation to the front of the list (matching updated_at desc)
@@ -181,7 +189,7 @@ export function useConversationHistory(user, authLoading) {
   // never to a broad "whenever messages changes" effect — that's what the
   // task called out as the double-insert risk.
   const recordMessage = useCallback(
-    async (role, text) => {
+    async (role, text, advisorySearch) => {
       if (!user || !text) return
       try {
         let conversationId = activeConversationIdRef.current
@@ -192,7 +200,8 @@ export function useConversationHistory(user, authLoading) {
           if (role !== 'user') return
           conversationId = await ensureConversation(text)
         }
-        await saveMessage(conversationId, role, text)
+        const content = serializeConversationMessage({ role, text, advisorySearch })
+        await saveMessage(conversationId, role, content)
         await touchConversation(conversationId)
         setConversations((prev) => bumpConversation(prev, conversationId))
         setPersistError(null)

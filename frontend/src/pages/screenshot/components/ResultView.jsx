@@ -54,7 +54,11 @@ export default function ResultView({ file, previewUrl, result }) {
 
       {auditStatusNote && <UncertaintyNote note={auditStatusNote} />}
 
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
+      {/* No items-start: grid items stretch to the tallest card in their row
+          by default, and each card is h-full with a flex-1 content region, so
+          a row shares one bottom edge. Purely CSS — nothing is measured, and
+          no content is clamped; the shorter card just gains empty space. */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         <div className={hasSafetyRecommendations ? 'lg:col-span-7' : 'lg:col-span-12'}>
           <WarningSignsSection
             observations={displayObservations}

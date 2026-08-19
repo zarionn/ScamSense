@@ -146,10 +146,10 @@ export default function TransactionScanPage({
         description="Upload a CSV or Excel file to review suspicious transactions."
       />
 
-      <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/20">
+      <div className="space-y-3 rounded-xl border border-border bg-card p-5">
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <label className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-slate-600 bg-slate-950/40 px-4 py-6 text-sm text-slate-300 hover:border-amber-400 hover:text-white">
+        <label className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-purple-600 px-4 py-6 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-200">
             <input
               type="file"
               accept=".csv,.xlsx,.xls"
@@ -163,14 +163,14 @@ export default function TransactionScanPage({
               type="button"
               onClick={handleUpload}
               disabled={loading || !selectedFile}
-              className="rounded-xl h-8 px-5 py-3 font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl h-8 px-5 py-3 font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'Processing…' : 'Upload & Scan'}
             </Button>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="rounded-xl border border-slate-600 bg-slate-950/40 px-3 py-1 text-sm text-slate-200"
+              className="rounded-xl border border-slate-600 px-3 py-1 text-sm"
             >
               {LANGUAGE_OPTIONS.map((opt) => (
                 <option key={opt.code} value={opt.code}>{opt.label}</option>
@@ -190,14 +190,14 @@ export default function TransactionScanPage({
       {result && (
         <div className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
-              <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Total rows</div>
-              <div className="mt-2 text-2xl font-bold text-white">{result.total_rows ?? 0}</div>
+            <div className="rounded-2xl border border-slate-700 p-4">
+              <div className="text-xs uppercase tracking-[0.12em]">Total rows</div>
+              <div className="mt-2 text-2xl font-bold">{result.total_rows ?? 0}</div>
             </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
-              <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Flagged</div>
-              <div className="mt-2 text-2xl font-bold text-amber-400">
+            <div className="rounded-2xl border border-slate-700  p-4">
+              <div className="text-xs uppercase tracking-[0.12em] ">Flagged</div>
+              <div className="mt-2 text-2xl font-bold text-red-500">
                 {result.flagged_rows ?? flaggedRows.length}
               </div>
             </div>
@@ -209,27 +209,27 @@ export default function TransactionScanPage({
               type="button"
               onClick={handleExportPdf}
               disabled={exporting}
-              className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-amber-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-medium hover:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {exporting === 'pdf' ? 'Exporting…' : 'Download output PDF'}
             </button>
           </div>
 
           {result.statement_summary && (
-            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+            <div className="rounded-2xl border border-slate-700 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.1em]">
                 Scan summary
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-200">
+              <p className="mt-3 text-sm leading-relaxed">
                 {result.statement_summary}
               </p>
             </div>
           )}
 
           {flaggedRows.length === 0 ? (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-6 text-center">
-              <h3 className="text-xl font-semibold text-emerald-300">No possible fraudulent transactions | 安全 | selamat | பாதுகாப்பான</h3>
-              <p className="mt-2 text-sm text-emerald-100/80">
+            <div className="rounded-2xl border border-success-20 bg-success-soft p-6 text-center">
+              <h3 className="text-xl font-semibold text-success">No possible fraudulent transactions | 安全 | selamat | பாதுகாப்பான</h3>
+              <p className="mt-2 text-sm text-slate-400">
                 No uploaded row exceeded the fraud detection threshold.
               </p>
             </div>
@@ -247,7 +247,7 @@ export default function TransactionScanPage({
                   <div
                     key={item.row_index ?? index}
                     className={`rounded-2xl border p-5 ${isFraud
-                      ? 'border-red-500/40 bg-red-950/20'
+                      ? 'border-red-500/40 bg-red-800/70'
                       : 'border-emerald-500/30 bg-emerald-950/20'
                       }`}
                   >
@@ -275,7 +275,7 @@ export default function TransactionScanPage({
                     <button
                       type="button"
                       onClick={() => setExpandedRow(expandedRow === index ? null : index)}
-                      className="mt-4 flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2 text-sm text-slate-200"
+                      className="mt-4 flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2 text-sm text-white"
                     >
                       <span>AI explanation</span>
                       <span>{expandedRow === index ? '−' : '+'}</span>
@@ -291,7 +291,7 @@ export default function TransactionScanPage({
                       </div>
                     )}
 
-                    <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-300">
+                    <div className="mt-3 flex flex-wrap gap-3 text-sm text-white">
                       <span className="rounded-full border border-slate-600 px-2 py-1">
                         Verdict: {item.verdict ?? (isFraud ? 'Likely fraud' : 'Low risk')}
                       </span>
@@ -303,14 +303,14 @@ export default function TransactionScanPage({
           )}
 
           {flaggedRows.length > 0 && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-amber-300">
+            <div className="rounded-2xl border border-amber-500/30 bg-warning p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-700">
                 Next step
               </h3>
 
               {!emailDraft ? (
                 <div className="mt-3 flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-slate-900">
                     {flaggedRows.length} transaction{flaggedRows.length > 1 ? 's' : ''} flagged.
                     Draft an escalation email to send to the bank / SPF for review.
                   </p>
@@ -330,7 +330,7 @@ export default function TransactionScanPage({
                     <button
                       type="button"
                       onClick={handleCopyEmail}
-                      className="shrink-0 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-amber-400 hover:text-white"
+                      className="shrink-0 rounded-lg border border-warning px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-warning hover:text-white"
                     >
                       {copied ? 'Copied ✓' : 'Copy to clipboard'}
                     </button>

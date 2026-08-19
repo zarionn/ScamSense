@@ -12,14 +12,14 @@ export default function SafetyRecommendationsCard({ actions }) {
   if (!actions || actions.length === 0) return null
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
           Safety Recommendations
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex-1 space-y-4">
         {URGENCY_GROUPS.map((group) => {
           const items = actions.filter((action) => action.urgency === group.key)
           if (items.length === 0) return null

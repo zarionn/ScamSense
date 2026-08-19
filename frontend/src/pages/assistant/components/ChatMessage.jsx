@@ -5,17 +5,11 @@ import { Bubble, BubbleContent } from '@/components/ui/bubble'
 import { cn } from '@/lib/utils'
 import QuickReplies from './QuickReplies'
 import DetectorSuggestionCard from './DetectorSuggestionCard'
-import DetectorResultCard from './DetectorResultCard'
 import ImageAttachmentPreview from './ImageAttachmentPreview'
 import TransactionAttachmentPreview from './TransactionAttachmentPreview'
+import AdvisoryCard from './AdvisoryCard'
 
-export default function ChatMessage({
-  message,
-  isLast,
-  onSelectQuickReply,
-  onOpenDetector,
-  onOpenDetectorResult,
-}) {
+export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpenDetector }) {
   const isUser = message.role === 'user'
 
   return (
@@ -31,13 +25,13 @@ export default function ChatMessage({
             <TransactionAttachmentPreview file={message.attachment.file} />
           </div>
         ) : message.attachment?.type === 'image' ? (
-          <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
-            <ImageAttachmentPreview
-              file={message.attachment.file}
-              previewUrl={message.attachment.previewUrl}
-            />
-          </div>
-        ) : null}
+  <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
+    <ImageAttachmentPreview
+      file={message.attachment.file}
+      previewUrl={message.attachment.previewUrl}
+    />
+  </div>
+): null}
 
 {message.attachment?.type === 'excel' && (
   <div
@@ -67,24 +61,20 @@ export default function ChatMessage({
 
         {message.text && (
           <Bubble align={isUser ? 'end' : 'start'} variant={isUser ? 'default' : 'muted'}>
-            <BubbleContent>{message.text}</BubbleContent>
+            <BubbleContent className="whitespace-pre-wrap">{message.text}</BubbleContent>
           </Bubble>
+        )}
+
+        {!isUser && message.advisories?.length > 0 && (
+          <div className="flex w-full flex-col gap-2">
+            {message.advisories.map((advisory) => (
+              <AdvisoryCard key={advisory.advisory_id} advisory={advisory} />
+            ))}
+          </div>
         )}
 
         {!isUser && isLast && message.quickReplies && (
           <QuickReplies replies={message.quickReplies} onSelect={onSelectQuickReply} />
-        )}
-
-        {!isUser && message.detectorResults && (
-          <div className="flex flex-col gap-2">
-            {message.detectorResults.map((result, index) => (
-              <DetectorResultCard
-                key={`${result.detectorKey}-${index}`}
-                result={result}
-                onOpen={onOpenDetectorResult}
-              />
-            ))}
-          </div>
         )}
 
         {!isUser && isLast && message.suggestions && (

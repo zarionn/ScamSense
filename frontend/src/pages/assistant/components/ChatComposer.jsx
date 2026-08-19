@@ -33,6 +33,7 @@ export default function ChatComposer({ onSend, disabled }) {
         return
       }
       setAttachmentError('')
+<<<<<<< HEAD
       setAttachment((current) => {
         if (current?.previewUrl) {
           URL.revokeObjectURL(current.previewUrl)
@@ -44,6 +45,9 @@ export default function ChatComposer({ onSend, disabled }) {
           file: picked,
         }
       })
+=======
+      setAttachment({ file: picked, type: 'transaction' })
+>>>>>>> origin/main
       return
     }
 

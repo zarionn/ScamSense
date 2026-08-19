@@ -89,10 +89,13 @@ export const STEPS = {
   transcript_yes: {
     assistant:
       "Please upload the transcript file before navigating forward.",
+      expectsAttachment: 'transaction',
   },
   transcript_no: {
     assistant:
       "Please go to your mobile bank application to retrieve your bank transcript, then upload it in this chat before moving forward.",
+      expectsAttachment: 'transaction',
+
   },
 
   // ---- SCREENSHOT ----
@@ -103,6 +106,7 @@ export const STEPS = {
   // deterministically, no Gemini call involved.
   screenshot_suggest: {
     assistant: "Sure. Attach the screenshot you'd like to check.",
+    expectsAttachment: 'screenshot',
   },
 
   // ---- NOT SURE ----
