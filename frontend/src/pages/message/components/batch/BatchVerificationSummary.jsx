@@ -129,7 +129,7 @@ function BatchVerificationSummary({ rows }) {
 
                         <InfoRounded
                             sx={{
-                                color: "#1976D2",
+                                color: "var(--primary)",
                                 marginTop: "2px",
                                 flexShrink: 0
                             }}

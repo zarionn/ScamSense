@@ -68,43 +68,76 @@ function BatchProcessingDialog({ open }) {
     return (
 
         <Dialog
+
             open={open}
+
             maxWidth="sm"
+
             fullWidth
+
             PaperProps={{
+
+                className: `
+                    bg-card
+                    text-card-foreground
+                    border
+                    border-border
+                `,
+
                 sx: {
 
                     borderRadius: 3,
 
-                    // White dialog
+                    /*
+                     * FORCE MUI PAPER TO FOLLOW
+                     * SCAMSENSE THEME VARIABLES
+                     */
+
                     backgroundColor:
-                        "#FFFFFF",
+                        "var(--card) !important",
 
-                    // Default text colour
                     color:
-                        "#111827",
+                        "var(--card-foreground) !important",
 
-                    border:
-                        "1px solid #E5E7EB",
+                    borderColor:
+                        "var(--border) !important",
 
                     backgroundImage:
-                        "none",
+                        "none !important",
 
                     boxShadow:
                         "0 20px 60px rgba(0, 0, 0, 0.25)"
 
                 }
+
             }}
+
         >
 
             <DialogContent
+
                 sx={{
+
                     px: {
                         xs: 3,
                         sm: 5
                     },
-                    py: 5
+
+                    py: 5,
+
+                    /*
+                     * FORCE CONTENT TO USE
+                     * CURRENT THEME
+                     */
+
+                    backgroundColor:
+                        "var(--card) !important",
+
+                    color:
+                        "var(--card-foreground) !important"
+
                 }}
+
             >
 
                 {/* ==========================================
@@ -113,12 +146,30 @@ function BatchProcessingDialog({ open }) {
 
                 <div className="text-center">
 
-                    <h2 className="text-2xl font-bold text-[#111827]">
+                    <h2
+                        className="
+                            text-2xl
+                            font-bold
+                            text-foreground
+                        "
+                    >
+
                         ScamSense
+
                     </h2>
 
-                    <p className="mt-2 text-lg font-semibold text-[#6C3BFF]">
+
+                    <p
+                        className="
+                            mt-2
+                            text-lg
+                            font-semibold
+                            text-primary
+                        "
+                    >
+
                         Batch Dataset Analysis
+
                     </p>
 
                 </div>
@@ -131,11 +182,18 @@ function BatchProcessingDialog({ open }) {
                 <div className="mt-8 flex justify-center">
 
                     <CircularProgress
+
                         size={70}
+
                         thickness={4}
+
                         sx={{
-                            color: "#6C3BFF"
+
+                            color:
+                                "var(--primary)"
+
                         }}
+
                     />
 
                 </div>
@@ -145,7 +203,15 @@ function BatchProcessingDialog({ open }) {
                     DESCRIPTION
                 ========================================== */}
 
-                <p className="mt-6 text-center text-sm leading-6 text-[#6B7280]">
+                <p
+                    className="
+                        mt-6
+                        text-center
+                        text-sm
+                        leading-6
+                        text-muted-foreground
+                    "
+                >
 
                     Please wait while ScamSense analyses
                     your uploaded dataset.
@@ -157,7 +223,15 @@ function BatchProcessingDialog({ open }) {
                     STAGES
                 ========================================== */}
 
-                <div className="mt-8 flex flex-col items-start gap-4">
+                <div
+                    className="
+                        mt-8
+                        flex
+                        flex-col
+                        items-start
+                        gap-4
+                    "
+                >
 
                     {stages.map(
                         (stage, index) => {
@@ -173,7 +247,12 @@ function BatchProcessingDialog({ open }) {
 
                                 <div
                                     key={stage}
-                                    className="flex items-center gap-3"
+
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-3
+                                    "
                                 >
 
                                     {/* ==========================================
@@ -183,11 +262,16 @@ function BatchProcessingDialog({ open }) {
                                     {completed && (
 
                                         <CheckCircleRoundedIcon
+
                                             sx={{
+
                                                 color:
-                                                    "#4CAF50",
+                                                    "#2E7D32",
+
                                                 fontSize: 23
+
                                             }}
+
                                         />
 
                                     )}
@@ -200,11 +284,16 @@ function BatchProcessingDialog({ open }) {
                                     {current && (
 
                                         <MoreHorizRoundedIcon
+
                                             sx={{
+
                                                 color:
-                                                    "#6C3BFF",
+                                                    "var(--primary)",
+
                                                 fontSize: 23
+
                                             }}
+
                                         />
 
                                     )}
@@ -218,12 +307,18 @@ function BatchProcessingDialog({ open }) {
                                         !current && (
 
                                             <RadioButtonUncheckedRoundedIcon
+
                                                 sx={{
+
                                                     color:
-                                                        "#9CA3AF",
+                                                        "var(--muted-foreground)",
+
                                                     fontSize: 23,
+
                                                     opacity: 0.8
+
                                                 }}
+
                                             />
 
                                         )}
@@ -234,19 +329,32 @@ function BatchProcessingDialog({ open }) {
                                     ========================================== */}
 
                                     <span
+
                                         className={
 
                                             completed
 
-                                                ? "text-sm font-medium text-[#111827]"
+                                                ? `
+                                                    text-sm
+                                                    font-medium
+                                                    text-foreground
+                                                `
 
                                                 : current
 
-                                                    ? "text-sm font-semibold text-[#6C3BFF]"
+                                                    ? `
+                                                        text-sm
+                                                        font-semibold
+                                                        text-primary
+                                                    `
 
-                                                    : "text-sm text-[#6B7280]"
+                                                    : `
+                                                        text-sm
+                                                        text-muted-foreground
+                                                    `
 
                                         }
+
                                     >
 
                                         {stage}
@@ -258,6 +366,7 @@ function BatchProcessingDialog({ open }) {
                             );
 
                         }
+
                     )}
 
                 </div>
@@ -267,12 +376,21 @@ function BatchProcessingDialog({ open }) {
                     BOTTOM NOTE
                 ========================================== */}
 
-                <p className="mt-8 text-center text-xs leading-5 text-[#6B7280]">
+                <p
+                    className="
+                        mt-8
+                        text-center
+                        text-xs
+                        leading-5
+                        text-muted-foreground
+                    "
+                >
 
                     This may take a few moments depending on
                     the number of uploaded messages.
 
                 </p>
+
 
             </DialogContent>
 

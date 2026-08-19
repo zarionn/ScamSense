@@ -33,7 +33,7 @@ export default function ChatComposer({ onSend, disabled }) {
         return
       }
       setAttachmentError('')
-      setAttachment({ file: picked, kind: 'transaction' })
+      setAttachment({ file: picked, type: 'transaction' })
       return
     }
 
@@ -154,9 +154,9 @@ export default function ChatComposer({ onSend, disabled }) {
           ATTACHMENT PREVIEW
       ======================================================== */}
 
-      {attachment?.type === 'image'?.kind === 'transaction' ? (
+      {attachment?.type === 'transaction' ? (
         <TransactionAttachmentPreview file={attachment.file} onRemove={handleRemoveAttachment} />
-      ) : attachment ? (
+      ) : attachment?.type === 'image' ? (
         <ImageAttachmentPreview file={attachment.file} previewUrl={attachment.previewUrl} onRemove={handleRemoveAttachment} />
       ) : null}
 

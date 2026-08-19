@@ -37,20 +37,9 @@ export const TONES = {
   },
 }
 
-export function toneForLevel(level) {
-  return TONES[level] || TONES.warning
-}
-
-export function toneForZone(zone) {
-  if (zone === 'safe') return TONES.safe
-  if (zone === 'uncertain') return TONES.warning
-  if (zone === 'phishing') return TONES.danger
-  return TONES.neutral
-}
-
-export function toneForRisk(riskLevel) {
-  if (riskLevel === 'low') return TONES.safe
-  if (riskLevel === 'medium') return TONES.warning
-  if (riskLevel === 'high') return TONES.danger
-  return TONES.neutral
+// Which tone applies is decided in utils/result-presentation.js, which reads
+// the backend's fused verdict; this file only turns that decision into
+// classes, so a "low" AI opinion can never pick its own colour.
+export function toneForKey(toneKey) {
+  return TONES[toneKey] || TONES.neutral
 }

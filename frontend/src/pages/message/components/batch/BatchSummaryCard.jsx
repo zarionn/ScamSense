@@ -118,15 +118,27 @@ function BatchSummaryCard({
                         px: 5,
                         py: 1.5,
                         borderRadius: 3,
-                        bgcolor: "#6C3BFF",
-                        color: "#FFFFFF",
-                        textTransform: "none",
+
+                        bgcolor:
+                            "var(--primary)",
+
+                        color:
+                            "var(--primary-foreground)",
+
+                        textTransform:
+                            "none",
+
                         fontWeight: 700,
-                        boxShadow: "none",
+
+                        boxShadow:
+                            "none",
 
                         "&:hover": {
-                            bgcolor: "#5B2FE3",
-                            boxShadow: "none"
+                            bgcolor:
+                                "var(--primary-hover)",
+
+                            boxShadow:
+                                "none"
                         }
                     }}
                 >

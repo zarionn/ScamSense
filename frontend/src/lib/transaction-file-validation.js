@@ -1,7 +1,7 @@
 export const ACCEPTED_TRANSACTION_TYPES = [
   'text/csv',
 ]
-export const ACCEPTED_TRANSACTION_EXTENSIONS = ['.csv', '.xlsx', '.xls']
+export const ACCEPTED_TRANSACTION_EXTENSIONS = ['.csv']
 export const MAX_SIZE_BYTES = 10 * 1024 * 1024
 
 export function isAcceptedTransactionFile(file) {

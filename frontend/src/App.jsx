@@ -230,6 +230,22 @@ function App() {
       })
     }
 
+    // ==========================================================
+    // TRANSACTION SCAN - FILE
+    // ==========================================================
+
+    if (
+      detectorKey === 'transaction' &&
+      file
+    ) {
+      setDetectorHandoff({
+        detector: 'transaction',
+        file,
+        source: 'assistant',
+        mode: 'transaction',
+      })
+    }
+
     setActivePage(detectorKey)
   },
   []
@@ -289,7 +305,7 @@ function App() {
 
   const screenshotHandoffFile =
     detectorHandoff?.detector === 'screenshot' ? detectorHandoff.file : null
-  
+
   const messageHandoffText =
   detectorHandoff?.detector === 'message' ? detectorHandoff.message : null
 
@@ -297,6 +313,11 @@ function App() {
   detectorHandoff?.detector === 'message' && detectorHandoff?.mode === 'batch' ? detectorHandoff.file : null
 
   const messageHandoffImage = detectorHandoff?.detector === 'message' && detectorHandoff?.mode === 'ocr' ? detectorHandoff.file : null
+
+  const transactionHandoffFile =
+  detectorHandoff?.detector === 'transaction'
+    ? detectorHandoff.file
+    : null
 
   const assistantHistory = {
     isSignedIn: !!user,
