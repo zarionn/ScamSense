@@ -19,11 +19,11 @@ export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpe
         </MessageAvatar>
       )}
       <MessageContent>
-        {message.attachment?.type === 'image'?.kind === 'transaction' ? (
+        {message.attachment?.type === 'transaction' ? (
           <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
             <TransactionAttachmentPreview file={message.attachment.file} />
           </div>
-        ) : message.attachment ? (
+        ) : message.attachment?.type === 'image' ? (
   <div className={cn('w-full max-w-[260px]', isUser && 'self-end')}>
     <ImageAttachmentPreview
       file={message.attachment.file}

@@ -9,6 +9,8 @@ import ChatComposer from './components/ChatComposer'
 import TypingIndicator from './components/TypingIndicator'
 import { IMAGE_ATTACHED_REPLY, TRANSACTION_ATTACHED_REPLY, STEPS, WELCOME_STEP_ID } from './assistant-flow'
 
+
+
 const GEMINI_FAILURE_FALLBACK =
   "I'm having trouble generating a response right now, but I can still guide you using the options below."
 
@@ -48,6 +50,7 @@ export default function AssistantPage({
   typingAnimation = true,
   guidedSuggestions = true,
 }) {
+  const [expectedDetector, setExpectedDetector] = useState(null)
   const [isDeterministicTyping, setIsDeterministicTyping] = useState(false)
   const [isGeminiTyping, setIsGeminiTyping] = useState(false)
 
@@ -70,6 +73,7 @@ export default function AssistantPage({
     (reply) => {
       pushMessage({ role: 'user', text: reply.label })
       const nextStep = STEPS[reply.next]
+      setExpectedDetector(nextStep.expectsAttachment ?? null)
       const showTyping = (delayMs, apply) => {
         if (!typingAnimation) {
           apply()
@@ -109,75 +113,121 @@ export default function AssistantPage({
       })
 
       if (attachment) {
-      // ==========================================================
-      // SCREENSHOT ATTACHMENT
-      // ==========================================================
+        const forcedDetector = expectedDetector
+        setExpectedDetector(null)
+        // ==========================================================
+        // SCREENSHOT ATTACHMENT
+        // ==========================================================
 
-      if (attachment.type === 'image') {
-        const isTransaction = attachment.kind === 'transaction'
-        const apply = () => {
-          pushMessage({
-            role: 'assistant',
-            text: isTransaction ? TRANSACTION_ATTACHED_REPLY : IMAGE_ATTACHED_REPLY,
-            suggestions: [ isTransaction ? 'transaction' : 'screenshot', 'message'],
-            handoffFile: attachment.file,
-            handoffMode: 'ocr',
-          })
-        }
-
-        if (!typingAnimation) {
-          apply()
+        if (forcedDetector === 'transaction') {
+          const apply = () => {
+            pushMessage({
+              role: 'assistant',
+              text: TRANSACTION_ATTACHED_REPLY,
+              suggestions: ['transaction'],
+              handoffFile: attachment.file,
+            })
+          }
+          if (!typingAnimation) { apply(); return }
+          setIsDeterministicTyping(true)
+          window.setTimeout(() => { setIsDeterministicTyping(false); apply() }, 450)
           return
         }
 
-        setIsDeterministicTyping(true)
-
-        window.setTimeout(() => {
-          setIsDeterministicTyping(false)
-          apply()
-        }, 450)
-
-        return
-      }
-
-      // ==========================================================
-      // EXCEL / CSV ATTACHMENT
-      // ==========================================================
-
-      if (attachment.type === 'excel') {
-        const apply = () => {
-          pushMessage({
-            role: 'assistant',
-            text:
-              "I've got your Excel dataset. I can prepare it for Batch Message Analysis.",
-            suggestions: ['message'],
-            handoffFile: attachment.file,
-            handoffMode: 'batch',
-          })
-        }
-
-        if (!typingAnimation) {
-          apply()
+        if (forcedDetector === 'screenshot') {
+          const apply = () => {
+            pushMessage({
+              role: 'assistant',
+              text: IMAGE_ATTACHED_REPLY,
+              suggestions: ['screenshot', 'message'],
+              handoffFile: attachment.file,
+              handoffMode: 'ocr',
+            })
+          }
+          if (!typingAnimation) { apply(); return }
+          setIsDeterministicTyping(true)
+          window.setTimeout(() => { setIsDeterministicTyping(false); apply() }, 450)
           return
         }
 
-        setIsDeterministicTyping(true)
+        if (attachment.type === 'image') {
+          const apply = () => {
+            pushMessage({
+              role: 'assistant',
+              text: IMAGE_ATTACHED_REPLY,
+              suggestions: ['screenshot', 'message'],
+              handoffFile: attachment.file,
+              handoffMode: 'ocr',
+            })
+          }
 
-        window.setTimeout(() => {
-          setIsDeterministicTyping(false)
-          apply()
-        }, 450)
+          if (!typingAnimation) {
+            apply()
+            return
+          }
 
-        return
+          setIsDeterministicTyping(true)
+
+          window.setTimeout(() => {
+            setIsDeterministicTyping(false)
+            apply()
+          }, 450)
+
+          return
+        }
+        //Transaction csv attachment
+        if (attachment.type === 'transaction') {
+          const apply = () => {
+            pushMessage({
+              role: 'assistant',
+              text: TRANSACTION_ATTACHED_REPLY,
+              suggestions: ['transaction'],
+              handoffFile: attachment.file,
+            })
+          }
+          if (!typingAnimation) { apply(); return }
+          setIsDeterministicTyping(true)
+          window.setTimeout(() => { setIsDeterministicTyping(false); apply() }, 450)
+          return
+        }
+        // ==========================================================
+        // EXCEL / CSV ATTACHMENT
+        // ==========================================================
+
+        if (attachment.type === 'excel') {
+          const apply = () => {
+            pushMessage({
+              role: 'assistant',
+              text:
+                "I've got your Excel dataset. I can prepare it for Batch Message Analysis.",
+              suggestions: ['message'],
+              handoffFile: attachment.file,
+              handoffMode: 'batch',
+            })
+          }
+
+          if (!typingAnimation) {
+            apply()
+            return
+          }
+
+          setIsDeterministicTyping(true)
+
+          window.setTimeout(() => {
+            setIsDeterministicTyping(false)
+            apply()
+          }, 450)
+
+          return
+        }
       }
-    }
 
       if (!text) return
 
       setIsGeminiTyping(true)
       try {
         const data = await requestAssistantReply(text)
-       pushMessage({
+        pushMessage({
           role: 'assistant',
           text: data.reply,
           isFallback: data.source === 'fallback',
@@ -207,6 +257,7 @@ export default function AssistantPage({
     onMessagesChange([])
     setIsDeterministicTyping(false)
     setIsGeminiTyping(false)
+    setExpectedDetector(null) 
     // Signed-in only in practice (a no-op for guests) — clears the active
     // saved-conversation id without creating or deleting anything, so the
     // *next* message starts a new conversation instead of appending to the
