@@ -230,6 +230,22 @@ function App() {
       })
     }
 
+    // ==========================================================
+    // TRANSACTION SCAN - FILE
+    // ==========================================================
+
+    if (
+      detectorKey === 'transaction' &&
+      file
+    ) {
+      setDetectorHandoff({
+        detector: 'transaction',
+        file,
+        source: 'assistant',
+        mode: 'transaction',
+      })
+    }
+
     setActivePage(detectorKey)
   },
   []
@@ -298,6 +314,11 @@ function App() {
 
   const messageHandoffImage = detectorHandoff?.detector === 'message' && detectorHandoff?.mode === 'ocr' ? detectorHandoff.file : null
 
+  const transactionHandoffFile =
+  detectorHandoff?.detector === 'transaction'
+    ? detectorHandoff.file
+    : null
+    
   const assistantHistory = {
     isSignedIn: !!user,
     conversations: conversationHistory.conversations,
