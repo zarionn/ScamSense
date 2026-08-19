@@ -1,22 +1,24 @@
-"""ScamSense Assistant service — a small, controlled Gemini role for free-text chat.
+"""ScamSense Assistant service — trusted advisories and controlled free-text chat.
 
-Fully isolated from screenshot_genai.py: this module creates its own Gemini client using
-the same already-installed google-genai SDK and the same GEMINI_API_KEY, but
-shares no code, prompt, or state with screenshot_genai.py's Screenshot pipeline. screenshot_genai.py
-is not imported here and is not touched by this feature.
+The Assistant uses a deterministic adapter for natural-language searches over
+the same validated corpus consumed by Screenshot. It does not import or invoke
+Screenshot classification, audit, policy, signal retrieval, prompts, or state.
+Non-advisory messages retain the independent Gemini client and prompt below.
 
-Scope is deliberately narrow — this service ONLY turns a free-text Assistant
-message into a short, safe conversational reply (general scam-awareness talk,
-answering "what is phishing?"-style questions). It never runs detector
-analysis, never invents classifier/confidence/evidence output, and never
-decides chat state, quick replies or detector routing — that all stays
+This service never runs detector analysis, invents classifier/confidence/evidence
+output, or decides chat state, quick replies or detector routing — that stays
 deterministic in the frontend (see pages/assistant/assistant-flow.js).
 """
+import logging
 import os
 from google import genai
 from dotenv import load_dotenv
 
+from . import advisory_assistant
+
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 if "GEMINI_API_KEY" not in os.environ:
     raise RuntimeError(
@@ -57,19 +59,40 @@ lists, no asterisks. Two to four short sentences."""
 
 
 def generate_assistant_reply(message: str, context: dict | None = None) -> dict:
-    """Send one small, constrained Gemini request for a free-text Assistant message.
+    """Handle trusted-advisory searches or send a constrained Gemini request.
 
-    `context` is accepted for the request contract but deliberately unused for
-    now — this prototype keeps the Gemini call to the system instruction plus
-    the user's own message only, per "keep context minimal".
+    `context` carries only `awaiting_advisory_topic`: true when the previous
+    assistant turn asked the advisory clarification question, so this turn
+    supplies the search topic. The Gemini call itself still sees nothing but
+    the system instruction and the user's own message, per "keep context
+    minimal".
 
-    Returns {"reply": str, "source": "gemini" | "fallback"}. Never raises: any
-    Gemini failure (timeout, error, empty/invalid content, quota) returns the
-    deterministic FALLBACK_REPLY instead, so the Assistant keeps working.
+    Advisory intent and retrieval are deterministic and local. Other messages
+    retain the existing Gemini path. Never raises: retrieval or Gemini failures
+    return a bounded fallback response so the Assistant keeps working.
     """
     message = (message or "").strip()
     if not message:
         return {"reply": FALLBACK_REPLY, "source": "fallback"}
+
+    awaiting_topic = bool(
+        isinstance(context, dict) and context.get("awaiting_advisory_topic")
+    )
+    try:
+        advisory_response = advisory_assistant.handle_advisory_query(
+            message,
+            awaiting_topic=awaiting_topic,
+        )
+    except Exception as error:
+        logger.warning(
+            "Trusted advisory retrieval failed (%s).",
+            type(error).__name__,
+        )
+        return advisory_assistant.build_assistant_response(
+            advisory_assistant.unavailable_response()
+        )
+    if advisory_response is not None:
+        return advisory_assistant.build_assistant_response(advisory_response)
 
     try:
         interaction = _client.interactions.create(

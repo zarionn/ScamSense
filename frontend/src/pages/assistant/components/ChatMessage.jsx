@@ -7,6 +7,7 @@ import QuickReplies from './QuickReplies'
 import DetectorSuggestionCard from './DetectorSuggestionCard'
 import ImageAttachmentPreview from './ImageAttachmentPreview'
 import TransactionAttachmentPreview from './TransactionAttachmentPreview'
+import AdvisoryCard from './AdvisoryCard'
 
 export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpenDetector }) {
   const isUser = message.role === 'user'
@@ -60,8 +61,16 @@ export default function ChatMessage({ message, isLast, onSelectQuickReply, onOpe
 
         {message.text && (
           <Bubble align={isUser ? 'end' : 'start'} variant={isUser ? 'default' : 'muted'}>
-            <BubbleContent>{message.text}</BubbleContent>
+            <BubbleContent className="whitespace-pre-wrap">{message.text}</BubbleContent>
           </Bubble>
+        )}
+
+        {!isUser && message.advisories?.length > 0 && (
+          <div className="flex w-full flex-col gap-2">
+            {message.advisories.map((advisory) => (
+              <AdvisoryCard key={advisory.advisory_id} advisory={advisory} />
+            ))}
+          </div>
         )}
 
         {!isUser && isLast && message.quickReplies && (
