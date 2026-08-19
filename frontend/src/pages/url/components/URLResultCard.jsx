@@ -1,39 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import URLCheckSteps from './URLCheckSteps'
 import URLTechDetails from './URLTechDetails'
-import { TONES, toneForLevel, toneForRisk, toneForZone } from '../utils/verdict-styles'
+import URLFeedback from './URLFeedback'
+import URLShareSummary from './URLShareSummary'
+import { toneForKey } from '../utils/verdict-styles'
+import { buildResultPresentation } from '../utils/result-presentation'
 
 export const PANEL_CLASS = 'overflow-hidden rounded-xl border border-border bg-card text-card-foreground'
-
-const ZONE_WORDING = {
-  safe: 'In its normal, everyday-link range.',
-  uncertain: 'Unclear either way, so we leaned on the AI analyst.',
-  phishing: 'In its scam range.',
-}
-
-const RISK_WORDING = {
-  low: 'Nothing alarming stood out.',
-  medium: 'A few things were worth a second look.',
-  high: 'Strong warning signs were spotted.',
-}
-
-function summarySentence(result) {
-  if (result.whitelist_hit) {
-    return 'This is one of the official Singapore sites we recognise.'
-  }
-  if (result.verdict_level === 'danger') {
-    return result.zone === 'phishing'
-      ? 'Our risk score and the AI analyst both flagged this link.'
-      : 'Our risk score looked normal, but the AI analyst spotted warning signs.'
-  }
-  if (result.verdict_level === 'warning') {
-    if (result.zone === 'safe') {
-      return 'Our risk score looked normal, but the AI analyst spotted something worth a second look.'
-    }
-    return 'Our checks gave mixed signals, so we cannot be certain either way.'
-  }
-  return 'Neither our risk score nor the AI analyst found anything alarming.'
-}
 
 function formatCheckedAt(isoString) {
   const checkedAt = new Date(isoString)
@@ -50,12 +23,12 @@ function formatCheckedAt(isoString) {
   })}`
 }
 
-const RING_SIZE = 140
-const RING_STROKE = 12
+const RING_SIZE = 124
+const RING_STROKE = 10
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS
 
-function ScoreRing({ score, tone }) {
+function ScoreRing({ score, tone, label, ariaLabel }) {
   const [filledScore, setFilledScore] = useState(0)
 
   useEffect(() => {
@@ -68,7 +41,7 @@ function ScoreRing({ score, tone }) {
       className="relative shrink-0"
       style={{ width: RING_SIZE, height: RING_SIZE }}
       role="img"
-      aria-label={`${score} out of 100 risk score`}
+      aria-label={ariaLabel}
     >
       <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90" aria-hidden="true">
         <circle
@@ -94,111 +67,110 @@ function ScoreRing({ score, tone }) {
         />
       </svg>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold tabular-nums text-foreground-strong">{score}</span>
-        <span className="text-xs text-muted-foreground">risk</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+        <span className="text-3xl font-bold tabular-nums text-foreground-strong">{score}</span>
+        <span className="text-[11px] tracking-wide text-muted-foreground uppercase">{label}</span>
       </div>
     </div>
   )
 }
 
-export function PipelineTimeline({ steps }) {
+function InfoCard({ title, accent, children }) {
   return (
-    <ol className="flex flex-col">
-      {steps.map((step, index) => {
-        const isLast = index === steps.length - 1
-        const StepIcon = step.spinner ? Loader2 : step.tone.stepIcon
-
-        return (
-          <li key={step.title} className={`flex gap-3 ${step.dimmed ? 'opacity-40' : ''}`}>
-            <div className="flex flex-col items-center">
-              <span
-                className={`flex size-7 shrink-0 items-center justify-center rounded-full border ${step.tone.bg} ${step.tone.border} ${step.tone.text}`}
-              >
-                <StepIcon
-                  className={`size-3.5 ${step.spinner ? 'animate-spin' : ''}`}
-                  aria-hidden="true"
-                />
-              </span>
-              {!isLast && <span className="my-1 w-px flex-1 bg-border" />}
-            </div>
-
-            <div className={isLast ? 'flex-1' : 'flex-1 pb-5'}>
-              <p className="font-medium text-heading">{step.title}</p>
-              <p className="text-sm text-muted-foreground">{step.detail}</p>
-            </div>
-          </li>
-        )
-      })}
-    </ol>
-  )
-}
-
-function Section({ title, accent, children }) {
-  return (
-    <section className={`border-t border-border p-5 ${accent || ''}`}>
-      {title && <h2 className="mb-2 font-medium text-heading">{title}</h2>}
-      {children}
+    <section className={`${PANEL_CLASS} p-5 ${accent ? `border-l-4 ${accent}` : ''}`}>
+      <h2 className="font-medium text-heading">{title}</h2>
+      <div className="mt-2">{children}</div>
     </section>
   )
 }
 
-export default function URLResultCard({ result }) {
-  const levelTone = toneForLevel(result.verdict_level)
-  const genai = result.genai_analysis || {}
-  const score = Math.round(result.probability * 100)
+// Identifies one displayed scan. Both parts are needed: two scans can share a
+// checked_at, and the same URL can be scanned repeatedly.
+function scanKeyFor(result) {
+  return `${result.url}|${result.checked_at}`
+}
 
-  const steps = [
-    {
-      title: 'Official site check',
-      detail: result.whitelist_hit
-        ? 'This matches a Singapore site we know is official.'
-        : 'Not one of the official sites we know, so we kept checking.',
-      tone: result.whitelist_hit ? TONES.safe : TONES.neutral,
-    },
-    {
-      title: 'Risk score',
-      detail: ZONE_WORDING[result.zone] || 'Passed on for a closer look.',
-      tone: toneForZone(result.zone),
-    },
-    {
-      title: 'AI analyst review',
-      detail: genai.is_brand_impersonation
-        ? `Flagged as pretending to be ${genai.target_brand || 'a trusted brand'}.`
-        : RISK_WORDING[genai.risk_level] || 'The review finished without a clear rating.',
-      tone: toneForRisk(genai.risk_level),
-    },
-  ]
+export default function URLResultCard({ result }) {
+  // Every user-facing decision below comes from the backend's fused verdict
+  // via this one call — the card never re-derives a verdict of its own, and
+  // never shows the AI analyst's advice as the action to take.
+  const presentation = buildResultPresentation(result)
+  const levelTone = toneForKey(presentation.level)
+  const VerdictIcon = levelTone.stepIcon
 
   return (
-    <article className={PANEL_CLASS}>
-      <div className={`p-5 ${levelTone.bg}`}>
-        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-6 sm:text-left">
-          <ScoreRing score={score} tone={levelTone} />
+    <div className="space-y-4">
+      <article className={PANEL_CLASS}>
+        <div
+          className={`flex flex-col items-center gap-5 p-5 text-center sm:flex-row sm:gap-6 sm:text-left ${levelTone.bg}`}
+        >
+          <div className="shrink-0 sm:border-r sm:border-border sm:pr-6">
+            <ScoreRing
+              score={presentation.score}
+              tone={levelTone}
+              label={presentation.scoreLabel}
+              ariaLabel={presentation.scoreAriaLabel}
+            />
+          </div>
+
           <div className="min-w-0">
-            <h2 className={`text-2xl font-bold ${levelTone.text}`}>{result.verdict}</h2>
-            <p className="mt-1 text-foreground">{summarySentence(result)}</p>
-            <p className="mt-2 break-all text-sm text-muted-foreground">{result.url}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{formatCheckedAt(result.checked_at)}</p>
+            <h2
+              className={`flex items-center justify-center gap-2 text-2xl font-bold sm:justify-start ${levelTone.text}`}
+            >
+              <VerdictIcon className="size-6 shrink-0" aria-hidden="true" />
+              {presentation.headline}
+            </h2>
+            <p className="mt-1.5 leading-relaxed text-foreground">{presentation.summary}</p>
+
+            <div className="mt-3 flex flex-col items-center gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              {/* Plain text, never a link: nothing on this page may navigate to
+                  a scanned address. */}
+              <span className="max-w-full rounded-md border border-border bg-background/60 px-2 py-1 font-mono text-xs break-all text-foreground">
+                {result.url}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {formatCheckedAt(result.checked_at)}
+              </span>
+            </div>
           </div>
         </div>
+      </article>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-medium text-heading">How we checked this link</h2>
+          <URLShareSummary key={scanKeyFor(result)} result={result} />
+        </div>
+        <URLCheckSteps steps={presentation.steps} />
+      </section>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <InfoCard title="What our AI analyst found">
+          <p className="leading-relaxed text-foreground">{presentation.analystNote.text}</p>
+        </InfoCard>
+
+        <InfoCard title="What should I do?" accent={levelTone.accent}>
+          <p className="leading-relaxed font-medium text-foreground-strong">
+            {presentation.recommendedAction}
+          </p>
+        </InfoCard>
       </div>
 
-      <Section title="How we checked this link">
-        <PipelineTimeline steps={steps} />
-      </Section>
+      <div className={PANEL_CLASS}>
+        <div className="px-5">
+          <URLTechDetails result={result} opinionLabel={presentation.analystOpinionLabel} />
+        </div>
 
-      <Section title="What our AI analyst found">
-        <p className="leading-relaxed text-foreground">{result.explanation}</p>
-      </Section>
-
-      <Section title="What should I do?" accent={`border-l-4 ${levelTone.accent}`}>
-        <p className="font-medium text-foreground-strong">{result.advice}</p>
-      </Section>
-
-      <div className="border-t border-border px-5">
-        <URLTechDetails result={result} />
+        {/* Keyed on the scanned result so a new scan mounts a fresh copy, clearing
+            the previous form, error and success state. */}
+        <div className="border-t border-border px-5 py-2">
+          <URLFeedback
+            key={scanKeyFor(result)}
+            result={result}
+            finalLevel={presentation.level}
+          />
+        </div>
       </div>
-    </article>
+    </div>
   )
 }

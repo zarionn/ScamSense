@@ -6,6 +6,9 @@ This file should stay limited to: app setup, route definitions, reading request
 inputs, calling the right service function, and converting the result into the
 existing HTTP response — never large detector/model workflows.
 """
+import re
+from urllib.parse import urlsplit
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
@@ -112,6 +115,47 @@ def assistant_message():
 
 # URL PHISHING DETECTOR: HTTP validation stays here; model and Gemini logic
 # remain isolated in services/url/url_service.py.
+
+# The same website-address contract as frontend/src/lib/web-address.js, so a direct
+# API call cannot get a verdict for text the UI would have refused — free words such
+# as "hello" parse as a hostname and would otherwise come back as "Looks safe".
+# url_normalizer.py stays the authority on what the model then sees.
+AUTHORITY_SCHEME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://")
+OPAQUE_SCHEME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:(?!//)(?!\d)")
+UNSAFE_URL_CHARACTERS = re.compile(r"[\s\\\x00-\x1f\x7f-\x9f]")
+
+
+def is_supported_web_address(url):
+    """Return True for a full or scheme-less http(s) website address."""
+    if UNSAFE_URL_CHARACTERS.search(url):
+        return False
+
+    has_scheme = bool(AUTHORITY_SCHEME_PATTERN.match(url))
+    # "mailto:", "javascript:" and "WIFI:" all have this shape; a port does not.
+    if not has_scheme and OPAQUE_SCHEME_PATTERN.match(url):
+        return False
+
+    try:
+        parsed = urlsplit(url if has_scheme else "https://" + url)
+        host = parsed.hostname
+    except ValueError:
+        return False
+
+    if has_scheme and parsed.scheme not in ("http", "https"):
+        return False
+    if not host:
+        return False
+    # A scheme-less value has to at least look like a domain.
+    if not has_scheme and "." not in host:
+        return False
+    # The browser's parser maps zero-width and non-ASCII hosts to something else
+    # entirely, so refusing them here keeps both sides on the same address.
+    if not host.isascii():
+        return False
+    # A host the parser had to rewrite is not the address the caller sent.
+    return host in url.lower()
+
+
 @app.route("/api/url/predict", methods=["POST"])
 def predict_url():
     body = request.get_json(silent=True) or {}
@@ -123,6 +167,9 @@ def predict_url():
     url = url.strip()
     if len(url) > 2000:
         return jsonify({"error": "That URL is too long to check."}), 400
+
+    if not is_supported_web_address(url):
+        return jsonify({"error": "Please enter a website address such as example.com."}), 400
 
     try:
         result = url_service.predict_url(url)

@@ -4,13 +4,14 @@ import URLChecker from './components/URLChecker'
 
 export default function URLScanPage() {
   return (
-    <>
+    <div className="pt-4 sm:pt-10">
       <PageHeader
+        align="center"
         title="URL Phishing Detector"
         description="Paste a suspicious link to check its address, risk patterns, and possible brand impersonation."
       />
 
-      <div className="mx-auto w-full max-w-[900px]">
+      <div className="mx-auto w-full max-w-[900px] pt-2">
         <URLChecker />
       </div>
 
@@ -21,6 +22,6 @@ export default function URLScanPage() {
           100% accurate. When in doubt, verify the link through an official source.
         </p>
       </footer>
-    </>
+    </div>
   )
 }
