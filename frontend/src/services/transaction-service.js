@@ -23,6 +23,37 @@ export async function saveTransactionScanHistory(userId, results, sourceFile) {
   if (error) throw error
 }
 
+// Statement upload — the detector's supported batch entry point. Shared by the
+// Transaction page and the Assistant orchestrator.
+export async function uploadTransactionStatement(file, language = 'en') {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('language', language)
+
+  let response
+  try {
+    response = await fetch('/api/transaction/upload', {
+      method: 'POST',
+      body: formData,
+    })
+  } catch {
+    throw new Error('Could not reach the server. Please try again.')
+  }
+
+  let data
+  try {
+    data = await response.json()
+  } catch {
+    throw new Error('The server returned an invalid response.')
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || 'Excel upload failed')
+  }
+
+  return data
+}
+
 export async function checkTransaction(payload) {
   let response
 

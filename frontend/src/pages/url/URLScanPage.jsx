@@ -2,7 +2,7 @@ import { Info } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import URLChecker from './components/URLChecker'
 
-export default function URLScanPage() {
+export default function URLScanPage({ initialURL, initialResult, onInitialConsumed }) {
   return (
     <div className="pt-4 sm:pt-10">
       <PageHeader
@@ -12,7 +12,11 @@ export default function URLScanPage() {
       />
 
       <div className="mx-auto w-full max-w-[900px] pt-2">
-        <URLChecker />
+        <URLChecker
+          initialURL={initialURL}
+          initialResult={initialResult}
+          onInitialConsumed={onInitialConsumed}
+        />
       </div>
 
       <footer className="mx-auto mt-8 max-w-[900px] border-t border-border py-3.5">

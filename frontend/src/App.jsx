@@ -251,6 +251,22 @@ function App() {
   []
 )
 
+  // A chatbot result card: the same single handoff slot carries the completed
+  // result, so the detector page renders it instead of scanning again. Only one
+  // card can be open at a time, so one slot is enough.
+  const handleOpenDetectorResult = useCallback((detectorResult) => {
+    setDetectorHandoff({
+      detector: detectorResult.detectorKey,
+      input: detectorResult.input,
+      file: detectorResult.file ?? undefined,
+      message: detectorResult.detectorKey === 'message' ? detectorResult.input : undefined,
+      result: detectorResult.rawResult ?? undefined,
+      source: 'assistant',
+      mode: 'result',
+    })
+    setActivePage(detectorResult.detectorKey)
+  }, [])
+
   const handleHandoffConsumed = useCallback(() => {
     setDetectorHandoff(null)
   }, [])
@@ -319,6 +335,19 @@ function App() {
     ? detectorHandoff.file
     : null
 
+  const transactionHandoffResult =
+    detectorHandoff?.detector === 'transaction' ? detectorHandoff.result : null
+
+  const urlHandoffInput = detectorHandoff?.detector === 'url' ? detectorHandoff.input : null
+
+  const urlHandoffResult = detectorHandoff?.detector === 'url' ? detectorHandoff.result : null
+
+  const messageHandoffResult =
+    detectorHandoff?.detector === 'message' ? detectorHandoff.result : null
+
+  const screenshotHandoffAnalysis =
+    detectorHandoff?.detector === 'screenshot' ? detectorHandoff.result : null
+    
   const assistantHistory = {
     isSignedIn: !!user,
     conversations: conversationHistory.conversations,
@@ -347,6 +376,7 @@ function App() {
           messages={assistantMessages}
           onMessagesChange={setAssistantMessages}
           onOpenDetector={handleOpenDetector}
+          onOpenDetectorResult={handleOpenDetectorResult}
           onPersistMessage={conversationHistory.recordMessage}
           onConversationReset={conversationHistory.startNewChat}
           isLoadingHistory={conversationHistory.isLoadingMessages || isRestoringActiveConversation}
@@ -358,6 +388,7 @@ function App() {
       {activePage === 'screenshot' && (
         <ScreenshotScanPage
           initialFile={screenshotHandoffFile}
+          initialAnalysis={screenshotHandoffAnalysis}
           onInitialFileConsumed={handleHandoffConsumed}
         />
       )}
@@ -366,16 +397,24 @@ function App() {
           initialMessage={messageHandoffText}
           initialFile={messageHandoffFile}
           initialImage={messageHandoffImage}
+          initialResult={messageHandoffResult}
           handoffMode={detectorHandoff?.mode}
           onInitialMessageConsumed={handleHandoffConsumed}
           onInitialFileConsumed={handleHandoffConsumed}
           onInitialImageConsumed={handleHandoffConsumed}
         />
       )}
-      {activePage === 'url' && <URLScanPage />}
+      {activePage === 'url' && (
+        <URLScanPage
+          initialURL={urlHandoffInput}
+          initialResult={urlHandoffResult}
+          onInitialConsumed={handleHandoffConsumed}
+        />
+      )}
       {activePage === 'transaction' && (
         <TransactionScanPage
           initialFile={transactionHandoffFile}
+          initialResult={transactionHandoffResult}
           onInitialFileConsumed={handleHandoffConsumed}
         />
       )}
