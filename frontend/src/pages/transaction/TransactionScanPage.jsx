@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '@/components/layout/PageHeader'
-import { checkTransaction } from '@/services/transaction-service'
+import { uploadTransactionStatement } from '@/services/transaction-service'
 import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/providers/auth-provider'
 import { saveTransactionScanHistory } from '@/services/transaction-service'
 
-export default function TransactionScanPage({ initialFile, onInitialFileConsumed, onOpenAssistant }) {
+export default function TransactionScanPage({
+  initialFile,
+  initialResult,
+  onInitialFileConsumed,
+  onOpenAssistant,
+}) {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -22,6 +27,11 @@ export default function TransactionScanPage({ initialFile, onInitialFileConsumed
   useEffect(() => {
     if (initialFile) {
       setSelectedFile(initialFile)
+    }
+    if (initialResult) {
+      setResult(initialResult)
+    }
+    if (initialFile || initialResult) {
       onInitialFileConsumed?.()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,19 +115,7 @@ export default function TransactionScanPage({ initialFile, onInitialFileConsumed
     setError('')
 
     try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('language', language)
-
-      const response = await fetch('/api/transaction/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data?.error || 'Excel upload failed')
-      }
+      const data = await uploadTransactionStatement(selectedFile, language)
 
       setResult(data)
       if (user && Array.isArray(data.results)) {

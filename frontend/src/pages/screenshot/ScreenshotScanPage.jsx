@@ -8,58 +8,12 @@ import DynamicQuestionnaire from './components/DynamicQuestionnaire'
 import ResultView from './components/ResultView'
 import ErrorMessage from './components/ErrorMessage'
 import UncertaintyNote from './components/UncertaintyNote'
+import { analyseScreenshot, respondToAnalysis } from '@/services/screenshot-service'
 
 const PHASE = {
   UPLOAD: 'upload',
   QUESTIONS: 'questions',
   RESULT: 'result',
-}
-
-async function parseJsonResponse(response) {
-  let data = null
-  try {
-    data = await response.json()
-  } catch {
-    throw new Error('The server sent back an unexpected response. Please try again.')
-  }
-  if (!response.ok) {
-    throw new Error(data?.error || 'Something went wrong. Please try again.')
-  }
-  return data
-}
-
-async function analyseScreenshot(file) {
-  const formData = new FormData()
-  formData.append('file', file)
-
-  let response
-  try {
-    response = await fetch('/api/analyse', {
-      method: 'POST',
-      body: formData,
-    })
-  } catch {
-    throw new Error(
-      'Could not reach the server. Check your internet connection and try again.'
-    )
-  }
-  return parseJsonResponse(response)
-}
-
-async function respondToAnalysis(analysisToken, answers) {
-  let response
-  try {
-    response = await fetch('/api/respond', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ analysis_token: analysisToken, answers }),
-    })
-  } catch {
-    throw new Error(
-      'Could not reach the server. Check your internet connection and try again.'
-    )
-  }
-  return parseJsonResponse(response)
 }
 
 // initialFile/onInitialFileConsumed are optional — normal sidebar navigation
@@ -68,7 +22,7 @@ async function respondToAnalysis(analysisToken, answers) {
 // object here; it's consumed once at mount into the existing selected-
 // attachment state (no auto-analyse), then immediately reported back as
 // consumed so App.jsx clears it and it never re-injects on a later render.
-function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
+function ScreenshotScanPage({ initialFile, initialAnalysis, onInitialFileConsumed }) {
   const [file, setFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const objectUrlRef = useRef(null)
@@ -105,18 +59,6 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
     setPhase(PHASE.UPLOAD)
   }, [])
 
-  useEffect(() => {
-    if (initialFile) {
-      handleFileSelected(initialFile)
-      onInitialFileConsumed?.()
-    }
-    // Deliberately run once on mount only — this consumes whatever handoff
-    // file was present when the page first mounted. Each navigation to
-    // Screenshot Scan mounts a fresh instance of this page, so "once per
-    // mount" is exactly "once per handoff", with no re-injection loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   const submitAnswers = useCallback(async (analysisToken, answers) => {
     setRespondStatus('loading')
     setRespondError('')
@@ -129,6 +71,36 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
       setRespondError(error.message)
       setRespondStatus('error')
     }
+  }, [])
+
+  useEffect(() => {
+    if (initialFile) {
+      handleFileSelected(initialFile)
+    }
+
+    // A stage-1 analysis the Assistant already ran. /api/analyse is not called
+    // again and the signed token is reused, so the user continues into the same
+    // analysis rather than starting a second one. These run after
+    // handleFileSelected so they win over its reset.
+    if (initialAnalysis) {
+      setAnalysisContext(initialAnalysis)
+      setAnalyseStatus('success')
+      const questions = initialAnalysis.exposure_questions
+      if (!questions || questions.length === 0) {
+        submitAnswers(initialAnalysis.analysis_token, {})
+      } else {
+        setPhase(PHASE.QUESTIONS)
+      }
+    }
+
+    if (initialFile || initialAnalysis) {
+      onInitialFileConsumed?.()
+    }
+    // Deliberately run once on mount only — this consumes whatever handoff
+    // was present when the page first mounted. Each navigation to
+    // Screenshot Scan mounts a fresh instance of this page, so "once per
+    // mount" is exactly "once per handoff", with no re-injection loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleAnalyse = useCallback(async () => {
@@ -192,7 +164,7 @@ function ScreenshotScanPage({ initialFile, onInitialFileConsumed }) {
         title="Scam Screenshot Detector"
         description="Upload a suspicious screenshot to identify visual warning signs and receive recommended next steps."
         actions={
-          hasResult && (
+          (hasResult || (phase === PHASE.QUESTIONS && respondStatus === 'error')) && (
             // Branded-but-secondary: plum text/border on hover into the lavender
             // surface, so it feels connected to the brand without becoming a
             // second primary action next to the result. The dark: pairs re-assert

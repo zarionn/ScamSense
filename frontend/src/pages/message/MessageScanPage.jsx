@@ -49,6 +49,7 @@ function MessageScanPage({
     onInitialFileConsumed,
     initialImage = null,
     onInitialImageConsumed,
+    initialResult = null,
 }) {
 
     const { user } = useAuth();
@@ -89,9 +90,14 @@ function MessageScanPage({
 
         setMessage(initialMessage);
 
+        // A completed Assistant scan is displayed as-is rather than re-analysed.
+        if (initialResult) {
+            setAnalysisResult(initialResult);
+        }
+
         onInitialMessageConsumed?.();
 
-    }, [initialMessage, onInitialMessageConsumed]);
+    }, [initialMessage, initialResult, onInitialMessageConsumed]);
 
 
 

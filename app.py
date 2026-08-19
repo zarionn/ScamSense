@@ -14,6 +14,7 @@ from flask_cors import CORS
 
 from services.screenshot import screenshot_service
 from services.chatbot import chatbot_service
+from services.chatbot import routing_service
 from services.url import url_service
 from services.transaction import transaction_service
 import pandas as pd
@@ -111,6 +112,19 @@ def assistant_message():
 
     result = chatbot_service.generate_assistant_reply(message, context)
     return jsonify(result)
+
+
+# ── ASSISTANT ROUTING: is this text detector input, or ordinary conversation?
+# Routing only — never a verdict (see services/chatbot/routing_service.py) ──
+@app.route("/api/assistant/route", methods=["POST"])
+def assistant_route():
+    body = request.get_json(silent=True) or {}
+    message = body.get("message")
+
+    if not isinstance(message, str) or not message.strip():
+        return jsonify({"error": "Expected JSON with a non-empty 'message' string"}), 400
+
+    return jsonify(routing_service.classify_message_intent(message))
 
 
 # URL PHISHING DETECTOR: HTTP validation stays here; model and Gemini logic

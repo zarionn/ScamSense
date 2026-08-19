@@ -8,9 +8,14 @@ import ChatMessage from './components/ChatMessage'
 import ChatComposer from './components/ChatComposer'
 import TypingIndicator from './components/TypingIndicator'
 import { IMAGE_ATTACHED_REPLY, TRANSACTION_ATTACHED_REPLY, STEPS, WELCOME_STEP_ID } from './assistant-flow'
+import { MAX_URL_SCANS, resolveDetectorItems, runDetectorItems } from './detector-routing'
 
 const GEMINI_FAILURE_FALLBACK =
   "I'm having trouble generating a response right now, but I can still guide you using the options below."
+
+const DETECTOR_RESULTS_INTRO = "Here's what the ScamSense detectors found."
+
+const URL_LIMIT_NOTE = ` Only the first ${MAX_URL_SCANS} links were checked.`
 
 async function requestAssistantReply(message) {
   const response = await fetch('/api/assistant/message', {
@@ -41,6 +46,7 @@ export default function AssistantPage({
   messages,
   onMessagesChange,
   onOpenDetector,
+  onOpenDetectorResult,
   onPersistMessage,
   onConversationReset,
   isLoadingHistory = false,
@@ -50,6 +56,7 @@ export default function AssistantPage({
 }) {
   const [isDeterministicTyping, setIsDeterministicTyping] = useState(false)
   const [isGeminiTyping, setIsGeminiTyping] = useState(false)
+  const [isDetecting, setIsDetecting] = useState(false)
 
   const pushMessage = useCallback(
     (partial) => {
@@ -96,10 +103,9 @@ export default function AssistantPage({
     [pushMessage, typingAnimation]
   )
 
-  // Fires for both text-only sends (existing Gemini free-text path) and
-  // image-attachment sends. An attachment ALWAYS short-circuits to a
-  // deterministic reply — even if the user typed something alongside it —
-  // so the Assistant can never appear to have inspected the screenshot.
+  // Routes one send: attachments and links reach their detectors deterministically,
+  // free text reaches Message Scan only when the backend intent classifier is
+  // confident, and anything else stays an ordinary chatbot turn.
   const handleSend = useCallback(
     async ({ text, attachment }) => {
       pushMessage({
@@ -108,48 +114,13 @@ export default function AssistantPage({
         attachment: attachment || undefined,
       })
 
-      if (attachment) {
-      // ==========================================================
-      // SCREENSHOT ATTACHMENT
-      // ==========================================================
-
-      if (attachment.type === 'image') {
-        const isTransaction = attachment.kind === 'transaction'
+      // Batch spreadsheets keep their existing Message Scan handoff — that
+      // workflow is driven from the detector page, not by an automatic scan.
+      if (attachment?.type === 'excel') {
         const apply = () => {
           pushMessage({
             role: 'assistant',
-            text: isTransaction ? TRANSACTION_ATTACHED_REPLY : IMAGE_ATTACHED_REPLY,
-            suggestions: [ isTransaction ? 'transaction' : 'screenshot', 'message'],
-            handoffFile: attachment.file,
-            handoffMode: 'ocr',
-          })
-        }
-
-        if (!typingAnimation) {
-          apply()
-          return
-        }
-
-        setIsDeterministicTyping(true)
-
-        window.setTimeout(() => {
-          setIsDeterministicTyping(false)
-          apply()
-        }, 450)
-
-        return
-      }
-
-      // ==========================================================
-      // EXCEL / CSV ATTACHMENT
-      // ==========================================================
-
-      if (attachment.type === 'excel') {
-        const apply = () => {
-          pushMessage({
-            role: 'assistant',
-            text:
-              "I've got your Excel dataset. I can prepare it for Batch Message Analysis.",
+            text: "I've got your Excel dataset. I can prepare it for Batch Message Analysis.",
             suggestions: ['message'],
             handoffFile: attachment.file,
             handoffMode: 'batch',
@@ -162,27 +133,73 @@ export default function AssistantPage({
         }
 
         setIsDeterministicTyping(true)
-
         window.setTimeout(() => {
           setIsDeterministicTyping(false)
           apply()
         }, 450)
-
         return
       }
-    }
+
+      setIsDetecting(true)
+      let detectorResults = null
+      let urlLimitApplied = false
+      try {
+        const routed = await resolveDetectorItems({ text, attachment })
+        urlLimitApplied = routed.urlLimitApplied
+        if (routed.items.length > 0) {
+          detectorResults = await runDetectorItems(routed.items)
+        }
+      } catch {
+        detectorResults = null
+      } finally {
+        setIsDetecting(false)
+      }
+
+      if (detectorResults) {
+        pushMessage({
+          role: 'assistant',
+          text: DETECTOR_RESULTS_INTRO + (urlLimitApplied ? URL_LIMIT_NOTE : ''),
+          detectorResults,
+        })
+        return
+      }
+
+      // An attachment whose detector is unavailable still gets the existing
+      // deterministic hand-off reply rather than silently disappearing.
+      if (attachment) {
+        const isTransaction = attachment.type === 'transaction'
+        const apply = () => {
+          pushMessage({
+            role: 'assistant',
+            text: isTransaction ? TRANSACTION_ATTACHED_REPLY : IMAGE_ATTACHED_REPLY,
+            suggestions: [isTransaction ? 'transaction' : 'screenshot', 'message'],
+            handoffFile: attachment.file,
+            handoffMode: isTransaction ? 'transaction' : 'ocr',
+          })
+        }
+
+        if (!typingAnimation) {
+          apply()
+          return
+        }
+
+        setIsDeterministicTyping(true)
+        window.setTimeout(() => {
+          setIsDeterministicTyping(false)
+          apply()
+        }, 450)
+        return
+      }
 
       if (!text) return
 
       setIsGeminiTyping(true)
       try {
         const data = await requestAssistantReply(text)
-       pushMessage({
+        pushMessage({
           role: 'assistant',
           text: data.reply,
           isFallback: data.source === 'fallback',
-          suggestions: ['message'],
-          handoffMessage: text,
         })
       } catch {
         // Transient client-side error notice, not real Assistant content —
@@ -207,6 +224,7 @@ export default function AssistantPage({
     onMessagesChange([])
     setIsDeterministicTyping(false)
     setIsGeminiTyping(false)
+    setIsDetecting(false)
     // Signed-in only in practice (a no-op for guests) — clears the active
     // saved-conversation id without creating or deleting anything, so the
     // *next* message starts a new conversation instead of appending to the
@@ -214,7 +232,7 @@ export default function AssistantPage({
     onConversationReset?.()
   }, [onMessagesChange, onConversationReset])
 
-  const isBusy = isDeterministicTyping || isGeminiTyping
+  const isBusy = isDeterministicTyping || isGeminiTyping || isDetecting
   const welcomeStep = STEPS[WELCOME_STEP_ID]
   const showWelcome = messages.length === 0 && !isLoadingHistory
 
@@ -264,9 +282,14 @@ export default function AssistantPage({
                   isLast={index === messages.length - 1}
                   onSelectQuickReply={handleQuickReply}
                   onOpenDetector={onOpenDetector}
+                  onOpenDetectorResult={onOpenDetectorResult}
                 />
               ))}
-              {isBusy && <TypingIndicator />}
+              {isBusy && (
+                <TypingIndicator
+                  label={isDetecting ? 'Checking with ScamSense detectors…' : undefined}
+                />
+              )}
             </div>
           )}
         </div>
