@@ -10,14 +10,14 @@ export default function WarningSignsSection({ observations, auditStatus }) {
     : 'No specific visual warning signs were flagged in this screenshot.'
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ScanSearch className="size-4 text-primary" aria-hidden="true" />
           What the Visual Review Found
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         {observations.length === 0 ? (
           <div
             className={`flex items-start gap-2.5 rounded-lg border p-3.5 text-sm text-foreground ${

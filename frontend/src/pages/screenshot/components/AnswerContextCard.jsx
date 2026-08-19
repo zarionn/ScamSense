@@ -24,14 +24,14 @@ export default function AnswerContextCard({
   if (relevantQuestions.length === 0 && !hasDefaultedGuidance) return null
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ClipboardCheck className="size-4 text-primary" aria-hidden="true" />
           Based on Your Answers
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="flex-1 space-y-2">
         {relevantQuestions.map((question) => {
           const answer = answers?.[question.dimension]
           return (

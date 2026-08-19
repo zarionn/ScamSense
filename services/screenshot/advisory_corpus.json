@@ -1,7 +1,9 @@
 [
   {
     "id": "singpass-phishing-login-2022",
-    "authorities": ["Singapore Police Force"],
+    "authorities": [
+      "Singapore Police Force"
+    ],
     "title": "Advisory On Phishing Scams Involving Singpass",
     "url": "https://www.police.gov.sg/media-hub/news/2022/20221002_advisory_on_phishing_scams_involving_singpass",
     "publication_date": "2022-10-02",
@@ -18,12 +20,19 @@
       "external_verification_link",
       "impersonation_claim"
     ],
-    "content_types": ["sms_or_chat", "login_page"],
-    "entity_tags": ["Singpass"]
+    "content_types": [
+      "sms_or_chat",
+      "login_page"
+    ],
+    "entity_tags": [
+      "Singpass"
+    ]
   },
   {
     "id": "marketplace-fake-buyer-phishing-2025",
-    "authorities": ["Singapore Police Force"],
+    "authorities": [
+      "Singapore Police Force"
+    ],
     "title": "Police Advisory On Phishing Scams Involving Fake Buyers On Online Marketplaces",
     "url": "https://www.police.gov.sg/media-hub/news/2025/02/20250212_police_advisory_on_phishing_scams_involving_fake_buyers_on_online_marketplaces",
     "publication_date": "2025-02-12",
@@ -74,7 +83,9 @@
       "remote_access_request",
       "attachment_or_download_request"
     ],
-    "content_types": ["website"],
+    "content_types": [
+      "website"
+    ],
     "entity_tags": [
       "Microsoft",
       "Apple",
@@ -85,7 +96,9 @@
   },
   {
     "id": "cryptocurrency-malicious-links-2026",
-    "authorities": ["Singapore Police Force"],
+    "authorities": [
+      "Singapore Police Force"
+    ],
     "title": "Police Advisory On Cryptocurrency Scams Involving Malicious Links And Unauthorised Transactions",
     "url": "https://www.police.gov.sg/Media-Hub/News/2026/07/20260701_police_advisory_on_cryptocurrency_scams_involving_malicious_links",
     "publication_date": "2026-07-01",
@@ -103,12 +116,20 @@
       "impersonation_claim",
       "attachment_or_download_request"
     ],
-    "content_types": ["sms_or_chat", "website"],
-    "entity_tags": ["FIFA", "World Cup"]
+    "content_types": [
+      "sms_or_chat",
+      "website"
+    ],
+    "entity_tags": [
+      "FIFA",
+      "World Cup"
+    ]
   },
   {
     "id": "investment-scams-2025",
-    "authorities": ["Singapore Police Force"],
+    "authorities": [
+      "Singapore Police Force"
+    ],
     "title": "Police Advisory On Investment Scams",
     "url": "https://www.police.gov.sg/media-hub/news/2025/02/20250211_police_advisory_on_investment_scams",
     "publication_date": "2025-02-11",
@@ -124,12 +145,17 @@
       "unusual_payment_method",
       "impersonation_claim"
     ],
-    "content_types": ["sms_or_chat", "website"],
+    "content_types": [
+      "sms_or_chat",
+      "website"
+    ],
     "entity_tags": []
   },
   {
     "id": "job-task-payment-scams-2024",
-    "authorities": ["Singapore Police Force"],
+    "authorities": [
+      "Singapore Police Force"
+    ],
     "title": "Police Advisory On Job Scams",
     "url": "https://www.police.gov.sg/media-hub/news/2024/20240220_police_advisory_on_job_scams",
     "publication_date": "2024-02-20",
@@ -144,28 +170,44 @@
       "unusual_payment_method",
       "impersonation_claim"
     ],
-    "content_types": ["sms_or_chat", "website"],
-    "entity_tags": ["TikTok"]
+    "content_types": [
+      "sms_or_chat",
+      "website"
+    ],
+    "entity_tags": [
+      "TikTok"
+    ]
   },
   {
     "id": "facebook-live-lucky-draw-2026",
-    "authorities": ["Singapore Police Force"],
+    "authorities": [
+      "Singapore Police Force"
+    ],
     "title": "Police Advisory On Lucky Draw Scams Involving Facebook Live",
     "url": "https://www.police.gov.sg/Media-Hub/News/2026/06/20260615_police_advisory_on_lucky_draw_scams_involving_facebook_live",
     "publication_date": "2026-06-15",
     "summary": "Facebook livestreams promoted scratch cards or lottery tickets, after which purported winners were asked to pay administrative fees through PayNow QR codes to claim cash prizes.",
-    "categories": ["prize or reward scams", "payment scams"],
+    "categories": [
+      "prize or reward scams",
+      "payment scams"
+    ],
     "signal_tags": [
       "prize_or_reward_claim",
       "payment_request",
       "upfront_fee_request"
     ],
-    "content_types": ["other"],
-    "entity_tags": ["Facebook"]
+    "content_types": [
+      "other"
+    ],
+    "entity_tags": [
+      "Facebook"
+    ]
   },
   {
     "id": "whatsapp-account-impersonation-2026",
-    "authorities": ["Singapore Police Force"],
+    "authorities": [
+      "Singapore Police Force"
+    ],
     "title": "Police Advisory On Social Media Impersonation Scams Arising From Compromised Whatsapp Accounts",
     "url": "https://www.police.gov.sg/Media-Hub/News/2026/05/20260508_police_advisory_on_social_media_impersonation_scams",
     "publication_date": "2026-05-08",
@@ -175,8 +217,197 @@
       "impersonation",
       "payment scams"
     ],
-    "signal_tags": ["otp_request", "impersonation_claim", "payment_request"],
-    "content_types": ["sms_or_chat"],
-    "entity_tags": ["WhatsApp"]
+    "signal_tags": [
+      "otp_request",
+      "impersonation_claim",
+      "payment_request"
+    ],
+    "content_types": [
+      "sms_or_chat"
+    ],
+    "entity_tags": [
+      "WhatsApp"
+    ]
+  },
+  {
+    "id": "cryptocurrency-asset-compromise-2025",
+    "authorities": [
+      "Cyber Security Agency of Singapore",
+      "Singapore Police Force"
+    ],
+    "title": "Joint Advisory On Safeguarding Against Compromise Of Cryptocurrency Assets",
+    "url": "https://www.csa.gov.sg/alerts-and-advisories/advisories/ad-2025-004/",
+    "publication_date": "2025-02-05",
+    "summary": "Victims lost cryptocurrency after opening phishing links to spoofed wallet or exchange pages, and after keying in unfamiliar commands supplied by scammers, which authorised transfers out of their own wallets. Issued jointly by CSA and the Singapore Police Force.",
+    "categories": [
+      "phishing and fake websites",
+      "payment or unusual-payment-method scams"
+    ],
+    "signal_tags": [
+      "external_verification_link",
+      "credential_request",
+      "unusual_payment_method"
+    ],
+    "content_types": [
+      "website",
+      "sms_or_chat"
+    ],
+    "entity_tags": []
+  },
+  {
+    "id": "digital-manipulation-deepfake-scams-2025",
+    "authorities": [
+      "Cyber Security Agency of Singapore",
+      "Singapore Police Force",
+      "Monetary Authority of Singapore"
+    ],
+    "title": "Joint Advisory On Scams Involving Digital Manipulation",
+    "url": "https://www.csa.gov.sg/alerts-and-advisories/advisories/ad-2025-005/",
+    "publication_date": "2025-03-12",
+    "summary": "Scammers used artificial intelligence to create or alter synthetic media, such as deepfake video and audio, to make fraudulent approaches appear credible. The advisory sets out precautions for businesses, and was issued jointly by CSA, the Singapore Police Force and the Monetary Authority of Singapore.",
+    "categories": [
+      "impersonation"
+    ],
+    "signal_tags": [
+      "impersonation_claim"
+    ],
+    "content_types": [
+      "other",
+      "website"
+    ],
+    "entity_tags": []
+  },
+  {
+    "id": "government-officer-impersonation-fake-notice-2025",
+    "authorities": [
+      "Cyber Security Agency of Singapore"
+    ],
+    "title": "Alert On Scammers Impersonating CSA, The SPF And The MHA",
+    "url": "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2025-123/",
+    "publication_date": "2025-12-27",
+    "summary": "Scammers posing as officers from the Cyber Security Agency, the police and the Ministry of Home Affairs issued fake criminal investigation notices alleging involvement in a cyber-infiltration case, then pressured recipients to respond within 48 hours to avoid supposed criminal charges.",
+    "categories": [
+      "government impersonation",
+      "impersonation"
+    ],
+    "signal_tags": [
+      "impersonation_claim",
+      "authority_pressure"
+    ],
+    "content_types": [
+      "email",
+      "other"
+    ],
+    "entity_tags": [
+      "Cyber Security Agency of Singapore",
+      "Singapore Police Force",
+      "Ministry of Home Affairs"
+    ]
+  },
+  {
+    "id": "scamshield-job-scams-guide",
+    "authorities": [
+      "ScamShield"
+    ],
+    "title": "Job Scams",
+    "url": "https://www.scamshield.gov.sg/i-want-protection-from-scams/learn-to-recognise-scams/job-scams/",
+    "publication_date": "2026-05-26",
+    "summary": "Reference guidance on job scams, where victims are offered work-from-home tasks paid by commission, such as making advance purchases or boosting product listings and ratings, or are asked to move funds through their own accounts. Victims discover the scam when commissions never arrive or funds cannot be withdrawn.",
+    "categories": [
+      "job or upfront-fee scams",
+      "payment or unusual-payment-method scams"
+    ],
+    "signal_tags": [
+      "upfront_fee_request",
+      "payment_request"
+    ],
+    "content_types": [
+      "sms_or_chat",
+      "website"
+    ],
+    "entity_tags": []
+  },
+  {
+    "id": "scamshield-e-commerce-scams-guide",
+    "authorities": [
+      "ScamShield"
+    ],
+    "title": "E-Commerce Scams",
+    "url": "https://www.scamshield.gov.sg/i-want-protection-from-scams/learn-to-recognise-scams/e-commerce-scams/",
+    "publication_date": "2026-05-26",
+    "summary": "Reference guidance on e-commerce scams involving goods or services sold without a physical meet-up. Buyers pay and receive nothing, while sellers deliver and are shown forged payment screenshots. Warning signs include payment taken outside the platform, limited-time pricing, and links or third-party apps sent to arrange payment or refunds.",
+    "categories": [
+      "e-commerce or payment scams",
+      "payment or unusual-payment-method scams"
+    ],
+    "signal_tags": [
+      "payment_request",
+      "external_verification_link",
+      "unusual_payment_method"
+    ],
+    "content_types": [
+      "marketplace_listing",
+      "sms_or_chat"
+    ],
+    "entity_tags": []
+  },
+  {
+    "id": "bank-officer-impersonation-uptick-2024",
+    "authorities": [
+      "Monetary Authority of Singapore",
+      "Singapore Police Force"
+    ],
+    "title": "Joint Advisory On Uptick In Government Official Impersonation Scam Variant Featuring Impersonation Of Banks",
+    "url": "https://www.mas.gov.sg/news/media-releases/2024/uptick-in-government-official-impersonation-scam-variant-featuring-impersonation-of-banks",
+    "publication_date": "2024-07-27",
+    "summary": "A government official impersonation variant that begins with an unsolicited call from someone posing as an officer of a local bank such as DBS, OCBC or UOB, asking the victim to verify transactions they did not make. Denial leads to a transfer to a purported government official. Issued jointly by the Monetary Authority of Singapore and the Singapore Police Force.",
+    "categories": [
+      "bank or business impersonation",
+      "government impersonation",
+      "impersonation"
+    ],
+    "signal_tags": [
+      "impersonation_claim",
+      "authority_pressure",
+      "personal_information_request"
+    ],
+    "content_types": [
+      "other"
+    ],
+    "entity_tags": [
+      "DBS",
+      "OCBC",
+      "UOB"
+    ]
+  },
+  {
+    "id": "chinese-platform-impersonation-2025",
+    "authorities": [
+      "Monetary Authority of Singapore",
+      "Singapore Police Force"
+    ],
+    "title": "Joint Advisory On Impersonation Scams Involving Chinese Messaging And Payment Platforms",
+    "url": "https://www.mas.gov.sg/news/media-releases/2025/copy-of-joint-pnr-on-scams-involving-chinese-messaging-and-payment-platforms",
+    "publication_date": "2025-04-04",
+    "summary": "Victims received unsolicited calls from local numbers placed by scammers posing as WeChat, UnionPay or Alipay staff, who claimed a subscription was about to renew and walked victims through supposed cancellation steps that led to losses. Issued jointly by the Monetary Authority of Singapore and the Singapore Police Force.",
+    "categories": [
+      "bank or business impersonation",
+      "impersonation",
+      "payment or unusual-payment-method scams"
+    ],
+    "signal_tags": [
+      "impersonation_claim",
+      "payment_request",
+      "personal_information_request"
+    ],
+    "content_types": [
+      "other",
+      "sms_or_chat"
+    ],
+    "entity_tags": [
+      "WeChat",
+      "UnionPay",
+      "Alipay"
+    ]
   }
 ]
