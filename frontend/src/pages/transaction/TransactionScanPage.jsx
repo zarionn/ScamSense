@@ -229,9 +229,9 @@ export default function TransactionScanPage({ initialFile, onInitialFileConsumed
           )}
 
           {flaggedRows.length === 0 ? (
-            <div className="rounded-2xl border border-emerald-700 bg-emerald-700/70 p-6 text-center">
-              <h3 className="text-xl font-semibold text-emerald-200">No possible fraudulent transactions | 安全 | selamat | பாதுகாப்பான</h3>
-              <p className="mt-2 text-sm text-emerald-100/80">
+            <div className="rounded-2xl border border-success-20 bg-success-soft p-6 text-center">
+              <h3 className="text-xl font-semibold text-success">No possible fraudulent transactions | 安全 | selamat | பாதுகாப்பான</h3>
+              <p className="mt-2 text-sm text-slate-400">
                 No uploaded row exceeded the fraud detection threshold.
               </p>
             </div>
@@ -305,14 +305,14 @@ export default function TransactionScanPage({ initialFile, onInitialFileConsumed
           )}
 
           {flaggedRows.length > 0 && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-700/70 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-amber-100">
+            <div className="rounded-2xl border border-amber-500/30 bg-warning p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-700">
                 Next step
               </h3>
 
               {!emailDraft ? (
                 <div className="mt-3 flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
-                  <p className="text-sm text-white">
+                  <p className="text-sm text-slate-900">
                     {flaggedRows.length} transaction{flaggedRows.length > 1 ? 's' : ''} flagged.
                     Draft an escalation email to send to the bank / SPF for review.
                   </p>
@@ -332,7 +332,7 @@ export default function TransactionScanPage({ initialFile, onInitialFileConsumed
                     <button
                       type="button"
                       onClick={handleCopyEmail}
-                      className="shrink-0 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-amber-400 hover:text-white"
+                      className="shrink-0 rounded-lg border border-warning px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-warning hover:text-white"
                     >
                       {copied ? 'Copied ✓' : 'Copy to clipboard'}
                     </button>
