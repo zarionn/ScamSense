@@ -262,9 +262,27 @@ def _is_cancellation(normalized: str) -> bool:
     )
 
 
+# Canonical token forms (see _canonical_token): "this" stems to "thi".
+_RECEIVED_ITEM_MARKERS = frozenset({"received", "receive", "got", "sent", "thi", "these"})
+
+
+def _describes_received_item(tokens: frozenset[str]) -> bool:
+    """Clarification-only: the turn describes a specific item the user received.
+
+    Deliberately narrower than the shared `_contains_analysis_request`, which
+    `detect_advisory_intent` also consults and which must keep its standalone
+    behaviour. Requiring a received-item marker alongside the item word is what
+    separates "I received this investment message, is it a scam?" from ordinary
+    topic answers such as "phishing email scams".
+    """
+    return bool(tokens & _SUSPICIOUS_ITEM_TERMS) and bool(tokens & _RECEIVED_ITEM_MARKERS)
+
+
 def _clears_clarification(normalized: str, tokens: frozenset[str]) -> bool:
+    """Independent, order-insensitive predicates — any one abandons the state."""
     return (
         _contains_analysis_request(tokens)
+        or _describes_received_item(tokens)
         or bool(_URL_PATTERN.search(normalized))
         or _is_cancellation(normalized)
     )

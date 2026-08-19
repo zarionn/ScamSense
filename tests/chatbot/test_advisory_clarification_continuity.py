@@ -158,20 +158,35 @@ class ClarificationNegativeRoutingTests(unittest.TestCase):
             )
         )
 
-    def test_descriptive_scam_question_answers_a_pending_clarification(self):
-        # Deliberate: only an *imperative* detector request ("scan this
-        # message") clears a pending clarification, matching the escape-hatch
-        # examples. A descriptive question typed straight after the
-        # clarification is read as the topic, which is the whole point of the
-        # rule — the preceding turn is what gives it meaning. Standalone, the
-        # same sentence still stays out of advisory search (test above).
+    def test_received_item_question_does_not_become_the_advisory_topic(self):
+        # A clearly new scam-analysis request must not be swallowed as the
+        # clarification answer, even though it names a plausible topic word.
+        # It falls through to the application's existing routing.
+        self.assertIsNone(
+            advisory_assistant.handle_advisory_query(
+                "I received this investment message, is it a scam?",
+                awaiting_topic=True,
+            )
+        )
+
+    def test_topic_answers_naming_a_channel_still_retrieve(self):
+        # The narrow competing-intent check keys on a *received item*, not on
+        # the channel word alone, so ordinary topic answers still search.
+        for topic in ("phishing email scams", "text message scams"):
+            with self.subTest(topic=topic):
+                response = advisory_assistant.handle_advisory_query(
+                    topic, awaiting_topic=True
+                )
+                self.assertIsNotNone(response)
+
+    def test_cancellation_phrase_prefix_is_not_a_cancellation(self):
+        # "cancel" leading a real topic must still reach retrieval.
         response = advisory_assistant.handle_advisory_query(
-            "I received this investment message, is it a scam?",
-            awaiting_topic=True,
+            "cancel my card scam", awaiting_topic=True
         )
 
         self.assertIsNotNone(response)
-        self.assertEqual(response.status, "matches")
+        self.assertIn(response.status, {"matches", "no_match"})
 
     def test_direct_advisory_queries_still_work(self):
         response = advisory_assistant.handle_advisory_query(
