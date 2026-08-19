@@ -13,6 +13,7 @@ import {
 import InfoCard from "../result/InfoCard";
 import BulletCard from "../result/BulletCard";
 
+
 function BatchAnalysisDialog({
     open,
     row,
@@ -25,12 +26,14 @@ function BatchAnalysisDialog({
 
 
     const isLegitimate =
-    row["Predicted Scam Type"] === "Legitimate";
+        row["Predicted Scam Type"] === "Legitimate";
+
 
     const whyTitle =
         isLegitimate
             ? "Why This Message Appears Legitimate"
             : "Why Suspicious";
+
 
     // ==========================================
     // Convert batch text fields into arrays
@@ -42,7 +45,7 @@ function BatchAnalysisDialog({
             return [];
         }
 
-        // Backend stores multiple items using "\n"
+
         if (typeof value === "string") {
 
             return value
@@ -52,12 +55,14 @@ function BatchAnalysisDialog({
 
         }
 
-        // Already an array
+
         if (Array.isArray(value)) {
             return value;
         }
 
+
         return [];
+
     };
 
 
@@ -68,40 +73,55 @@ function BatchAnalysisDialog({
     const scamType =
         row["Predicted Scam Type"] || "Unknown";
 
+
     const confidence =
         row["Confidence Score (ML Model)"] || "N/A";
+
 
     const confidenceLevel =
         row["Confidence Level (ML Model Certainty)"] || "N/A";
 
+
     const confidenceGapRaw =
-    row["Confidence Gap (Top 1 vs Top 2 Model Prediction Score Difference)"];
+        row[
+            "Confidence Gap (Top 1 vs Top 2 Model Prediction Score Difference)"
+        ];
+
 
     const confidenceGap =
-    confidenceGapRaw !== undefined &&
-    confidenceGapRaw !== null &&
-    confidenceGapRaw !== ""
-        ? parseFloat(
-            String(confidenceGapRaw).replace("%", "")
-        )
-        : null;
+        confidenceGapRaw !== undefined &&
+        confidenceGapRaw !== null &&
+        confidenceGapRaw !== ""
+            ? parseFloat(
+                String(confidenceGapRaw).replace("%", "")
+            )
+            : null;
+
 
     const confidenceGapDisplay =
         confidenceGap !== null
             ? `${confidenceGap.toFixed(2)}%`
             : "N/A";
 
+
     const riskLevel =
-        row["Risk Level (Final ScamSense Assessment)"] || "N/A";
+        row[
+            "Risk Level (Final ScamSense Assessment)"
+        ] || "N/A";
+
 
     const verification =
-        row["Cross-Verification (Model Agreement)"] ||
+        row[
+            "Cross-Verification (Model Agreement)"
+        ] ||
         "No - Not required";
+
 
     const requiresVerification =
         row[
             "Cross-Verification (Model Agreement)"
         ]?.startsWith("Yes");
+
 
     // ==========================================
     // Risk colour
@@ -122,6 +142,7 @@ function BatchAnalysisDialog({
 
             default:
                 return "default";
+
         }
 
     };
@@ -146,9 +167,11 @@ function BatchAnalysisDialog({
 
             default:
                 return "default";
+
         }
 
     };
+
 
     // ==========================================
     // Confidence reasoning
@@ -160,15 +183,13 @@ function BatchAnalysisDialog({
             confidence === "N/A" ||
             confidenceLevel === "N/A"
         ) {
+
             return (
                 "Confidence information is unavailable."
             );
+
         }
 
-        const confidenceValue =
-            parseFloat(
-                confidence.replace("%", "")
-            );
 
         if (
             confidenceLevel.toLowerCase() === "high"
@@ -179,15 +200,21 @@ function BatchAnalysisDialog({
                 return (
                     <>
                         The ML model has{" "}
-                        <strong>high confidence ({confidence})</strong>.
+                        <strong>
+                            high confidence ({confidence})
+                        </strong>.
                         The prediction has a confidence score of{" "}
                         <strong>{confidence}</strong>, which meets the
                         minimum <strong>80.00% model confidence</strong>{" "}
                         required for a high-confidence classification.
                         The confidence gap of{" "}
-                        <strong>{confidenceGap.toFixed(2)}%</strong>{" "}
+                        <strong>
+                            {confidenceGap.toFixed(2)}%
+                        </strong>{" "}
                         also meets the minimum{" "}
-                        <strong>15.00% confidence-gap threshold</strong>,
+                        <strong>
+                            15.00% confidence-gap threshold
+                        </strong>,
                         meaning the highest-scoring prediction is at least
                         15 percentage points ahead of the
                         second-highest prediction.
@@ -196,17 +223,23 @@ function BatchAnalysisDialog({
 
             }
 
+
             return (
                 <>
                     The ML model has{" "}
-                    <strong>high confidence ({confidence})</strong>.
+                    <strong>
+                        high confidence ({confidence})
+                    </strong>.
                     The model confidence meets the minimum{" "}
-                    <strong>80.00% confidence threshold</strong>
+                    <strong>
+                        80.00% confidence threshold
+                    </strong>
                     required for a high-confidence classification.
                 </>
             );
 
         }
+
 
         if (
             confidenceLevel.toLowerCase() === "medium"
@@ -217,7 +250,9 @@ function BatchAnalysisDialog({
                 return (
                     <>
                         The ML model has{" "}
-                        <strong>medium confidence ({confidence})</strong>.
+                        <strong>
+                            medium confidence ({confidence})
+                        </strong>.
                         The model confidence does not fully satisfy
                         the criteria for a high-confidence prediction.
                         The confidence gap between the highest and
@@ -226,23 +261,29 @@ function BatchAnalysisDialog({
                             {confidenceGap.toFixed(2)}%
                         </strong>,
                         compared with the required{" "}
-                        <strong>15.00% confidence-gap threshold</strong>
+                        <strong>
+                            15.00% confidence-gap threshold
+                        </strong>
                         for high-confidence classification.
                     </>
                 );
 
             }
 
+
             return (
                 <>
                     The ML model has{" "}
-                    <strong>medium confidence ({confidence})</strong>.
+                    <strong>
+                        medium confidence ({confidence})
+                    </strong>.
                     The prediction does not fully satisfy the
                     criteria for a high-confidence classification.
                 </>
             );
 
         }
+
 
         if (
             confidenceLevel.toLowerCase() === "low"
@@ -251,9 +292,13 @@ function BatchAnalysisDialog({
             return (
                 <>
                     The ML model has{" "}
-                    <strong>low confidence ({confidence})</strong>.
+                    <strong>
+                        low confidence ({confidence})
+                    </strong>.
                     The model confidence is below the{" "}
-                    <strong>60.00% low-confidence threshold</strong>,
+                    <strong>
+                        60.00% low-confidence threshold
+                    </strong>,
                     so additional internal cross-verification is
                     required to increase confidence in the final
                     classification.
@@ -262,12 +307,14 @@ function BatchAnalysisDialog({
 
         }
 
+
         return (
             <>
                 The ML model produced a confidence score of{" "}
                 <strong>{confidence}</strong>.
             </>
         );
+
     };
 
 
@@ -286,6 +333,7 @@ function BatchAnalysisDialog({
 
         }
 
+
         return (
             verification ||
             "Additional internal cross-verification was not required because the ML prediction met the required confidence criteria."
@@ -297,17 +345,49 @@ function BatchAnalysisDialog({
     return (
 
         <Dialog
+
             open={open}
+
             onClose={onClose}
+
             maxWidth="lg"
+
             fullWidth
+
             PaperProps={{
+
                 sx: {
+
                     borderRadius: 4,
+
                     maxHeight: "88vh",
-                    mb: 8
+
+                    mb: 8,
+
+                    /*
+                     * FORCE MUI DIALOG TO FOLLOW
+                     * SCAMSENSE THEME
+                     */
+
+                    backgroundColor:
+                        "var(--card) !important",
+
+                    color:
+                        "var(--card-foreground) !important",
+
+                    border:
+                        "1px solid var(--border)",
+
+                    backgroundImage:
+                        "none !important",
+
+                    boxShadow:
+                        "0 20px 60px rgba(0, 0, 0, 0.25)"
+
                 }
+
             }}
+
         >
 
             {/* =====================================
@@ -315,16 +395,43 @@ function BatchAnalysisDialog({
             ====================================== */}
 
             <DialogTitle
+
                 sx={{
+
                     fontWeight: "bold",
-                    fontSize: 28
+
+                    fontSize: 28,
+
+                    color:
+                        "var(--foreground) !important"
+
                 }}
+
             >
+
                 AI Analysis Report
+
             </DialogTitle>
 
 
-            <DialogContent dividers>
+            <DialogContent
+
+                dividers
+
+                sx={{
+
+                    backgroundColor:
+                        "var(--card) !important",
+
+                    color:
+                        "var(--foreground) !important",
+
+                    borderColor:
+                        "var(--border) !important"
+
+                }}
+
+            >
 
                 {/* =====================================
                     ORIGINAL MESSAGE
@@ -340,17 +447,34 @@ function BatchAnalysisDialog({
                         variant="h6"
                         fontWeight="bold"
                         gutterBottom
-                    >
-                        Original Message
-                    </Typography>
-
-                    <Typography
                         sx={{
-                            mt: 2,
-                            lineHeight: 1.8
+                            color:
+                                "var(--foreground)"
                         }}
                     >
+
+                        Original Message
+
+                    </Typography>
+
+
+                    <Typography
+
+                        sx={{
+
+                            mt: 2,
+
+                            lineHeight: 1.8,
+
+                            color:
+                                "var(--foreground)"
+
+                        }}
+
+                    >
+
                         {row.Text}
+
                     </Typography>
 
                 </Box>
@@ -374,11 +498,19 @@ function BatchAnalysisDialog({
                     <Grid size={{ xs: 12, md: 3 }}>
 
                         <Typography
-                            color="text.secondary"
-                            sx={{ mb: 1 }}
+
+                            sx={{
+                                mb: 1,
+                                color:
+                                    "var(--muted-foreground)"
+                            }}
+
                         >
+
                             Scam Type
+
                         </Typography>
+
 
                         <Chip
                             label={scamType}
@@ -397,16 +529,33 @@ function BatchAnalysisDialog({
                     <Grid size={{ xs: 12, md: 3 }}>
 
                         <Typography
-                            color="text.secondary"
-                            sx={{ mb: 1 }}
+
+                            sx={{
+                                mb: 1,
+                                color:
+                                    "var(--muted-foreground)"
+                            }}
+
                         >
+
                             Confidence
+
                         </Typography>
 
+
                         <Typography
+
                             fontWeight="bold"
+
+                            sx={{
+                                color:
+                                    "var(--foreground)"
+                            }}
+
                         >
+
                             {confidence}
+
                         </Typography>
 
                     </Grid>
@@ -417,17 +566,27 @@ function BatchAnalysisDialog({
                     <Grid size={{ xs: 12, md: 3 }}>
 
                         <Typography
-                            color="text.secondary"
-                            sx={{ mb: 1 }}
+
+                            sx={{
+                                mb: 1,
+                                color:
+                                    "var(--muted-foreground)"
+                            }}
+
                         >
+
                             Confidence Level
+
                         </Typography>
+
 
                         <Chip
                             label={confidenceLevel}
-                            color={getConfidenceColor(
-                                confidenceLevel
-                            )}
+                            color={
+                                getConfidenceColor(
+                                    confidenceLevel
+                                )
+                            }
                         />
 
                     </Grid>
@@ -438,17 +597,27 @@ function BatchAnalysisDialog({
                     <Grid size={{ xs: 12, md: 3 }}>
 
                         <Typography
-                            color="text.secondary"
-                            sx={{ mb: 1 }}
+
+                            sx={{
+                                mb: 1,
+                                color:
+                                    "var(--muted-foreground)"
+                            }}
+
                         >
+
                             Risk Level
+
                         </Typography>
+
 
                         <Chip
                             label={riskLevel}
-                            color={getRiskColor(
-                                riskLevel
-                            )}
+                            color={
+                                getRiskColor(
+                                    riskLevel
+                                )
+                            }
                         />
 
                     </Grid>
@@ -461,52 +630,114 @@ function BatchAnalysisDialog({
                 ====================================== */}
 
                 <Box
+
                     sx={{
+
                         mb: 4,
+
                         p: 2,
+
                         borderRadius: 2,
-                        backgroundColor: "#F8FAFC",
-                        border: "1px solid #E5E7EB"
+
+                        backgroundColor:
+                            "var(--muted) !important",
+
+                        border:
+                            "1px solid var(--border)",
+
+                        color:
+                            "var(--foreground)"
+
                     }}
+
                 >
 
                     <Typography
+
                         fontWeight={700}
-                        sx={{ mb: 1 }}
+
+                        sx={{
+
+                            mb: 1,
+
+                            color:
+                                "var(--foreground)"
+
+                        }}
+
                     >
+
                         Internal Cross-Verification
+
                     </Typography>
 
+
                     <Typography
+
                         variant="body2"
-                        color="text.secondary"
+
+                        sx={{
+
+                            color:
+                                "var(--muted-foreground)"
+
+                        }}
+
                     >
+
                         {verification}
+
                     </Typography>
 
                 </Box>
-                
+
 
                 {/* =====================================
                     ASSESSMENT REASONING
                 ====================================== */}
 
                 <Box
+
                     sx={{
+
                         mb: 4,
+
                         p: 3,
+
                         borderRadius: 3,
-                        backgroundColor: "#F8FAFC",
-                        border: "1px solid #E5E7EB"
+
+                        backgroundColor:
+                            "var(--muted) !important",
+
+                        border:
+                            "1px solid var(--border)",
+
+                        color:
+                            "var(--foreground)"
+
                     }}
+
                 >
 
                     <Typography
+
                         variant="h6"
+
                         fontWeight={700}
-                        sx={{ mb: 2 }}
+
+                        sx={{
+
+                            mb: 2,
+
+                            color:
+                                "var(--foreground)"
+
+                        }}
+
                     >
+
                         Assessment Details
+
                     </Typography>
 
 
@@ -515,18 +746,42 @@ function BatchAnalysisDialog({
                     <Box sx={{ mb: 2.5 }}>
 
                         <Typography
+
                             fontWeight={700}
-                            sx={{ mb: 0.5 }}
+
+                            sx={{
+
+                                mb: 0.5,
+
+                                color:
+                                    "var(--foreground)"
+
+                            }}
+
                         >
+
                             Confidence Assessment
+
                         </Typography>
 
+
                         <Typography
+
                             variant="body2"
-                            color="text.secondary"
-                            sx={{ lineHeight: 1.7 }}
+
+                            sx={{
+
+                                color:
+                                    "var(--muted-foreground)",
+
+                                lineHeight: 1.7
+
+                            }}
+
                         >
+
                             {getConfidenceReason()}
+
                         </Typography>
 
                     </Box>
@@ -539,17 +794,40 @@ function BatchAnalysisDialog({
                         <Box sx={{ mb: 2.5 }}>
 
                             <Typography
+
                                 fontWeight={700}
-                                sx={{ mb: 0.5 }}
+
+                                sx={{
+
+                                    mb: 0.5,
+
+                                    color:
+                                        "var(--foreground)"
+
+                                }}
+
                             >
+
                                 Confidence Gap
+
                             </Typography>
 
+
                             <Typography
+
                                 variant="body2"
-                                color="text.secondary"
-                                sx={{ lineHeight: 1.7 }}
+
+                                sx={{
+
+                                    color:
+                                        "var(--muted-foreground)",
+
+                                    lineHeight: 1.7
+
+                                }}
+
                             >
+
                                 The difference between the highest and
                                 second-highest ML predictions was{" "}
                                 <strong>
@@ -559,6 +837,7 @@ function BatchAnalysisDialog({
                                 <strong>15.00%</strong> is required for the
                                 prediction to be classified as
                                 <strong> high confidence</strong>.
+
                             </Typography>
 
                         </Box>
@@ -571,16 +850,38 @@ function BatchAnalysisDialog({
                     <Box sx={{ mb: 2.5 }}>
 
                         <Typography
+
                             fontWeight={700}
-                            sx={{ mb: 0.5 }}
+
+                            sx={{
+
+                                mb: 0.5,
+
+                                color:
+                                    "var(--foreground)"
+
+                            }}
+
                         >
+
                             Internal Cross-Verification
+
                         </Typography>
 
+
                         <Typography
+
                             variant="body2"
-                            color="text.secondary"
-                            sx={{ lineHeight: 1.7 }}
+
+                            sx={{
+
+                                color:
+                                    "var(--muted-foreground)",
+
+                                lineHeight: 1.7
+
+                            }}
+
                         >
 
                             {requiresVerification ? (
@@ -619,23 +920,47 @@ function BatchAnalysisDialog({
                     <Box>
 
                         <Typography
+
                             fontWeight={700}
-                            sx={{ mb: 0.5 }}
+
+                            sx={{
+
+                                mb: 0.5,
+
+                                color:
+                                    "var(--foreground)"
+
+                            }}
+
                         >
+
                             Risk Assessment
+
                         </Typography>
 
+
                         <Typography
+
                             variant="body2"
-                            color="text.secondary"
-                            sx={{ lineHeight: 1.7 }}
+
+                            sx={{
+
+                                color:
+                                    "var(--muted-foreground)",
+
+                                lineHeight: 1.7
+
+                            }}
+
                         >
+
                             The final ScamSense risk level is{" "}
                             <strong>{riskLevel}</strong>.
                             This is the final risk classification assigned
                             after considering the model prediction,
                             confidence level, and ScamSense assessment
                             rules.
+
                         </Typography>
 
                     </Box>
@@ -648,11 +973,14 @@ function BatchAnalysisDialog({
                 ====================================== */}
 
                 <InfoCard
+
                     title="AI Summary"
+
                     content={
                         row["AI Summary"] ||
                         "No information available."
                     }
+
                 />
 
 
@@ -662,18 +990,20 @@ function BatchAnalysisDialog({
 
                 <InfoCard
 
-                title={whyTitle}
+                    title={whyTitle}
 
-                content={
-                    row["Why Suspicious / Legitimate Explanation"] ||
-                    (
-                        isLegitimate
-                            ? "This message appears likely to be legitimate based on the ScamSense analysis."
-                            : "No additional explanation was provided."
-                    )
-                }
+                    content={
+                        row[
+                            "Why Suspicious / Legitimate Explanation"
+                        ] ||
+                        (
+                            isLegitimate
+                                ? "This message appears likely to be legitimate based on the ScamSense analysis."
+                                : "No additional explanation was provided."
+                        )
+                    }
 
-            />
+                />
 
 
                 {/* =====================================
@@ -681,11 +1011,15 @@ function BatchAnalysisDialog({
                 ====================================== */}
 
                 <Grid
+
                     container
+
                     spacing={3}
+
                     sx={{
                         mt: 2
                     }}
+
                 >
 
                     {/* Scam Indicators */}
@@ -698,10 +1032,13 @@ function BatchAnalysisDialog({
                     >
 
                         <BulletCard
+
                             title="Scam Indicators"
+
                             items={formatBulletItems(
                                 row["Scam Indicators"]
                             )}
+
                         />
 
                     </Grid>
@@ -717,10 +1054,13 @@ function BatchAnalysisDialog({
                     >
 
                         <BulletCard
+
                             title="Safety Advice"
+
                             items={formatBulletItems(
                                 row["Safety Advice"]
                             )}
+
                         />
 
                     </Grid>
@@ -736,10 +1076,13 @@ function BatchAnalysisDialog({
                     >
 
                         <BulletCard
+
                             title="Recommended Actions"
+
                             items={formatBulletItems(
                                 row["Recommended Actions"]
                             )}
+
                         />
 
                     </Grid>
@@ -755,10 +1098,13 @@ function BatchAnalysisDialog({
                     >
 
                         <BulletCard
+
                             title="Prevention Tips"
+
                             items={formatBulletItems(
                                 row["Prevention Tips"]
                             )}
+
                         />
 
                     </Grid>
@@ -772,13 +1118,58 @@ function BatchAnalysisDialog({
                 CLOSE BUTTON
             ====================================== */}
 
-            <DialogActions>
+            <DialogActions
+
+                sx={{
+
+                    backgroundColor:
+                        "var(--card) !important",
+
+                    borderTop:
+                        "1px solid var(--border)"
+
+                }}
+
+            >
 
                 <Button
+
                     variant="contained"
+
                     onClick={onClose}
+
+                    sx={{
+
+                        bgcolor:
+                            "var(--primary)",
+
+                        color:
+                            "var(--primary-foreground)",
+
+                        textTransform:
+                            "none",
+
+                        fontWeight: 600,
+
+                        boxShadow:
+                            "none",
+
+                        "&:hover": {
+
+                            bgcolor:
+                                "var(--primary-hover)",
+
+                            boxShadow:
+                                "none"
+
+                        }
+
+                    }}
+
                 >
+
                     Close
+
                 </Button>
 
             </DialogActions>
@@ -788,5 +1179,6 @@ function BatchAnalysisDialog({
     );
 
 }
+
 
 export default BatchAnalysisDialog;

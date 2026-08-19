@@ -175,99 +175,110 @@ function MessageScanPage({
         selectedFile !== null;
 
 
-    // ==========================================
-// MULTIPLE MESSAGE DETECTION
-// ==========================================
-
 // ==========================================
 // MULTIPLE MESSAGE DETECTION
 // ==========================================
 
 const detectMessageCount = (text) => {
 
+    // ------------------------------------------
+    // No input
+    // ------------------------------------------
+
     if (!text?.trim()) {
         return 0;
     }
+
 
     const normalizedText =
         text.trim();
 
 
-    // ==========================================
-    // 1. EXPLICIT MESSAGE LABELS
-    // ==========================================
-
-    const explicitMessagePatterns = [
-        /\bMessage\s+\d+\s*:/gi,
-        /\bSMS\s+\d+\s*:/gi,
-        /\bWhatsApp\s+\d+\s*:/gi,
-        /\bEmail\s+\d+\s*:/gi,
-    ];
-
-
     let detectedCount = 1;
 
 
-    explicitMessagePatterns.forEach(
-        (pattern) => {
-
-            const matches =
-                normalizedText.match(pattern);
-
-            if (
-                matches &&
-                matches.length > 1
-            ) {
-
-                detectedCount =
-                    Math.max(
-                        detectedCount,
-                        matches.length
-                    );
-
-            }
-
-        }
-    );
-
-
     // ==========================================
-    // 2. REPEATED "FROM:" HEADERS
+    // 1. EXPLICIT MESSAGE LABELS
+    //
+    // Supports:
+    //
+    // Message 1:
+    // Message 2:
+    //
+    // msg 1:
+    // msg 2:
+    //
+    // SMS 1:
+    // SMS 2:
+    //
+    // Email 1:
+    // Email 2:
+    //
+    // WhatsApp 1:
+    // WhatsApp 2:
+    //
+    // Also supports:
+    //
+    // msg1:
+    // msg2:
+    //
+    // msg #1:
+    // msg #2:
     // ==========================================
 
-    const fromHeaders =
+    const messageLabels =
         normalizedText.match(
-            /(?:^|\n)\s*From\s*:/gi
+            /(?:^|\n)\s*(?:message|msg|sms|email|whatsapp)\s*(?:#?\s*)?\d+\s*:/gi
         );
 
 
     if (
-        fromHeaders &&
-        fromHeaders.length > 1
+        messageLabels &&
+        messageLabels.length >= 2
     ) {
 
         detectedCount =
             Math.max(
                 detectedCount,
-                fromHeaders.length
+                messageLabels.length
             );
 
     }
 
 
     // ==========================================
-    // 3. NUMBERED MESSAGES
+    // 2. NUMBERED MESSAGE FORMAT
+    //
+    // Supports:
+    //
+    // 1. Message
+    // 2. Message
+    //
+    // 1.Message
+    // 2.Message
+    //
+    // 1) Message
+    // 2) Message
+    //
+    // 1)Message
+    // 2)Message
+    //
+    // 1: Message
+    // 2: Message
+    //
+    // 1:Message
+    // 2:Message
     // ==========================================
 
     const numberedMessages =
         normalizedText.match(
-            /(?:^|\n)\s*\d+\.\s+/g
+            /(?:^|\n)\s*\d+\s*[.):]\s*\S+/g
         );
 
 
     if (
         numberedMessages &&
-        numberedMessages.length > 1
+        numberedMessages.length >= 2
     ) {
 
         detectedCount =
@@ -280,48 +291,191 @@ const detectMessageCount = (text) => {
 
 
     // ==========================================
-    // 4. SEPARATED MESSAGE BLOCKS
+    // 3. REPEATED EMAIL SUBJECT HEADERS
     //
     // Example:
     //
-    // Message A
+    // Subject: Your account requires verification
     //
-    // Message B
+    // ...
+    //
+    // Subject: Your parcel requires attention
+    //
+    // ...
     // ==========================================
 
-    const blocks =
-        normalizedText
-            .split(/\n\s*\n+/)
-            .map(
-                (block) => block.trim()
-            )
-            .filter(Boolean);
+    const subjectHeaders =
+        normalizedText.match(
+            /(?:^|\n)\s*Subject\s*:/gi
+        );
 
 
-    if (blocks.length > 1) {
+    if (
+        subjectHeaders &&
+        subjectHeaders.length >= 2
+    ) {
 
-        // Only treat the blocks as separate
-        // messages if each block contains
-        // a reasonable amount of text.
+        detectedCount =
+            Math.max(
+                detectedCount,
+                subjectHeaders.length
+            );
 
-        const meaningfulBlocks =
-            blocks.filter(
-                (block) =>
-                    block.replace(
-                        /\s/g,
-                        ""
-                    ).length >= 20
+    }
+
+
+    // ==========================================
+    // 4. REPEATED FROM HEADERS
+    //
+    // Example:
+    //
+    // From: DBS Security Team
+    //
+    // ...
+    //
+    // From: SingPost Delivery
+    //
+    // ...
+    // ==========================================
+
+    const fromHeaders =
+        normalizedText.match(
+            /(?:^|\n)\s*From\s*:/gi
+        );
+
+
+    if (
+        fromHeaders &&
+        fromHeaders.length >= 2
+    ) {
+
+        detectedCount =
+            Math.max(
+                detectedCount,
+                fromHeaders.length
+            );
+
+    }
+
+
+    // ==========================================
+    // 5. EXPLICIT SEPARATOR LINES
+    //
+    // Supports:
+    //
+    // --------------------
+    // ====================
+    // ********************
+    //
+    // At least 3 separator
+    // characters are required.
+    // ==========================================
+
+    const separatorLines =
+        normalizedText.match(
+            /(?:^|\n)\s*[-=*]{3,}\s*(?:\n|$)/g
+        );
+
+
+    if (
+        separatorLines &&
+        separatorLines.length >= 1
+    ) {
+
+        detectedCount =
+            Math.max(
+                detectedCount,
+                separatorLines.length + 1
+            );
+
+    }
+
+
+    // ==========================================
+    // 6. DETECT EMAIL STRUCTURE
+    //
+    // We use this to prevent normal email
+    // bullet points from being treated as
+    // separate messages.
+    // ==========================================
+
+    const hasEmailGreeting =
+        /(?:^|\n)\s*(?:Dear\s+[^,\n]+,|Hi\s+[^,\n]+,|Hello\s+[^,\n]+,)/i
+            .test(normalizedText);
+
+
+    const hasEmailSignoff =
+        /(?:^|\n)\s*(?:Thank\s+you|Thanks|Regards|Best\s+regards|Kind\s+regards|Sincerely)[,\s]*$/i
+            .test(normalizedText);
+
+
+    const hasSubject =
+        /(?:^|\n)\s*Subject\s*:/i
+            .test(normalizedText);
+
+
+    const looksLikeEmail =
+        hasEmailGreeting ||
+        hasEmailSignoff ||
+        hasSubject;
+
+
+    // ==========================================
+    // 7. BULLET-POINT MESSAGES
+    //
+    // Supports:
+    //
+    // - Message
+    // - Message
+    //
+    // -Message
+    // -Message
+    //
+    // * Message
+    // * Message
+    //
+    // *Message
+    // *Message
+    //
+    // • Message
+    // • Message
+    //
+    // •Message
+    // •Message
+    //
+    // IMPORTANT:
+    //
+    // We only perform this check when the
+    // input does NOT look like a normal email.
+    //
+    // This prevents:
+    //
+    // Dear Customer,
+    //
+    // - Your account is safe.
+    // - Your transaction is complete.
+    //
+    // from being incorrectly detected as
+    // multiple messages.
+    // ==========================================
+
+    if (!looksLikeEmail) {
+
+        const bulletMessages =
+            normalizedText.match(
+                /(?:^|\n)\s*[-*•]\s*\S+/g
             );
 
 
         if (
-            meaningfulBlocks.length > 1
+            bulletMessages &&
+            bulletMessages.length >= 2
         ) {
 
             detectedCount =
                 Math.max(
                     detectedCount,
-                    meaningfulBlocks.length
+                    bulletMessages.length
                 );
 
         }
@@ -329,9 +483,18 @@ const detectMessageCount = (text) => {
     }
 
 
+    // ==========================================
+    // RETURN RESULT
+    // ==========================================
+
     return detectedCount;
+
 };
 
+
+// ==========================================
+// DETECTED MESSAGE STATE
+// ==========================================
 
 const detectedMessageCount =
     detectMessageCount(message);
