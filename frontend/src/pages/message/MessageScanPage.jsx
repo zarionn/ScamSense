@@ -721,11 +721,12 @@ const hasMultipleMessages =
                 rows.length;
 
 
-            const outputFilename =
-                result?.output_filename ||
-                result?.filename ||
-                selectedFile?.name ||
-                "ScamSense_Batch_Message_Analysis.xlsx";
+           const outputFilename =
+            result?.download_file ||
+            result?.output_filename ||
+            result?.filename ||
+            selectedFile?.name ||
+            "ScamSense_Batch_Message_Analysis.xlsx";
 
 
             // ==========================================
@@ -739,9 +740,7 @@ const hasMultipleMessages =
                     await saveMessageBatch({
                         userId: user.id,
 
-                        filename:
-                            selectedFile?.name ||
-                            outputFilename,
+                        filename: outputFilename,
 
                         totalMessages:
                             totalMessages,
@@ -914,10 +913,11 @@ const hasMultipleMessages =
         batchRows.length;
 
 
-    const outputFilename =
-        batchResult?.output_filename ||
-        batchResult?.filename ||
-        "ScamSense_Batch_Message_Analysis.xlsx";
+   const outputFilename =
+    batchResult?.download_file ||
+    batchResult?.output_filename ||
+    batchResult?.filename ||
+    "ScamSense_Batch_Message_Analysis.xlsx";
 
     // ==========================================
     // Load Message Scam Feature History
@@ -1024,7 +1024,7 @@ const handleOpenBatchHistory = (historyItem) => {
     // ==========================================
 
     const restoredFilename =
-    "ScamSense_Batch_Message_Analysis.xlsx";
+    historyItem.filename;
 
 
     const restoredFile =
@@ -1075,6 +1075,9 @@ const handleOpenBatchHistory = (historyItem) => {
 
         output_filename:
             restoredFilename,
+        
+        download_file:
+        restoredFilename,
 
     });
 
@@ -1827,26 +1830,25 @@ useEffect(() => {
                                         className="border-b border-border last:border-b-0 hover:bg-muted/20"
                                     >
 
-                                        <td className="px-5 py-4">
+                                        <td className="max-w-[300px] px-5 py-4">
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 min-w-0">
 
                                                 <DescriptionRounded
                                                     fontSize="small"
+                                                    className="shrink-0"
                                                 />
 
-                                                <span className="font-medium">
-
-                                                    {
-                                                        item.filename
-                                                    }
-
+                                                <span
+                                                    className="block truncate font-medium"
+                                                    title={item.filename}
+                                                >
+                                                    {item.filename}
                                                 </span>
 
                                             </div>
 
                                         </td>
-
 
                                         <td className="px-5 py-4">
 

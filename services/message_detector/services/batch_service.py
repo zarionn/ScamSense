@@ -6,6 +6,7 @@ import os
 
 import pandas as pd
 from pathlib import Path
+from datetime import datetime
 
 from openpyxl import load_workbook
 
@@ -551,14 +552,24 @@ def analyze_uploaded_dataset(file_path):
     # Output files
     # ---------------------------------------------
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+
+    output_filename = (
+        f"ScamSense_Batch_Message_Analysis_{timestamp}.xlsx"
+    )
+
+    csv_filename = (
+        f"ScamSense_Batch_Message_Analysis_{timestamp}.csv"
+    )
+
     excel_file = os.path.join(
         output_folder,
-        "ScamSense_Batch_Message_Analysis.xlsx"
+        output_filename
     )
 
     csv_file = os.path.join(
         output_folder,
-        "ScamSense_Batch_Message_Analysis.csv"
+        csv_filename
     )
 
 

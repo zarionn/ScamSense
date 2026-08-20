@@ -244,17 +244,19 @@ function UploadDatasetCard({
                                 }}
                             />
 
-                            <p
-                                className="
-                                    max-w-[90%]
-                                    break-words
-                                    text-sm
-                                    font-bold
-                                    text-foreground
-                                "
-                            >
-                                {selectedFile.name}
-                            </p>
+                           <p
+                            className="
+                                w-full
+                                max-w-[230px]
+                                truncate
+                                text-sm
+                                font-bold
+                                text-foreground
+                            "
+                            title={selectedFile.name}
+                        >
+                            {selectedFile.name}
+                        </p>
 
                         </div>
 
