@@ -78,23 +78,34 @@ async function requestAssistantReply(
   return data
 }
 
-
 // ==========================================================
 // EXTRACT ACTUAL MESSAGE FOR MESSAGE SCAN
 // ==========================================================
 //
-// Example:
+// Removes the user's instruction before the colon.
 //
-// User:
+// Examples:
+//
 // "Can you analyse this message:
-//  Dear Applicant, You have been selected..."
+// Dear Applicant, You have been selected..."
 //
-// Handoff:
+// → "Dear Applicant, You have been selected..."
 //
-// "Dear Applicant, You have been selected..."
+// "Can you check if my message is scam:
+// Dear Applicant, You have been selected..."
 //
-// This prevents the entire chatbot question from being
-// transferred into Message Scan.
+// → "Dear Applicant, You have been selected..."
+//
+// "Check this message:
+// Dear Customer, ..."
+//
+// → "Dear Customer, ..."
+//
+// "Is this a scam:
+// Your account has been suspended..."
+//
+// → "Your account has been suspended..."
+//
 // ==========================================================
 
 function extractMessageForHandoff(text) {
@@ -103,109 +114,79 @@ function extractMessageForHandoff(text) {
         return "";
     }
 
+    // Keep original text unchanged
+    const cleaned = text.trim();
 
-    const cleaned =
-        text.trim();
-
-
-    // =====================================================
-    // Find the last colon after common analysis phrases
-    // =====================================================
-
-    const analysisPattern =
-        /(?:can\s+you\s+)?(?:help\s+me\s+)?(?:to\s+)?(?:analyse|analyze)\s+(?:whether\s+)?(?:this\s+)?message(?:\s+is\s+(?:a\s+)?scam)?\s*:\s*([\s\S]+)$/i;
+    // Lowercase copy only for detecting the instruction
+    const normalized = cleaned.toLowerCase();
 
 
-    const analysisMatch =
-        cleaned.match(
-            analysisPattern
-        );
+    // ======================================================
+    // Find the first colon
+    // ======================================================
+
+    const colonIndex =
+        normalized.indexOf(":");
 
 
-    if (
-        analysisMatch?.[1]?.trim()
-    ) {
+    if (colonIndex === -1) {
+        return cleaned;
+    }
 
-        return analysisMatch[1].trim();
+
+    // ======================================================
+    // Get everything before the first colon
+    // ======================================================
+
+    const prefix =
+        normalized
+            .slice(0, colonIndex)
+            .trim();
+
+
+    // ======================================================
+    // Recognise common message-scan questions
+    // ======================================================
+
+    const isMessageQuestion =
+        prefix.includes("is this message scam") ||
+        prefix.includes("is this a message scam") ||
+        prefix.includes("is this scam") ||
+        prefix.includes("is this a scam") ||
+
+        prefix.includes("check if my message is scam") ||
+        prefix.includes("check if my message is a scam") ||
+
+        prefix.includes("check this message") ||
+        prefix.includes("scan this message") ||
+
+        prefix.includes("analyse this message") ||
+        prefix.includes("analyze this message") ||
+
+        prefix.startsWith("message") ||
+        prefix.startsWith("sms") ||
+        prefix.startsWith("whatsapp") ||
+        prefix.startsWith("email");
+
+
+    // ======================================================
+    // Remove the instruction before the colon
+    // ======================================================
+
+    if (isMessageQuestion) {
+
+        return cleaned
+            .slice(colonIndex + 1)
+            .trim();
 
     }
 
 
-    // =====================================================
-    // "message: ..."
-    // =====================================================
-
-    const messagePattern =
-        /(?:message|sms|whatsapp|email)\s*:\s*([\s\S]+)$/i;
-
-
-    const messageMatch =
-        cleaned.match(
-            messagePattern
-        );
-
-
-    if (
-        messageMatch?.[1]?.trim()
-    ) {
-
-        return messageMatch[1].trim();
-
-    }
-
-
-    // =====================================================
-    // "check this message: ..."
-    // =====================================================
-
-    const checkPattern =
-        /(?:check|scan)\s+(?:this\s+)?message\s*:\s*([\s\S]+)$/i;
-
-
-    const checkMatch =
-        cleaned.match(
-            checkPattern
-        );
-
-
-    if (
-        checkMatch?.[1]?.trim()
-    ) {
-
-        return checkMatch[1].trim();
-
-    }
-
-
-    // =====================================================
-    // "is this a scam: ..."
-    // =====================================================
-
-    const scamPattern =
-        /is\s+this\s+(?:a\s+)?scam\s*:\s*([\s\S]+)$/i;
-
-
-    const scamMatch =
-        cleaned.match(
-            scamPattern
-        );
-
-
-    if (
-        scamMatch?.[1]?.trim()
-    ) {
-
-        return scamMatch[1].trim();
-
-    }
-
-
-    // =====================================================
-    // Fallback
-    // =====================================================
+    // ======================================================
+    // Otherwise, treat the entire input as the message
+    // ======================================================
 
     return cleaned;
-
 }
 
 
@@ -898,11 +879,7 @@ export default function AssistantPage({
         // ==================================================
 
         const messageForHandoff =
-          awaitingMessageInput
-            ? userText
-            : extractMessageForHandoff(
-                userText
-              )
+    extractMessageForHandoff(userText)
 
 
         // ==================================================
