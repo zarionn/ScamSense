@@ -8,7 +8,7 @@ import {
     ImageSearchRounded
 } from "@mui/icons-material";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
@@ -37,20 +37,32 @@ function MessageInputCard({
     detectedMessageCount,
 }) {
 
-
     const imageInputRef = useRef(null);
+    const [hasInteracted, setHasInteracted] = useState(false);
+
 
     // ==========================================
-    // VALIDATION
-    // ==========================================
+// VALIDATION
+// ==========================================
 
-    const meaningfulText = message
-        .replace(/[^a-zA-Z0-9]/g, "")
-        .trim();
+const meaningfulText = message
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .trim();
 
 
-    let inputError = "";
+let inputError = "";
 
+
+/*
+    Do not show validation errors when the page
+    first loads.
+
+    Once the user has interacted with the input,
+    validation will continue even when the input
+    becomes empty again.
+*/
+
+if (hasInteracted) {
 
     if (message.length === 0) {
 
@@ -80,69 +92,87 @@ function MessageInputCard({
 
     }
 
+}
+
 
     // ==========================================
     // HANDLE INPUT
     // ==========================================
 
-    const handleMessageChange = (event) => {
+   const handleMessageChange = (event) => {
 
-        setMessage(event.target.value);
+    setHasInteracted(true);
+
+    setMessage(event.target.value);
+
+};
+
+    // ==========================================
+    // HANDLE OCR IMAGE
+    // ==========================================
+
+    const handleOCRImageSelected = (event) => {
+
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+
+        const allowedTypes = [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/webp",
+        ];
+
+
+        if (!allowedTypes.includes(file.type)) {
+
+            alert(
+                "Please upload a PNG, JPG or WEBP image."
+            );
+
+            event.target.value = "";
+
+            return;
+        }
+
+
+        const MAX_SIZE = 10 * 1024 * 1024;
+
+
+        if (file.size > MAX_SIZE) {
+
+            alert(
+                "Image size must be less than 10 MB."
+            );
+
+            event.target.value = "";
+
+            return;
+        }
+
+
+        onOpenOCR?.(file);
+
+        event.target.value = "";
 
     };
 
 
-    const handleOCRImageSelected = (event) => {
+    // ==========================================
+    // DETERMINE IF INPUT IS EMPTY
+    // ==========================================
 
-    const file = event.target.files?.[0];
-
-    if (!file) {
-        return;
-    }
-
-
-    const allowedTypes = [
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-        "image/webp",
-    ];
+    const isMessageEmpty =
+        message.trim().length === 0;
 
 
-    if (!allowedTypes.includes(file.type)) {
-
-        alert(
-            "Please upload a PNG, JPG or WEBP image."
-        );
-
-        event.target.value = "";
-
-        return;
-    }
-
-
-    const MAX_SIZE = 10 * 1024 * 1024;
-
-
-    if (file.size > MAX_SIZE) {
-
-        alert(
-            "Image size must be less than 10 MB."
-        );
-
-        event.target.value = "";
-
-        return;
-    }
-
-
-    onOpenOCR?.(file);
-
-
-    event.target.value = "";
-
-};
-
+    // ==========================================
+    // RENDER
+    // ==========================================
 
     return (
 
@@ -162,7 +192,9 @@ function MessageInputCard({
             ========================================== */}
 
             <h2 className="mb-6 text-xl font-semibold text-foreground">
+
                 1. Enter or Paste the Message or Upload Excel File
+
             </h2>
 
 
@@ -174,6 +206,11 @@ function MessageInputCard({
                 ========================================== */}
 
                 <div className="flex flex-col md:col-span-8">
+
+
+                    {/* ==========================================
+                        MESSAGE INPUT
+                    ========================================== */}
 
                     <TextField
 
@@ -195,11 +232,18 @@ function MessageInputCard({
                             selectedFile !== null
                         }
 
-                        error={Boolean(inputError)}
+                        error={
+                            Boolean(inputError)
+                        }
 
                         helperText={
-                            inputError ||
-                            "Enter a suspicious SMS, WhatsApp or Email message."
+
+                            inputError
+
+                                ? inputError
+
+                                : "Enter a suspicious SMS, WhatsApp or Email message."
+
                         }
 
                         inputProps={{
@@ -277,36 +321,73 @@ function MessageInputCard({
 
                     />
 
+
+                    {/* ==========================================
+                        MULTIPLE MESSAGE WARNING
+                    ========================================== */}
+
                     {hasMultipleMessages && (
-    <Alert
-        severity="warning"
-        sx={{
-            mt: 1.5,
-            borderRadius: 2,
-        }}
-    >
-        <strong>Multiple messages detected.</strong>{" "}
-        We detected {detectedMessageCount} messages in your input.
-        Single Message Analysis accepts only one message at a time.
-        To analyse multiple messages, use the{" "}
-        <strong>Upload Excel Dataset</strong> option. Create a{" "}
-        <strong>Text</strong> column and enter each message in a
-        separate row.
-    </Alert>
-)}
+
+                        <Alert
+                            severity="warning"
+                            sx={{
+                                mt: 1.5,
+                                borderRadius: 2,
+                            }}
+                        >
+
+                            <strong>
+                                Multiple messages detected.
+                            </strong>{" "}
+
+                            We detected {detectedMessageCount} messages
+                            in your input.
+
+                            Single Message Analysis accepts only one
+                            message at a time.
+
+                            To analyse multiple messages, use the{" "}
+
+                            <strong>
+                                Upload Excel Dataset
+                            </strong>{" "}
+
+                            option.
+
+                            Create a{" "}
+
+                            <strong>
+                                Text
+                            </strong>{" "}
+
+                            column and enter each message in a
+                            separate row.
+
+                        </Alert>
+
+                    )}
+
+
+                    {/* ==========================================
+                        HIDDEN OCR FILE INPUT
+                    ========================================== */}
 
                     <input
-    ref={imageInputRef}
-    type="file"
-    accept="image/png,image/jpeg,image/webp"
-    className="hidden"
-    onChange={handleOCRImageSelected}
-    disabled={
-        loading ||
-        batchLoading ||
-        selectedFile !== null
-    }
-/>
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+
+                        onChange={
+                            handleOCRImageSelected
+                        }
+
+                        disabled={
+                            loading ||
+                            batchLoading ||
+                            selectedFile !== null
+                        }
+                    />
 
 
                     {/* ==========================================
@@ -315,9 +396,13 @@ function MessageInputCard({
 
                     <div className="mt-3 flex items-center justify-between">
 
+
                         <div className="flex gap-2">
 
-                            {/* Analyze */}
+
+                            {/* ==========================================
+                                ANALYZE MESSAGE
+                            ========================================== */}
 
                             <Button
 
@@ -330,13 +415,19 @@ function MessageInputCard({
                                 onClick={onAnalyze}
 
                                 disabled={
+
                                     loading ||
+
                                     batchLoading ||
+
+                                    isMessageEmpty ||
+
                                     Boolean(inputError) ||
+
                                     hasMultipleMessages
+
                                 }
 
-                               
                                 sx={{
 
                                     bgcolor:
@@ -370,26 +461,40 @@ function MessageInputCard({
                                 }}
 
                             >
+
                                 Analyze Message
+
                             </Button>
 
 
-                            {/* Extract Text from Image */}
+                            {/* ==========================================
+                                EXTRACT TEXT FROM IMAGE
+                            ========================================== */}
 
                             <Button
+
                                 variant="outlined"
+
                                 startIcon={
                                     <ImageSearchRounded />
                                 }
+
                                 onClick={() =>
                                     imageInputRef.current?.click()
                                 }
+
                                 disabled={
+
                                     loading ||
+
                                     batchLoading ||
+
                                     selectedFile !== null
+
                                 }
+
                                 sx={{
+
                                     color:
                                         "var(--primary)",
 
@@ -414,13 +519,19 @@ function MessageInputCard({
                                             "color-mix(in oklch, var(--primary) 8%, transparent)"
 
                                     }
+
                                 }}
+
                             >
+
                                 Extract Text
+
                             </Button>
 
 
-                            {/* Clear */}
+                            {/* ==========================================
+                                CLEAR
+                            ========================================== */}
 
                             <Button
 
@@ -430,7 +541,13 @@ function MessageInputCard({
                                     <RestartAltRoundedIcon />
                                 }
 
-                                onClick={onClear}
+                                onClick={() => {
+
+                                    setHasInteracted(false);
+
+                                    onClear();
+
+                                }}
 
                                 disabled={
                                     loading ||
@@ -467,13 +584,18 @@ function MessageInputCard({
                                 }}
 
                             >
+
                                 Clear
+
                             </Button>
+
 
                         </div>
 
 
-                        {/* Counter */}
+                        {/* ==========================================
+                            CHARACTER COUNTER
+                        ========================================== */}
 
                         <CharacterCounter
                             current={message.length}
@@ -501,9 +623,13 @@ function MessageInputCard({
 
                         setSelectedFile={setSelectedFile}
 
-                        isSingleMessageMode={isSingleMessageMode}
+                        isSingleMessageMode={
+                            isSingleMessageMode
+                        }
 
-                        onAnalyzeDataset={onAnalyzeDataset}
+                        onAnalyzeDataset={
+                            onAnalyzeDataset
+                        }
 
                     />
 
@@ -516,5 +642,6 @@ function MessageInputCard({
     );
 
 }
+
 
 export default MessageInputCard;

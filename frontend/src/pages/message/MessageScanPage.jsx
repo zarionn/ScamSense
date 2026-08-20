@@ -65,6 +65,49 @@ function MessageScanPage({
 
     const [message, setMessage] = useState("");
 
+    // ==========================================
+// ASSISTANT MESSAGE HANDOFF
+// ==========================================
+
+useEffect(() => {
+
+    if (!initialMessage?.trim()) {
+        return;
+    }
+
+    // Put the chatbot message into
+    // the Message Scan input
+    setMessage(initialMessage);
+
+    // Clear batch mode
+    setSelectedFile(null);
+
+    setIsRestoredBatchHistory(false);
+
+    // Clear previous results
+    setAnalysisResult(null);
+
+    setBatchResult(null);
+
+    setSelectedBatchRow(null);
+
+    setDialogOpen(false);
+
+    // Tell App.jsx that the message
+    // has been consumed
+    onInitialMessageConsumed?.();
+
+    // Scroll to the top of Message Scan
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+    });
+
+}, [
+    initialMessage,
+    onInitialMessageConsumed,
+]);
+
 
     // ==========================================
     // OCR STATE
@@ -83,16 +126,34 @@ function MessageScanPage({
 
     useEffect(() => {
 
-        if (!initialMessage) {
-            return;
-        }
+    if (!initialFile) {
+        return;
+    }
 
-        setMessage(initialMessage);
+    // ==========================================
+    // NEW REAL FILE FROM ASSISTANT
+    // ==========================================
 
-        onInitialMessageConsumed?.();
+    setMessage("");
 
-    }, [initialMessage, onInitialMessageConsumed]);
+    setSelectedFile(initialFile);
 
+    setIsRestoredBatchHistory(false);
+
+    setAnalysisResult(null);
+
+    setBatchResult(null);
+
+    setSelectedBatchRow(null);
+
+    setDialogOpen(false);
+
+    onInitialFileConsumed?.();
+
+}, [
+    initialFile,
+    onInitialFileConsumed,
+]);
 
 
     // ==========================================
@@ -100,6 +161,7 @@ function MessageScanPage({
     // ==========================================
 
     const [selectedFile, setSelectedFile] = useState(null);
+    const [isRestoredBatchHistory, setIsRestoredBatchHistory] = useState(false);
 
 
     // ==========================================
@@ -600,6 +662,21 @@ const hasMultipleMessages =
             return;
         }
 
+
+    // ==========================================
+    // PREVENT RE-ANALYSING RESTORED HISTORY
+    // ==========================================
+
+    if (isRestoredBatchHistory) {
+
+        alert(
+            "This is a previous batch analysis. Please upload the original Excel or CSV file again if you want to run a new analysis."
+        );
+
+        return;
+
+    }
+
         try {
 
             setAnalysisResult(null);
@@ -801,20 +878,21 @@ const hasMultipleMessages =
 
     const handleClear = () => {
 
-        setMessage("");
+    setMessage("");
 
-        setSelectedFile(null);
+    setSelectedFile(null);
 
-        setAnalysisResult(null);
+    setIsRestoredBatchHistory(false);
 
-        setBatchResult(null);
+    setAnalysisResult(null);
 
-        setSelectedBatchRow(null);
+    setBatchResult(null);
 
-        setDialogOpen(false);
+    setSelectedBatchRow(null);
 
-    };
+    setDialogOpen(false);
 
+};
 
     // ==========================================
     // BATCH RESULT VALUES
@@ -932,18 +1010,59 @@ const handleOpenBatchHistory = (historyItem) => {
     const restoredRows =
         historyItem.analysis_results || [];
 
+
+    // ==========================================
+    // RESTORE ORIGINAL FILE DISPLAY
+    // ==========================================
+    //
+    // The actual browser File object cannot be
+    // restored from Supabase.
+    //
+    // We recreate a display-only File object
+    // using the saved filename so the upload
+    // component can show the previous file.
+    // ==========================================
+
+    const restoredFilename =
+    "ScamSense_Batch_Message_Analysis.xlsx";
+
+
+    const restoredFile =
+        new File(
+            [],
+            restoredFilename,
+            {
+                type:
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }
+        );
+
+
+    // ==========================================
+    // RESTORE UI STATE
+    // ==========================================
+
     setMessage("");
 
     setAnalysisResult(null);
 
-    setSelectedFile(null);
+    setSelectedFile(restoredFile);
+
+    setIsRestoredBatchHistory(true);
 
     setSelectedBatchRow(null);
 
     setDialogOpen(false);
 
+
+    // ==========================================
+    // RESTORE BATCH RESULTS
+    // ==========================================
+
     setBatchResult({
-        results: restoredRows,
+
+        results:
+            restoredRows,
 
         total_messages:
             historyItem.total_messages,
@@ -952,17 +1071,28 @@ const handleOpenBatchHistory = (historyItem) => {
             historyItem.successful_analyses,
 
         filename:
-            historyItem.filename,
+            restoredFilename,
 
         output_filename:
-            historyItem.filename,
+            restoredFilename,
+
     });
 
+
+    // ==========================================
+    // SCROLL BACK TO THE ANALYSIS AREA
+    // ==========================================
+
     window.scrollTo({
+
         top: 0,
+
         behavior: "smooth",
+
     });
+
 };
+
 
 // scroll to view history section
 const handleViewHistory = () => {
@@ -1109,8 +1239,13 @@ useEffect(() => {
     onOpenOCR={handleOpenOCR}
 
     selectedFile={selectedFile}
-    setSelectedFile={setSelectedFile}
+    setSelectedFile={(file) => {
 
+    setSelectedFile(file);
+
+    setIsRestoredBatchHistory(false);
+
+    }}
     isSingleMessageMode={isSingleMessageMode}
     isBatchMode={isBatchMode}
 
