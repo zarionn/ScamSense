@@ -129,6 +129,7 @@ function extractMessageForHandoff(text) {
         normalized.indexOf(":");
 
 
+    // Check If there is no colon, then the function simply returns the entire input:
     if (colonIndex === -1) {
         return cleaned;
     }
