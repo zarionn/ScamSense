@@ -303,26 +303,26 @@ def format_retrieved_knowledge(
     ):
 
         formatted_chunk = f"""
-KNOWLEDGE RESULT {i}
+        KNOWLEDGE RESULT {i}
 
-Category:
-{chunk["category"]}
+        Category:
+        {chunk["category"]}
 
-Section:
-{chunk["section"]}
+        Section:
+        {chunk["section"]}
 
-Source:
-{chunk["source"]}
+        Source:
+        {chunk["source"]}
 
-Semantic Similarity:
-{chunk["semantic_score"]:.4f}
+        Semantic Similarity:
+        {chunk["semantic_score"]:.4f}
 
-Retrieval Score:
-{chunk["final_score"]:.4f}
+        Retrieval Score:
+        {chunk["final_score"]:.4f}
 
-Relevant Information:
-{chunk["text"]}
-""".strip()
+        Relevant Information:
+        {chunk["text"]}
+        """.strip()
 
 
         formatted_chunks.append(
